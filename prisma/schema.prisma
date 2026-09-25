@@ -1,0 +1,170 @@
+// Prisma schema — supports SQLite locally and PostgreSQL on Vercel
+// Local dev: DATABASE_URL="file:./dev.db" (set in .env.local)
+// Production: DATABASE_URL="postgresql://..." (set as Vercel env var)
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+model User {
+  id            String          @id @default(uuid())
+  email         String          @unique
+  name          String
+  role          String          @default("STUDENT") // STUDENT, AGENT, ADMIN
+  avatar        String?
+  phone         String?
+  whatsapp      String?
+  city          String?
+  currentSchool String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  agentProfile  AgentProfile?
+  listings      Listing[]       @relation("AgentListings")
+  requests      HousingRequest[] @relation("StudentRequests")
+  proposals     Proposal[]      @relation("AgentProposals")
+  sentMessages     Message[]    @relation("SentMessages")
+  reviewsWritten   Review[]     @relation("StudentReviews")
+  reportsCreated   Report[]     @relation("UserReports")
+}
+
+model AgentProfile {
+  id                    String      @id @default(uuid())
+  userId                String      @unique
+  user                  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agencyName            String?
+  ninNumber             String?
+  idDocumentUrl         String?
+  verificationStatus    String      @default("UNVERIFIED") // UNVERIFIED, PENDING, VERIFIED, REJECTED
+  verificationNotes     String?
+  tier                  String      @default("FREE") // FREE, PRO
+  badges                String      @default("[]") // JSON string: ["Verified Agent", "UNILAG Specialist"]
+  rating                Float       @default(5.0)
+  reviewCount           Int         @default(0)
+  bio                   String?
+  yearsExperience       Int         @default(2)
+  campusSpecialization  String?     @default("University of Lagos (UNILAG)")
+  coverageAreas         String      @default("[\"Akoka\", \"Yaba\", \"Onike\"]") // JSON string
+  featuredListingCredits Int        @default(0)
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  reviewsReceived       Review[]    @relation("AgentReviews")
+}
+
+model Listing {
+  id                     String       @id @default(uuid())
+  agentId                String
+  agent                  User         @relation("AgentListings", fields: [agentId], references: [id], onDelete: Cascade)
+  title                  String
+  description            String
+  price                  Float
+  currency               String       @default("NGN")
+  period                 String       @default("per year") // per year, per semester
+  propertyType           String       @default("SELF_CONTAIN") // SELF_CONTAIN, ONE_BED, TWO_BED, THREE_BED, HOSTEL_BED, STUDIO
+  bedrooms               Int          @default(1)
+  bathrooms              Int          @default(1)
+  address                String
+  neighborhood           String       @default("Akoka")
+  city                   String       @default("Lagos")
+  universityNearby       String       @default("University of Lagos (UNILAG)")
+  distanceToCampusMinutes Int         @default(10)
+  distanceDescription    String?      @default("7 mins walk to UNILAG Main Gate")
+  latitude               Float        @default(6.5186)
+  longitude              Float        @default(3.3881)
+  photos                 String       @default("[]") // JSON string of image URLs
+  videoTourUrl           String?      // walkthrough video embed / stream URL
+  amenities              String       @default("[]") // JSON: ["Constant Water", "Generator Backup", "Security Guard", "Furnished"]
+  isFeatured             Boolean      @default(false)
+  viewsCount             Int          @default(0)
+  inquiriesCount         Int          @default(0)
+  isAvailable            Boolean      @default(true)
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+
+  proposals              Proposal[]
+}
+
+model HousingRequest {
+  id                 String        @id @default(uuid())
+  studentId          String
+  student            User          @relation("StudentRequests", fields: [studentId], references: [id], onDelete: Cascade)
+  title              String
+  description        String
+  targetUniversity   String        @default("University of Lagos (UNILAG)")
+  preferredAreas     String        @default("[]") // JSON string: ["Akoka", "Onike"]
+  maxBudget          Float
+  currency           String        @default("NGN")
+  propertyType       String        @default("SELF_CONTAIN")
+  moveInDate         String
+  duration           String        @default("1 Year")
+  needsRoommate      Boolean       @default(false)
+  status             String        @default("OPEN") // OPEN, MATCHED, CLOSED
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  proposals          Proposal[]
+}
+
+model Proposal {
+  id                 String         @id @default(uuid())
+  requestId          String
+  request            HousingRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  agentId            String
+  agent              User           @relation("AgentProposals", fields: [agentId], references: [id], onDelete: Cascade)
+  listingId          String?
+  listing            Listing?       @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  pitchMessage       String
+  proposedPrice      Float
+  currency           String         @default("NGN")
+  period             String         @default("per year")
+  agencyFee          Float          @default(0)
+  cautionFee         Float          @default(0)
+  totalUpfront       Float          @default(0)
+  status             String         @default("SUBMITTED") // SUBMITTED, SHORTLISTED, ACCEPTED, DECLINED
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+}
+
+model Message {
+  id                 String         @id @default(uuid())
+  senderId           String
+  sender             User           @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  recipientId        String
+  requestId          String?
+  listingId          String?
+  content            String
+  isRead             Boolean        @default(false)
+  createdAt          DateTime       @default(now())
+}
+
+model Review {
+  id                 String         @id @default(uuid())
+  agentProfileId     String
+  agentProfile       AgentProfile   @relation("AgentReviews", fields: [agentProfileId], references: [id], onDelete: Cascade)
+  studentId          String
+  student            User           @relation("StudentReviews", fields: [studentId], references: [id], onDelete: Cascade)
+  rating             Int            @default(5)
+  comment            String
+  createdAt          DateTime       @default(now())
+}
+
+model Report {
+  id                 String         @id @default(uuid())
+  reporterId         String
+  reporter           User           @relation("UserReports", fields: [reporterId], references: [id], onDelete: Cascade)
+  targetType         String         // "LISTING" or "AGENT"
+  targetId           String
+  reason             String
+  details            String?
+  status             String         @default("PENDING") // PENDING, RESOLVED, DISMISSED
+  adminNotes         String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+}
