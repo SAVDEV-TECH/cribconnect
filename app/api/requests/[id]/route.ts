@@ -1,54 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { MOCK_HOUSING_REQUESTS, MOCK_USERS, MOCK_PROPOSALS, MOCK_AGENT_PROFILES, MOCK_LISTINGS, getRequestWithDetails } from "@/lib/mock-data";
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export const dynamic = "force-dynamic";
+
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id } = params;
-
-    const request = await prisma.housingRequest.findUnique({
-      where: { id },
-      include: {
-        student: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            avatar: true,
-            city: true,
-            currentSchool: true,
-            phone: true,
-            whatsapp: true,
-          },
-        },
-        proposals: {
-          include: {
-            agent: {
-              select: {
-                id: true,
-                name: true,
-                avatar: true,
-                phone: true,
-                whatsapp: true,
-                agentProfile: true,
-              },
+    try {
+      const { prisma } = await import("@/lib/prisma");
+      const request = await prisma.housingRequest.findUnique({
+        where: { id },
+        include: {
+          student: { select: { id: true, name: true, avatar: true, city: true, currentSchool: true } },
+          proposals: {
+            include: {
+              agent: { select: { id: true, name: true, avatar: true, phone: true, whatsapp: true, agentProfile: true } },
+              listing: true,
             },
-            listing: true,
+            orderBy: { createdAt: "desc" },
           },
-          orderBy: { createdAt: "desc" },
         },
-      },
-    });
-
-    if (!request) {
-      return NextResponse.json({ error: "Housing request not found" }, { status: 404 });
+      });
+      if (!request) return NextResponse.json({ error: "Request not found" }, { status: 404 });
+      return NextResponse.json({ request });
+    } catch {
+      const mockRequest = MOCK_HOUSING_REQUESTS.find(r => r.id === id);
+      if (!mockRequest) return NextResponse.json({ error: "Request not found" }, { status: 404 });
+      return NextResponse.json({ request: getRequestWithDetails(mockRequest) });
     }
-
-    return NextResponse.json({ request });
   } catch (error) {
-    console.error("Failed to fetch request:", error);
     return NextResponse.json({ error: "Failed to fetch request" }, { status: 500 });
   }
+}
+
+export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+  return NextResponse.json({ success: true, demo: true });
 }

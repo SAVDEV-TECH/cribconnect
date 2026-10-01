@@ -1,101 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/session";
+import { MOCK_MESSAGES, MOCK_USERS } from "@/lib/mock-data";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { searchParams } = new URL(req.url);
-    const otherUserId = searchParams.get("otherUserId");
+    const userId = searchParams.get("userId");
 
-    const where: any = {
-      OR: [
-        { senderId: user.id },
-        { recipientId: user.id },
-      ],
-    };
-
-    if (otherUserId) {
-      where.AND = [
-        {
-          OR: [
-            { senderId: user.id, recipientId: otherUserId },
-            { senderId: otherUserId, recipientId: user.id },
-          ],
-        },
-      ];
+    try {
+      const { prisma } = await import("@/lib/prisma");
+      const where: any = userId ? { OR: [{ senderId: userId }, { recipientId: userId }] } : {};
+      const messages = await prisma.message.findMany({
+        where,
+        include: { sender: { select: { id: true, name: true, avatar: true, role: true } } },
+        orderBy: { createdAt: "desc" },
+      });
+      return NextResponse.json({ messages });
+    } catch {
+      let results = MOCK_MESSAGES;
+      if (userId) results = results.filter(m => m.senderId === userId || m.recipientId === userId);
+      const enriched = results.map(m => {
+        const sender = MOCK_USERS.find(u => u.id === m.senderId)!;
+        return { ...m, sender: { id: sender.id, name: sender.name, avatar: sender.avatar, role: sender.role } };
+      });
+      return NextResponse.json({ messages: enriched });
     }
-
-    const messages = await prisma.message.findMany({
-      where,
-      include: {
-        sender: {
-          select: {
-            id: true,
-            name: true,
-            avatar: true,
-            role: true,
-            agentProfile: true,
-          },
-        },
-      },
-      orderBy: { createdAt: "asc" },
-    });
-
-    return NextResponse.json({ messages });
   } catch (error) {
-    console.error("Failed to fetch messages:", error);
     return NextResponse.json({ error: "Failed to fetch messages" }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
-  try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const data = await req.json();
-    const { recipientId, content, requestId, listingId } = data;
-
-    if (!recipientId || !content) {
-      return NextResponse.json(
-        { error: "recipientId and content are required" },
-        { status: 400 }
-      );
-    }
-
-    const message = await prisma.message.create({
-      data: {
-        senderId: user.id,
-        recipientId,
-        content,
-        requestId: requestId || null,
-        listingId: listingId || null,
-      },
-      include: {
-        sender: {
-          select: {
-            id: true,
-            name: true,
-            avatar: true,
-            role: true,
-            agentProfile: true,
-          },
-        },
-      },
-    });
-
-    return NextResponse.json({ success: true, message });
-  } catch (error) {
-    console.error("Failed to send message:", error);
-    return NextResponse.json({ error: "Failed to send message" }, { status: 500 });
-  }
+  return NextResponse.json({ success: true, demo: true, message: "Message sent! (Demo mode)" });
 }

@@ -1,60 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { MOCK_USERS, MOCK_AGENT_PROFILES, MOCK_LISTINGS } from "@/lib/mock-data";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const university = searchParams.get("university");
-    const verifiedOnly = searchParams.get("verifiedOnly");
+    const verifiedOnly = searchParams.get("verified");
 
-    const where: any = {};
-
-    if (verifiedOnly === "true") {
-      where.verificationStatus = "VERIFIED";
-    }
-
-    if (university && university !== "ALL") {
-      where.campusSpecialization = { contains: university };
-    }
-
-    const agents = await prisma.agentProfile.findMany({
-      where,
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-            whatsapp: true,
-            avatar: true,
-            city: true,
-            currentSchool: true,
-            listings: {
-              where: { isAvailable: true },
-              select: { id: true, title: true, price: true, photos: true },
-            },
+    try {
+      const { prisma } = await import("@/lib/prisma");
+      const where: any = {};
+      if (verifiedOnly === "true") where.verificationStatus = "VERIFIED";
+      const agents = await prisma.agentProfile.findMany({
+        where,
+        include: {
+          user: {
+            select: { id: true, name: true, avatar: true, phone: true, whatsapp: true, city: true, listings: { where: { isAvailable: true }, select: { id: true } } },
           },
         },
-        reviewsReceived: {
-          include: {
-            student: {
-              select: { name: true, avatar: true },
-            },
-          },
-        },
-      },
-      orderBy: [
-        { verificationStatus: "asc" }, // VERIFIED first
-        { rating: "desc" },
-      ],
-    });
-
-    return NextResponse.json({ agents });
+        orderBy: { rating: "desc" },
+      });
+      return NextResponse.json({ agents });
+    } catch {
+      // Fallback
+      let profiles = MOCK_AGENT_PROFILES;
+      if (verifiedOnly === "true") profiles = profiles.filter(p => p.verificationStatus === "VERIFIED");
+      const agents = profiles.map(profile => {
+        const user = MOCK_USERS.find(u => u.id === profile.userId)!;
+        const listings = MOCK_LISTINGS.filter(l => l.agentId === user.id && l.isAvailable).map(l => ({ id: l.id }));
+        return { ...profile, user: { ...user, listings } };
+      });
+      return NextResponse.json({ agents });
+    }
   } catch (error) {
-    console.error("Failed to fetch public agents directory:", error);
     return NextResponse.json({ error: "Failed to fetch agents" }, { status: 500 });
   }
 }

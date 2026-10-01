@@ -1,86 +1,50 @@
 import React from "react";
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { MOCK_LISTINGS, MOCK_HOUSING_REQUESTS, MOCK_AGENT_PROFILES, MOCK_USERS, getListingWithAgent, getRequestWithDetails } from "@/lib/mock-data";
 import ListingCard from "@/components/ListingCard";
 import {
-  ShieldCheck,
-  Video,
-  Compass,
-  ArrowRight,
-  Search,
-  CheckCircle2,
-  Sparkles,
-  Users,
-  Building2,
-  Lock,
-  MessageSquare,
-  Award,
-  Zap,
+  ShieldCheck, Video, Compass, ArrowRight, Search, CheckCircle2,
+  Sparkles, Users, Building2, Lock, MessageSquare, Award, Zap,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  // Fetch featured listings
-  const featuredListings = await prisma.listing.findMany({
-    where: { isAvailable: true },
-    include: {
-      agent: {
-        select: {
-          id: true,
-          name: true,
-          avatar: true,
-          phone: true,
-          whatsapp: true,
-          agentProfile: true,
-        },
-      },
-    },
-    orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
-    take: 6,
-  });
+  let featuredListings: any[] = [];
+  let activeRequests: any[] = [];
+  let topAgents: any[] = [];
 
-  // Fetch active housing requests
-  const activeRequests = await prisma.housingRequest.findMany({
-    where: { status: "OPEN" },
-    include: {
-      student: {
-        select: {
-          id: true,
-          name: true,
-          avatar: true,
-          city: true,
-          currentSchool: true,
-        },
-      },
-      proposals: {
-        select: { id: true },
-      },
-    },
-    take: 3,
-  });
-
-  // Fetch top verified agents
-  const topAgents = await prisma.agentProfile.findMany({
-    where: { verificationStatus: "VERIFIED" },
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          avatar: true,
-          city: true,
-          currentSchool: true,
-          listings: {
-            where: { isAvailable: true },
-            select: { id: true },
-          },
-        },
-      },
-    },
-    orderBy: { rating: "desc" },
-    take: 3,
-  });
+  try {
+    const { prisma } = await import("@/lib/prisma");
+    [featuredListings, activeRequests, topAgents] = await Promise.all([
+      prisma.listing.findMany({
+        where: { isAvailable: true },
+        include: { agent: { select: { id: true, name: true, avatar: true, phone: true, whatsapp: true, agentProfile: true } } },
+        orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+        take: 6,
+      }),
+      prisma.housingRequest.findMany({
+        where: { status: "OPEN" },
+        include: { student: { select: { id: true, name: true, avatar: true, city: true, currentSchool: true } }, proposals: { select: { id: true } } },
+        take: 3,
+      }),
+      prisma.agentProfile.findMany({
+        where: { verificationStatus: "VERIFIED" },
+        include: { user: { select: { id: true, name: true, avatar: true, city: true, currentSchool: true, listings: { where: { isAvailable: true }, select: { id: true } } } } },
+        orderBy: { rating: "desc" },
+        take: 3,
+      }),
+    ]);
+  } catch {
+    // DB unavailable (Vercel serverless) — use static mock data
+    featuredListings = MOCK_LISTINGS.filter(l => l.isAvailable).map(getListingWithAgent).slice(0, 6);
+    activeRequests = MOCK_HOUSING_REQUESTS.filter(r => r.status === "OPEN").map(getRequestWithDetails).slice(0, 3);
+    topAgents = MOCK_AGENT_PROFILES.filter(p => p.verificationStatus === "VERIFIED").map(profile => {
+      const user = MOCK_USERS.find(u => u.id === profile.userId)!;
+      const listings = MOCK_LISTINGS.filter(l => l.agentId === user.id && l.isAvailable).map(l => ({ id: l.id }));
+      return { ...profile, user: { ...user, listings } };
+    });
+  }
 
   return (
     <div className="space-y-16 pb-20">
