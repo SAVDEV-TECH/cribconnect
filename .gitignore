@@ -9,10 +9,8 @@ out/
 dist/
 build/
 
-# Database (SQLite - use Vercel Postgres / Turso in production)
-prisma/dev.db
+# Database journals (but keep dev.db so Vercel can read the seed data)
 prisma/dev.db-journal
-prisma/*.db
 prisma/*.db-journal
 
 # Environment variables - NEVER commit these
@@ -45,3 +43,5 @@ coverage/
 # Misc
 *.tsbuildinfo
 next-env.d.ts
+
+.vercel
