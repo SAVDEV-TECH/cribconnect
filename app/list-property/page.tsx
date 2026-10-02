@@ -4,6 +4,10 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import MediaUploader from "@/components/MediaUploader";
+import SocialAuthModal, {
+  GoogleLogo,
+  FacebookLogo,
+} from "@/components/SocialAuthModal";
 import {
   Building2,
   MapPin,
@@ -15,6 +19,7 @@ import {
   Sparkles,
   User,
   LogIn,
+  HelpCircle,
 } from "lucide-react";
 
 export default function ListPropertyPage() {
@@ -22,6 +27,15 @@ export default function ListPropertyPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Social Auth Modal State
+  const [socialModalOpen, setSocialModalOpen] = useState(false);
+  const [socialProvider, setSocialProvider] = useState<"google" | "facebook" | "apple">("google");
+
+  const openSocialAuth = (provider: "google" | "facebook" | "apple") => {
+    setSocialProvider(provider);
+    setSocialModalOpen(true);
+  };
 
   const [photos, setPhotos] = useState<string[]>([]);
   const [videoTourUrl, setVideoTourUrl] = useState("");
@@ -176,6 +190,85 @@ export default function ListPropertyPage() {
             )}
           </div>
         </div>
+
+        {/* 3-Step Agent & Landlord Progression Guide */}
+        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-emerald-600" />
+            <h3 className="text-xs font-black uppercase tracking-wider text-slate-800">
+              How Listing as an Agent or Landlord Works:
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white border border-slate-200 shadow-2xs">
+              <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-black text-xs shrink-0 mt-0.5">
+                1
+              </div>
+              <div>
+                <span className="text-xs font-bold text-slate-900 block">Instant Role Access</span>
+                <span className="text-[11px] text-slate-500 leading-snug block mt-0.5">
+                  Sign in with Google, Facebook, or Email. Your account gets immediate listing rights.
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white border border-slate-200 shadow-2xs">
+              <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-black text-xs shrink-0 mt-0.5">
+                2
+              </div>
+              <div>
+                <span className="text-xs font-bold text-slate-900 block">Upload Media & Rent</span>
+                <span className="text-[11px] text-slate-500 leading-snug block mt-0.5">
+                  Upload photos, paste video tour link, and set annual rent in Naira (₦). Goes live immediately.
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white border border-slate-200 shadow-2xs">
+              <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-black text-xs shrink-0 mt-0.5">
+                3
+              </div>
+              <div>
+                <span className="text-xs font-bold text-slate-900 block">Direct Leads & Verified Badge</span>
+                <span className="text-[11px] text-slate-500 leading-snug block mt-0.5">
+                  Students message your WhatsApp. Add NIN/License in Profile for green Verified badge.
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 1-Click Social Sign-In Banner if Not Logged In */}
+        {!currentUser && (
+          <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <span className="text-xs font-extrabold text-emerald-950 block">
+                Want this listing tied to your verified profile?
+              </span>
+              <span className="text-[11px] text-emerald-800 block">
+                Sign in with 1-click to auto-fill your contact details and track leads in your dashboard.
+              </span>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => openSocialAuth("google")}
+                className="px-3 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-transform hover:scale-[1.02]"
+              >
+                <GoogleLogo className="w-3.5 h-3.5" />
+                <span>Google</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => openSocialAuth("facebook")}
+                className="px-3 py-1.5 rounded-xl bg-[#1877F2] hover:bg-[#166fe5] text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-transform hover:scale-[1.02]"
+              >
+                <FacebookLogo className="w-3.5 h-3.5 fill-white" />
+                <span>Facebook</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {error && (
           <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium">
@@ -402,6 +495,31 @@ export default function ListPropertyPage() {
           </button>
         </form>
       </div>
+
+      {/* Social Auth Modal */}
+      <SocialAuthModal
+        isOpen={socialModalOpen}
+        onClose={() => setSocialModalOpen(false)}
+        defaultProvider={socialProvider}
+        initialRole="AGENT"
+        onSuccess={() => {
+          fetch("/api/auth/session")
+            .then((res) => res.json())
+            .then((data) => {
+              if (data && data.user) {
+                setCurrentUser(data.user);
+                setFormData((prev) => ({
+                  ...prev,
+                  agentName: data.user.name || prev.agentName,
+                  agentPhone: data.user.phone || prev.agentPhone,
+                  agentWhatsapp: data.user.whatsapp || prev.agentWhatsapp,
+                  agencyName: data.user.agencyName || prev.agencyName,
+                }));
+              }
+            })
+            .catch(() => {});
+        }}
+      />
     </div>
   );
 }

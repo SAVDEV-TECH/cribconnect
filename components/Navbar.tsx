@@ -139,7 +139,7 @@ export default function Navbar() {
                 className="text-xs font-bold text-slate-700 hover:text-slate-900 px-3 py-2 flex items-center gap-1.5"
               >
                 <LogIn className="w-4 h-4 text-slate-400" />
-                <span>Agent Sign In</span>
+                <span>Agent / Landlord Sign In</span>
               </Link>
             )}
 

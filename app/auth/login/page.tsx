@@ -12,7 +12,13 @@ import {
   Building2,
   AlertCircle,
   CheckCircle2,
+  HelpCircle,
 } from "lucide-react";
+import SocialAuthModal, {
+  GoogleLogo,
+  FacebookLogo,
+  AppleLogo,
+} from "@/components/SocialAuthModal";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -20,6 +26,15 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Social Auth Modal State
+  const [socialModalOpen, setSocialModalOpen] = useState(false);
+  const [socialProvider, setSocialProvider] = useState<"google" | "facebook" | "apple">("google");
+
+  const openSocialAuth = (provider: "google" | "facebook" | "apple") => {
+    setSocialProvider(provider);
+    setSocialModalOpen(true);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,8 +69,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
-      <div className="max-w-md w-full bg-white rounded-3xl border border-slate-200 shadow-xl p-8 space-y-6">
+    <div className="min-h-[85vh] flex items-center justify-center px-4 py-12">
+      <div className="max-w-md w-full bg-white rounded-3xl border border-slate-200 shadow-xl p-6 sm:p-8 space-y-6">
         <div className="text-center space-y-2">
           <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto shadow-sm">
             <Lock className="w-6 h-6" />
@@ -64,7 +79,7 @@ export default function LoginPage() {
             Agent & Landlord Sign In
           </h1>
           <p className="text-xs text-slate-500">
-            Access your property manager dashboard and manage your rental listings.
+            Sign in to manage your listings, view tenants housed, and access student leads.
           </p>
         </div>
 
@@ -74,6 +89,44 @@ export default function LoginPage() {
             <span>{error}</span>
           </div>
         )}
+
+        {/* 1-Click Social Sign-In Options */}
+        <div className="space-y-2.5">
+          <button
+            type="button"
+            onClick={() => openSocialAuth("google")}
+            className="w-full py-2.5 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs flex items-center justify-center gap-3 shadow-xs hover:border-slate-400 transition-all hover:scale-[1.01]"
+          >
+            <GoogleLogo className="w-4 h-4 shrink-0" />
+            <span>Continue with Google</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => openSocialAuth("facebook")}
+            className="w-full py-2.5 px-4 rounded-xl bg-[#1877F2] hover:bg-[#166fe5] text-white font-bold text-xs flex items-center justify-center gap-3 shadow-xs transition-all hover:scale-[1.01]"
+          >
+            <FacebookLogo className="w-4 h-4 shrink-0 fill-white" />
+            <span>Continue with Facebook</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => openSocialAuth("apple")}
+            className="w-full py-2 px-4 rounded-xl bg-slate-900 hover:bg-black text-white font-bold text-xs flex items-center justify-center gap-3 shadow-xs transition-all hover:scale-[1.01]"
+          >
+            <AppleLogo className="w-4 h-4 shrink-0" />
+            <span>Continue with Apple</span>
+          </button>
+        </div>
+
+        <div className="relative flex py-1 items-center">
+          <div className="flex-grow border-t border-slate-200"></div>
+          <span className="flex-shrink mx-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            Or sign in with work email
+          </span>
+          <div className="flex-grow border-t border-slate-200"></div>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -124,8 +177,8 @@ export default function LoginPage() {
         </form>
 
         {/* Quick Demo Credentials Helper */}
-        <div className="pt-4 border-t border-slate-100 space-y-2">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block text-center">
+        <div className="pt-3 border-t border-slate-100 space-y-2">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block text-center">
             Instant Test Login
           </span>
           <div className="grid grid-cols-2 gap-2">
@@ -149,14 +202,34 @@ export default function LoginPage() {
           </div>
         </div>
 
+        {/* Explanation Note on Becoming Agent/Landlord */}
+        <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 text-left space-y-1">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+            <HelpCircle className="w-3.5 h-3.5 text-emerald-600" />
+            <span>How do you become an Agent or Landlord?</span>
+          </div>
+          <p className="text-[11px] text-slate-500 leading-relaxed">
+            Create an account or sign in with Google/Facebook, select your role (Agent vs Landlord), and you can instantly publish properties. Add your NIN or License in Profile to receive the green <strong>Verified</strong> trust badge.
+          </p>
+        </div>
+
         {/* Link to Register */}
-        <div className="text-center text-xs text-slate-500 pt-2">
+        <div className="text-center text-xs text-slate-500 pt-1">
           Don&apos;t have an account yet?{" "}
           <Link href="/auth/register" className="font-bold text-emerald-700 hover:underline">
             Register as an Agent or Landlord
           </Link>
         </div>
       </div>
+
+      {/* Social Auth Modal */}
+      <SocialAuthModal
+        isOpen={socialModalOpen}
+        onClose={() => setSocialModalOpen(false)}
+        defaultProvider={socialProvider}
+        initialRole="AGENT"
+        redirectUrl="/list-property"
+      />
     </div>
   );
 }
