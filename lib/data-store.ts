@@ -55,6 +55,22 @@ export interface HousingRequest {
   responsesCount: number;
 }
 
+export interface StoredUser {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  whatsapp: string;
+  role: "AGENT" | "LANDLORD" | "TENANT" | "ADMIN";
+  avatar: string;
+  agencyName?: string;
+  passwordSalt: string;
+  passwordHash: string;
+  isVerified: boolean;
+  ninOrLicense?: string;
+  createdAt: string;
+}
+
 export interface InspectionBooking {
   id: string;
   listingId: string;
@@ -389,3 +405,76 @@ export function addBookingStore(booking: Omit<InspectionBooking, "id" | "created
 export function getBookingsStore(): InspectionBooking[] {
   return activeBookings;
 }
+
+// --- User Authentication Store ---
+
+export const INITIAL_USERS: StoredUser[] = [
+  {
+    id: "user-kola",
+    name: "Kolawole Adebayo",
+    email: "kolawole@adeyemirealty.ng",
+    phone: "+234 803 445 2299",
+    whatsapp: "2348034452299",
+    role: "AGENT",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80",
+    agencyName: "Adeyemi & Partners Realty",
+    passwordSalt: "a1b2c3d4e5f67890",
+    // SHA-512 PBKDF2 hash of "password123" with salt "a1b2c3d4e5f67890"
+    passwordHash: "7b134d193fa05928d3e691238dc8f06059d0473ce17f9dc6e9921da8a6234fe6cbe55106b107056637e6da48a903e1e6955a8f4c9c1b33230a1c6e11be6f5ef5",
+    isVerified: true,
+    ninOrLicense: "LAG-REA-2023-8891",
+    createdAt: "2024-01-01",
+  },
+  {
+    id: "user-bisi",
+    name: "Bisi Okafor",
+    email: "bisi@bisihomes.ng",
+    phone: "+234 812 778 9901",
+    whatsapp: "2348127789901",
+    role: "AGENT",
+    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&auto=format&fit=crop&q=80",
+    agencyName: "Bisi Student Accommodations",
+    passwordSalt: "b2c3d4e5f6a17890",
+    passwordHash: "7b134d193fa05928d3e691238dc8f06059d0473ce17f9dc6e9921da8a6234fe6cbe55106b107056637e6da48a903e1e6955a8f4c9c1b33230a1c6e11be6f5ef5",
+    isVerified: true,
+    ninOrLicense: "NIN-29104819203",
+    createdAt: "2024-01-05",
+  },
+  {
+    id: "user-landlord-tunde",
+    name: "Chief Tunde Alabi",
+    email: "tunde@alabiproperties.com",
+    phone: "+234 802 111 4455",
+    whatsapp: "2348021114455",
+    role: "LANDLORD",
+    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80",
+    agencyName: "Alabi Commercial & Residential Estate",
+    passwordSalt: "c3d4e5f6a1b27890",
+    passwordHash: "7b134d193fa05928d3e691238dc8f06059d0473ce17f9dc6e9921da8a6234fe6cbe55106b107056637e6da48a903e1e6955a8f4c9c1b33230a1c6e11be6f5ef5",
+    isVerified: true,
+    ninOrLicense: "NIN-77192830491",
+    createdAt: "2024-01-08",
+  },
+];
+
+let activeUsers: StoredUser[] = [...INITIAL_USERS];
+
+export function getUserByEmail(email: string): StoredUser | undefined {
+  const normalized = email.trim().toLowerCase();
+  return activeUsers.find((u) => u.email.toLowerCase() === normalized);
+}
+
+export function getUserById(id: string): StoredUser | undefined {
+  return activeUsers.find((u) => u.id === id);
+}
+
+export function createUser(user: Omit<StoredUser, "id" | "createdAt">): StoredUser {
+  const newUser: StoredUser = {
+    ...user,
+    id: "user-" + Date.now(),
+    createdAt: new Date().toISOString(),
+  };
+  activeUsers = [newUser, ...activeUsers];
+  return newUser;
+}
+

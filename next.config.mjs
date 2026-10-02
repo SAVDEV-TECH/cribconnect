@@ -1,34 +1,20 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Vercel-optimized image configuration
+  // Production-optimized image configuration
   images: {
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'images.pexels.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'api.dicebear.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'lh3.googleusercontent.com',
-      },
+      { protocol: 'https', hostname: 'images.unsplash.com' },
+      { protocol: 'https', hostname: 'images.pexels.com' },
+      { protocol: 'https', hostname: 'api.dicebear.com' },
+      { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
     ],
   },
 
-  // Compress responses
   compress: true,
-
-  // Enable strict mode for React
   reactStrictMode: true,
+  poweredByHeader: false, // Security: removes X-Powered-By: Next.js to prevent tech fingerprinting
 
-  // Vercel deployment headers for security and performance
+  // Enterprise Security Headers
   async headers() {
     return [
       {
@@ -36,11 +22,14 @@ const nextConfig = {
         headers: [
           { key: 'X-DNS-Prefetch-Control', value: 'on' },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'Referrer-Policy', value: 'origin-when-cross-origin' },
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'X-XSS-Protection', value: '1; mode=block' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(self)' },
+          { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
         ],
       },
       {
-        // Cache static assets aggressively
         source: '/static/(.*)',
         headers: [
           { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
@@ -49,7 +38,6 @@ const nextConfig = {
     ];
   },
 
-  // Redirects
   async redirects() {
     return [
       {

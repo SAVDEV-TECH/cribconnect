@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Home,
   Search,
@@ -11,12 +11,37 @@ import {
   PlusCircle,
   Menu,
   X,
-  PhoneCall,
+  LogIn,
+  LogOut,
+  User,
 } from "lucide-react";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  useEffect(() => {
+    fetch("/api/auth/session")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.user) {
+          setCurrentUser(data.user);
+        } else {
+          setCurrentUser(null);
+        }
+      })
+      .catch(() => {});
+  }, [pathname]);
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      setCurrentUser(null);
+      router.refresh();
+    } catch {}
+  };
 
   const navLinks = [
     { name: "Browse Cribs", href: "/listings", icon: Search },
@@ -70,14 +95,38 @@ export default function Navbar() {
             })}
           </nav>
 
-          {/* Action CTAs */}
+          {/* Action CTAs & Auth Controls */}
           <div className="hidden sm:flex items-center gap-3">
-            <Link
-              href="/requests"
-              className="text-xs font-semibold text-slate-600 hover:text-slate-900 px-3 py-2"
-            >
-              Post Housing Need
-            </Link>
+            {currentUser ? (
+              <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <img
+                    src={currentUser.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80"}
+                    alt=""
+                    className="w-6 h-6 rounded-full object-cover"
+                  />
+                  <span className="text-xs font-bold text-slate-800 max-w-[100px] truncate">
+                    {currentUser.name}
+                  </span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="p-2 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                  title="Sign Out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/auth/login"
+                className="text-xs font-bold text-slate-700 hover:text-slate-900 px-3 py-2 flex items-center gap-1.5"
+              >
+                <LogIn className="w-4 h-4 text-slate-400" />
+                <span>Agent Sign In</span>
+              </Link>
+            )}
+
             <Link
               href="/list-property"
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm shadow-emerald-600/30 transition-all hover:scale-[1.02]"
@@ -131,12 +180,38 @@ export default function Navbar() {
             );
           })}
           <div className="pt-2 border-t border-slate-100 flex flex-col gap-2">
+            {currentUser ? (
+              <div className="flex items-center justify-between p-2 bg-slate-50 rounded-xl">
+                <div className="flex items-center gap-2">
+                  <img
+                    src={currentUser.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80"}
+                    alt=""
+                    className="w-6 h-6 rounded-full object-cover"
+                  />
+                  <span className="text-xs font-bold text-slate-800">{currentUser.name}</span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="text-xs font-bold text-red-600 hover:underline"
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/auth/login"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-center py-2 text-xs font-bold text-slate-700 hover:text-slate-900 border border-slate-200 rounded-xl"
+              >
+                Agent / Landlord Sign In
+              </Link>
+            )}
             <Link
               href="/list-property"
               onClick={() => setIsMobileMenuOpen(false)}
               className="w-full text-center py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-bold shadow-sm"
             >
-              + List a Property (For Agents / Landlords)
+              + List a Property
             </Link>
           </div>
         </div>

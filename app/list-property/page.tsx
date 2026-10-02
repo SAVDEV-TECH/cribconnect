@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import MediaUploader from "@/components/MediaUploader";
 import {
   Building2,
   MapPin,
@@ -11,12 +13,18 @@ import {
   ShieldCheck,
   ArrowRight,
   Sparkles,
+  User,
+  LogIn,
 } from "lucide-react";
 
 export default function ListPropertyPage() {
   const router = useRouter();
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [videoTourUrl, setVideoTourUrl] = useState("");
 
   const [formData, setFormData] = useState({
     title: "",
@@ -32,10 +40,27 @@ export default function ListPropertyPage() {
     agentPhone: "",
     agentWhatsapp: "",
     agencyName: "Independent Verified Realtor",
-    videoTourUrl: "",
-    photoUrl: "",
     amenities: ["Borehole Water", "Prepaid Meter", "24/7 Security", "Fenced Gate"],
   });
+
+  // Check if agent/landlord is currently logged in
+  useEffect(() => {
+    fetch("/api/auth/session")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.user) {
+          setCurrentUser(data.user);
+          setFormData((prev) => ({
+            ...prev,
+            agentName: data.user.name || prev.agentName,
+            agentPhone: data.user.phone || prev.agentPhone,
+            agentWhatsapp: data.user.whatsapp || prev.agentWhatsapp,
+            agencyName: data.user.agencyName || prev.agencyName,
+          }));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const availableAmenities = [
     "Borehole Water",
@@ -66,8 +91,6 @@ export default function ListPropertyPage() {
     "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800",
     "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800",
     "https://images.unsplash.com/photo-1540518614846-7eded433c457?w=800",
-    "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800",
-    "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800",
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -76,16 +99,18 @@ export default function ListPropertyPage() {
     setError(null);
 
     try {
-      const photos = formData.photoUrl
-        ? [formData.photoUrl]
-        : [samplePhotoPresets[Math.floor(Math.random() * samplePhotoPresets.length)]];
+      const finalPhotos =
+        photos.length > 0
+          ? photos
+          : [samplePhotoPresets[Math.floor(Math.random() * samplePhotoPresets.length)]];
 
       const res = await fetch("/api/listings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
-          photos,
+          photos: finalPhotos,
+          videoTourUrl: videoTourUrl || null,
           distanceDescription: `${formData.distanceToCampusMinutes} mins to Campus Gate`,
         }),
       });
@@ -106,17 +131,50 @@ export default function ListPropertyPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="bg-white rounded-3xl border border-slate-200 shadow-xl p-6 sm:p-10 space-y-8">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold mb-2">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Landlord & Agent Portal</span>
+        {/* Top Header & Auth State */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-6">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold mb-2">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Landlord & Agent Portal</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
+              List a Property
+            </h1>
+            <p className="text-xs text-slate-500 mt-1">
+              Upload photos & video walkthrough. Students will contact your WhatsApp directly.
+            </p>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
-            List a Student Property
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Publish your rental accommodation. Students & relocators will contact you directly via WhatsApp and phone.
-          </p>
+
+          <div>
+            {currentUser ? (
+              <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs">
+                <img
+                  src={currentUser.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"}
+                  alt=""
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+                <div>
+                  <span className="font-bold text-slate-900 block truncate max-w-[130px]">
+                    {currentUser.name}
+                  </span>
+                  <span className="text-[10px] text-emerald-700 font-bold">
+                    {currentUser.role}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="text-right">
+                <Link
+                  href="/auth/login"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors"
+                >
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span>Agent / Landlord Sign In</span>
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
 
         {error && (
@@ -125,11 +183,11 @@ export default function ListPropertyPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-8">
           {/* Section 1: Property Details */}
           <div className="space-y-4">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-1">
-              1. Property Info
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-1">
+              1. Basic Property Information
             </h2>
 
             <div>
@@ -139,7 +197,7 @@ export default function ListPropertyPage() {
               <input
                 type="text"
                 required
-                placeholder="e.g. Clean Executive Self-Contain on Jaja Street"
+                placeholder="e.g. Modern Executive Self-Contain on Jaja Street"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
@@ -149,7 +207,7 @@ export default function ListPropertyPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Neighborhood *
+                  Neighborhood Hub *
                 </label>
                 <select
                   value={formData.neighborhood}
@@ -161,22 +219,23 @@ export default function ListPropertyPage() {
                   <option value="Abule-Oja">Abule-Oja (2nd Gate Axis)</option>
                   <option value="Yaba">Yaba / Commercial Ave</option>
                   <option value="Bariga">Bariga / St. Finbarr&apos;s</option>
+                  <option value="Surulere">Surulere Axis</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Property Type *
+                  Property Category *
                 </label>
                 <select
                   value={formData.propertyType}
                   onChange={(e) => setFormData({ ...formData, propertyType: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 >
-                  <option value="SELF_CONTAIN">Self-Contain (Studio Room)</option>
-                  <option value="ONE_BED">1-Bedroom Apartment</option>
-                  <option value="TWO_BED">2-Bedroom Flat (Shared)</option>
-                  <option value="STUDIO">Serviced Studio with AC</option>
+                  <option value="SELF_CONTAIN">Self-Contain (Single Room with Toilet/Bath)</option>
+                  <option value="ONE_BED">1-Bedroom Apartment (Room & Parlour)</option>
+                  <option value="TWO_BED">2-Bedroom Shared Flat</option>
+                  <option value="STUDIO">Serviced Studio with AC & Inverter</option>
                 </select>
               </div>
             </div>
@@ -227,7 +286,7 @@ export default function ListPropertyPage() {
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
-                Street Address / Landmark
+                Street Address / Landmark Description
               </label>
               <input
                 type="text"
@@ -240,11 +299,11 @@ export default function ListPropertyPage() {
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
-                Description & House Rules
+                Description & House Features
               </label>
               <textarea
                 rows={3}
-                placeholder="Describe water availability, power, compound security, gate closing time..."
+                placeholder="Describe water pressure, power source, compound security, gate closing time..."
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
@@ -252,10 +311,24 @@ export default function ListPropertyPage() {
             </div>
           </div>
 
-          {/* Section 2: Amenities */}
+          {/* Section 2: Real Media Upload (Photos & Video) */}
+          <div className="space-y-4">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-1">
+              2. Upload House Photos & Video Walkthrough
+            </h2>
+
+            <MediaUploader
+              photos={photos}
+              onPhotosChange={setPhotos}
+              videoUrl={videoTourUrl}
+              onVideoChange={setVideoTourUrl}
+            />
+          </div>
+
+          {/* Section 3: Amenities */}
           <div className="space-y-3">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-1">
-              2. Key Amenities
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-1">
+              3. Verified Amenities
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {availableAmenities.map((amenity) => {
@@ -281,49 +354,16 @@ export default function ListPropertyPage() {
             </div>
           </div>
 
-          {/* Section 3: Photo & Video URL */}
-          <div className="space-y-4">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-1">
-              3. Photos & Walkthrough
-            </h2>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Photo Image URL (Optional — or leave blank to use high-res rental preset)
-              </label>
-              <input
-                type="url"
-                placeholder="https://images.unsplash.com/..."
-                value={formData.photoUrl}
-                onChange={(e) => setFormData({ ...formData, photoUrl: e.target.value })}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                YouTube Video Tour Embed URL (Optional)
-              </label>
-              <input
-                type="url"
-                placeholder="https://www.youtube.com/embed/..."
-                value={formData.videoTourUrl}
-                onChange={(e) => setFormData({ ...formData, videoTourUrl: e.target.value })}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-              />
-            </div>
-          </div>
-
           {/* Section 4: Contact Info */}
           <div className="space-y-4">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-1">
-              4. Contact Details (For Student Inquiries)
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-1">
+              4. Direct Contact Information (For WhatsApp Inquiries)
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Your Full Name *
+                  Agent / Landlord Name *
                 </label>
                 <input
                   type="text"
@@ -342,7 +382,7 @@ export default function ListPropertyPage() {
                 <input
                   type="tel"
                   required
-                  placeholder="e.g. 08034452299 or +234..."
+                  placeholder="e.g. 08034452299"
                   value={formData.agentWhatsapp}
                   onChange={(e) => setFormData({ ...formData, agentWhatsapp: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
@@ -351,13 +391,13 @@ export default function ListPropertyPage() {
             </div>
           </div>
 
-          {/* Submit */}
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-extrabold text-sm shadow-xl shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all hover:scale-[1.01]"
+            className="w-full py-4 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-extrabold text-sm shadow-xl shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all hover:scale-[1.01]"
           >
-            <span>{loading ? "Publishing Listing..." : "Publish Listing on CribConnect"}</span>
+            <span>{loading ? "Publishing Property..." : "Publish Listing on CribConnect"}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
