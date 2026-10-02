@@ -1,73 +1,53 @@
 import { NextRequest, NextResponse } from "next/server";
-import { MOCK_LISTINGS, MOCK_USERS, MOCK_AGENT_PROFILES, getListingWithAgent } from "@/lib/mock-data";
+import { getListingsStore, addListingStore, Listing } from "@/lib/data-store";
 
 export const dynamic = "force-dynamic";
-
-// Try Prisma first; fall back to mock data if DB is unavailable (e.g. Vercel serverless)
-async function getListings(filters: {
-  search?: string; university?: string; propertyType?: string;
-  minPrice?: string; maxPrice?: string; neighborhood?: string;
-  featured?: string; agentId?: string;
-}) {
-  try {
-    const { prisma } = await import("@/lib/prisma");
-    const where: any = {};
-    if (!filters.agentId) where.isAvailable = true;
-    if (filters.agentId) where.agentId = filters.agentId;
-    if (filters.featured === "true") where.isFeatured = true;
-    if (filters.university && filters.university !== "ALL") where.universityNearby = { contains: filters.university };
-    if (filters.propertyType && filters.propertyType !== "ALL") where.propertyType = filters.propertyType;
-    if (filters.neighborhood && filters.neighborhood !== "ALL") where.neighborhood = { contains: filters.neighborhood };
-    if (filters.minPrice || filters.maxPrice) {
-      where.price = {};
-      if (filters.minPrice) where.price.gte = parseFloat(filters.minPrice);
-      if (filters.maxPrice) where.price.lte = parseFloat(filters.maxPrice);
-    }
-    if (filters.search) {
-      where.OR = [
-        { title: { contains: filters.search } },
-        { description: { contains: filters.search } },
-        { address: { contains: filters.search } },
-        { neighborhood: { contains: filters.search } },
-      ];
-    }
-    return await prisma.listing.findMany({
-      where,
-      include: { agent: { select: { id: true, name: true, email: true, phone: true, whatsapp: true, avatar: true, agentProfile: true } } },
-      orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
-    });
-  } catch {
-    // DB unavailable — use static mock data
-    let results = MOCK_LISTINGS.map(getListingWithAgent);
-    if (!filters.agentId) results = results.filter(l => l.isAvailable);
-    if (filters.agentId) results = results.filter(l => l.agentId === filters.agentId);
-    if (filters.featured === "true") results = results.filter(l => l.isFeatured);
-    if (filters.university && filters.university !== "ALL") results = results.filter(l => l.universityNearby.includes(filters.university!));
-    if (filters.propertyType && filters.propertyType !== "ALL") results = results.filter(l => l.propertyType === filters.propertyType);
-    if (filters.neighborhood && filters.neighborhood !== "ALL") results = results.filter(l => l.neighborhood.toLowerCase().includes(filters.neighborhood!.toLowerCase()));
-    if (filters.minPrice) results = results.filter(l => l.price >= parseFloat(filters.minPrice!));
-    if (filters.maxPrice) results = results.filter(l => l.price <= parseFloat(filters.maxPrice!));
-    if (filters.search) {
-      const s = filters.search.toLowerCase();
-      results = results.filter(l => l.title.toLowerCase().includes(s) || l.description.toLowerCase().includes(s) || l.address.toLowerCase().includes(s) || l.neighborhood.toLowerCase().includes(s));
-    }
-    return results.sort((a, b) => (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0));
-  }
-}
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const listings = await getListings({
-      search: searchParams.get("search") ?? undefined,
-      university: searchParams.get("university") ?? undefined,
-      propertyType: searchParams.get("propertyType") ?? undefined,
-      minPrice: searchParams.get("minPrice") ?? undefined,
-      maxPrice: searchParams.get("maxPrice") ?? undefined,
-      neighborhood: searchParams.get("neighborhood") ?? undefined,
-      featured: searchParams.get("featured") ?? undefined,
-      agentId: searchParams.get("agentId") ?? undefined,
-    });
+    const search = searchParams.get("search")?.toLowerCase();
+    const neighborhood = searchParams.get("neighborhood");
+    const propertyType = searchParams.get("propertyType");
+    const minPrice = searchParams.get("minPrice");
+    const maxPrice = searchParams.get("maxPrice");
+    const featured = searchParams.get("featured");
+
+    let listings = getListingsStore();
+
+    if (featured === "true") {
+      listings = listings.filter((l) => l.isFeatured);
+    }
+
+    if (neighborhood && neighborhood !== "ALL") {
+      listings = listings.filter((l) =>
+        l.neighborhood.toLowerCase().includes(neighborhood.toLowerCase())
+      );
+    }
+
+    if (propertyType && propertyType !== "ALL") {
+      listings = listings.filter((l) => l.propertyType === propertyType);
+    }
+
+    if (minPrice) {
+      listings = listings.filter((l) => l.price >= parseFloat(minPrice));
+    }
+
+    if (maxPrice) {
+      listings = listings.filter((l) => l.price <= parseFloat(maxPrice));
+    }
+
+    if (search) {
+      listings = listings.filter(
+        (l) =>
+          l.title.toLowerCase().includes(search) ||
+          l.description.toLowerCase().includes(search) ||
+          l.address.toLowerCase().includes(search) ||
+          l.neighborhood.toLowerCase().includes(search) ||
+          l.universityNearby.toLowerCase().includes(search)
+      );
+    }
+
     return NextResponse.json({ listings });
   } catch (error) {
     console.error("Failed to fetch listings:", error);
@@ -76,10 +56,59 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  // In demo/static mode, simulate success
-  return NextResponse.json({
-    success: true,
-    message: "Demo mode: Listing saved to your dashboard (data persists locally).",
-    demo: true,
-  });
+  try {
+    const body = await req.json();
+
+    if (!body.title || !body.price || !body.neighborhood) {
+      return NextResponse.json(
+        { error: "Please provide title, price, and neighborhood" },
+        { status: 400 }
+      );
+    }
+
+    const price = parseFloat(body.price);
+    const cautionFee = body.cautionFee ? parseFloat(body.cautionFee) : Math.round(price * 0.1);
+    const agencyFee = body.agencyFee ? parseFloat(body.agencyFee) : Math.round(price * 0.1);
+
+    const newListing = addListingStore({
+      agentId: body.agentId || "agent-user",
+      agentName: body.agentName || "Verified Partner Agent",
+      agentPhone: body.agentPhone || "+234 800 000 0000",
+      agentWhatsapp: body.agentWhatsapp?.replace(/\D/g, "") || "2348000000000",
+      agentAvatar: body.agentAvatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400",
+      agentVerified: true,
+      agencyName: body.agencyName || "Independent Verified Realtor",
+      title: body.title,
+      description: body.description || "Spacious and clean accommodation in a secure area.",
+      price: price,
+      period: body.period || "per year",
+      propertyType: body.propertyType || "SELF_CONTAIN",
+      bedrooms: parseInt(body.bedrooms) || 1,
+      bathrooms: parseInt(body.bathrooms) || 1,
+      address: body.address || body.neighborhood + ", Lagos",
+      neighborhood: body.neighborhood,
+      city: "Lagos",
+      universityNearby: body.universityNearby || "University of Lagos (UNILAG)",
+      distanceToCampusMinutes: parseInt(body.distanceToCampusMinutes) || 8,
+      distanceDescription: body.distanceDescription || `${body.distanceToCampusMinutes || 8} mins to campus gate`,
+      latitude: parseFloat(body.latitude) || 6.5186,
+      longitude: parseFloat(body.longitude) || 3.3881,
+      photos: body.photos && body.photos.length > 0
+        ? body.photos
+        : [
+            "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800",
+            "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800",
+          ],
+      videoTourUrl: body.videoTourUrl || null,
+      amenities: body.amenities || ["Borehole Water", "Prepaid Meter", "Fenced Gate"],
+      isFeatured: body.isFeatured || false,
+      cautionFee,
+      agencyFee,
+    });
+
+    return NextResponse.json({ success: true, listing: newListing });
+  } catch (error) {
+    console.error("Failed to create listing:", error);
+    return NextResponse.json({ error: "Failed to create listing" }, { status: 500 });
+  }
 }

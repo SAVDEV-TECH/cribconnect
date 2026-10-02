@@ -3,7 +3,7 @@
 // Production: DATABASE_URL="postgresql://..." (set as Vercel env var)
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

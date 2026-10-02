@@ -91,9 +91,11 @@ function ListingsContent() {
       }
       if (selectedAmenities.length > 0) {
         try {
-          const itemAmenities: string[] = JSON.parse(item.amenities || "[]");
+          const itemAmenities: string[] = Array.isArray(item.amenities)
+            ? item.amenities
+            : JSON.parse(item.amenities || "[]");
           const hasAll = selectedAmenities.every((sa) =>
-            itemAmenities.some((ia) => ia.toLowerCase().includes(sa.toLowerCase()))
+            itemAmenities.some((ia) => String(ia).toLowerCase().includes(sa.toLowerCase()))
           );
           if (!hasAll) return false;
         } catch {

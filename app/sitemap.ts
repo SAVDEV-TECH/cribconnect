@@ -1,11 +1,11 @@
 // app/sitemap.ts — Auto-generated sitemap for SEO
 import { MetadataRoute } from "next";
-import { prisma } from "@/lib/prisma";
+import { getListingsStore } from "@/lib/data-store";
 
 export const dynamic = "force-dynamic";
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://cribconnect.vercel.app";
+export default function sitemap(): MetadataRoute.Sitemap {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://cribconnect-gold.vercel.app";
 
   // Static pages
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -33,36 +33,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily",
       priority: 0.8,
     },
+    {
+      url: `${baseUrl}/list-property`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
   ];
 
-  // Dynamic listing pages
-  let listingRoutes: MetadataRoute.Sitemap = [];
-  let agentRoutes: MetadataRoute.Sitemap = [];
-  try {
-    const listings = await prisma.listing.findMany({
-      where: { isAvailable: true },
-      select: { id: true, updatedAt: true },
-    });
-    listingRoutes = listings.map((l) => ({
-      url: `${baseUrl}/listings/${l.id}`,
-      lastModified: l.updatedAt,
-      changeFrequency: "weekly" as const,
-      priority: 0.7,
-    }));
+  // Dynamic listing pages from store
+  const listings = getListingsStore();
+  const listingRoutes: MetadataRoute.Sitemap = listings.map((l) => ({
+    url: `${baseUrl}/listings/${l.id}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.7,
+  }));
 
-    const agents = await prisma.agentProfile.findMany({
-      where: { verificationStatus: "VERIFIED" },
-      select: { userId: true, updatedAt: true },
-    });
-    agentRoutes = agents.map((a) => ({
-      url: `${baseUrl}/agents/${a.userId}`,
-      lastModified: a.updatedAt,
-      changeFrequency: "weekly" as const,
-      priority: 0.6,
-    }));
-  } catch {
-    // Silently fail during build if DB not yet set up
-  }
-
-  return [...staticRoutes, ...listingRoutes, ...agentRoutes];
+  return [...staticRoutes, ...listingRoutes];
 }

@@ -1,40 +1,46 @@
 import { NextRequest, NextResponse } from "next/server";
-import { MOCK_HOUSING_REQUESTS, MOCK_USERS, MOCK_PROPOSALS, getRequestWithDetails } from "@/lib/mock-data";
+import { getRequestsStore, addRequestStore } from "@/lib/data-store";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const status = searchParams.get("status") || "OPEN";
-    const studentId = searchParams.get("studentId");
-
-    try {
-      const { prisma } = await import("@/lib/prisma");
-      const where: any = {};
-      if (status && status !== "ALL") where.status = status;
-      if (studentId) where.studentId = studentId;
-      const requests = await prisma.housingRequest.findMany({
-        where,
-        include: {
-          student: { select: { id: true, name: true, avatar: true, city: true, currentSchool: true } },
-          proposals: { select: { id: true } },
-        },
-        orderBy: { createdAt: "desc" },
-      });
-      return NextResponse.json({ requests });
-    } catch {
-      // Fallback to mock data
-      let results = MOCK_HOUSING_REQUESTS.map(getRequestWithDetails);
-      if (status && status !== "ALL") results = results.filter(r => r.status === status);
-      if (studentId) results = results.filter(r => r.studentId === studentId);
-      return NextResponse.json({ requests: results });
-    }
+    const requests = getRequestsStore();
+    return NextResponse.json({ requests });
   } catch (error) {
+    console.error("Failed to fetch requests:", error);
     return NextResponse.json({ error: "Failed to fetch requests" }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
-  return NextResponse.json({ success: true, demo: true, message: "Request posted! Agents will be notified. (Demo mode)" });
+  try {
+    const body = await req.json();
+
+    if (!body.title || !body.maxBudget || !body.tenantName) {
+      return NextResponse.json(
+        { error: "Please provide your name, budget, and request title." },
+        { status: 400 }
+      );
+    }
+
+    const newRequest = addRequestStore({
+      tenantName: body.tenantName,
+      tenantPhone: body.tenantPhone || "+234 800 000 0000",
+      tenantWhatsapp: body.tenantWhatsapp?.replace(/\D/g, "") || body.tenantPhone?.replace(/\D/g, "") || "2348000000000",
+      tenantSchool: body.tenantSchool || "UNILAG Student",
+      title: body.title,
+      description: body.description || "Looking for reliable accommodation matching my budget.",
+      targetUniversity: body.targetUniversity || "University of Lagos (UNILAG)",
+      preferredArea: body.preferredArea || "Akoka / Yaba Axis",
+      maxBudget: parseFloat(body.maxBudget),
+      propertyType: body.propertyType || "SELF_CONTAIN",
+      moveInDate: body.moveInDate || "As soon as possible",
+    });
+
+    return NextResponse.json({ success: true, request: newRequest });
+  } catch (error) {
+    console.error("Failed to create request:", error);
+    return NextResponse.json({ error: "Failed to create request" }, { status: 500 });
+  }
 }
