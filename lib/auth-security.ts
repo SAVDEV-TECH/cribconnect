@@ -110,11 +110,11 @@ export function checkRateLimit(key: string, maxRequests: number, windowMs: numbe
 if (typeof setInterval !== "undefined") {
   setInterval(() => {
     const now = Date.now();
-    for (const [key, record] of rateLimitMap.entries()) {
+    rateLimitMap.forEach((record, key) => {
       if (now > record.resetAt) {
         rateLimitMap.delete(key);
       }
-    }
+    });
   }, 10 * 60 * 1000);
 }
 
