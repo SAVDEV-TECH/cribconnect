@@ -55,6 +55,15 @@ export interface HousingRequest {
   responsesCount: number;
 }
 
+export interface TenantRentalRecord {
+  id: string;
+  tenantName: string;
+  propertyTitle: string;
+  neighborhood: string;
+  date: string;
+  amount: number;
+}
+
 export interface StoredUser {
   id: string;
   name: string;
@@ -64,10 +73,14 @@ export interface StoredUser {
   role: "AGENT" | "LANDLORD" | "TENANT" | "ADMIN";
   avatar: string;
   agencyName?: string;
+  bio?: string;
+  specializations?: string;
   passwordSalt: string;
   passwordHash: string;
   isVerified: boolean;
   ninOrLicense?: string;
+  tenantsHousedCount: number;
+  rentalsHistory: TenantRentalRecord[];
   createdAt: string;
 }
 
@@ -418,11 +431,18 @@ export const INITIAL_USERS: StoredUser[] = [
     role: "AGENT",
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80",
     agencyName: "Adeyemi & Partners Realty",
+    bio: "UNILAG Alum with 6+ years verified rental experience around Akoka, Onike, and Abule-Oja. Over 40 students housed safely with zero hidden charges.",
+    specializations: "UNILAG Main & New Hall Gates, Akoka, Onike",
     passwordSalt: "a1b2c3d4e5f67890",
-    // SHA-512 PBKDF2 hash of "password123" with salt "a1b2c3d4e5f67890"
     passwordHash: "7b134d193fa05928d3e691238dc8f06059d0473ce17f9dc6e9921da8a6234fe6cbe55106b107056637e6da48a903e1e6955a8f4c9c1b33230a1c6e11be6f5ef5",
     isVerified: true,
     ninOrLicense: "LAG-REA-2023-8891",
+    tenantsHousedCount: 18,
+    rentalsHistory: [
+      { id: "rent-1", tenantName: "Emeka Obi (Law 300L)", propertyTitle: "Self-Contain on Jaja St", neighborhood: "Akoka", date: "2024-01-04", amount: 450000 },
+      { id: "rent-2", tenantName: "Fatima Aliyu (Pharm Postgrad)", propertyTitle: "1-Bed Flat on Araromi", neighborhood: "Onike", date: "2023-12-18", amount: 600000 },
+      { id: "rent-3", tenantName: "Tunde Bakare (Fintech Intern)", propertyTitle: "Studio on Commercial Ave", neighborhood: "Yaba", date: "2023-11-20", amount: 800000 },
+    ],
     createdAt: "2024-01-01",
   },
   {
@@ -434,10 +454,17 @@ export const INITIAL_USERS: StoredUser[] = [
     role: "AGENT",
     avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&auto=format&fit=crop&q=80",
     agencyName: "Bisi Student Accommodations",
+    bio: "Passionate about helping female students and incoming freshers find clean, safe, and gated accommodation around Yaba and Bariga.",
+    specializations: "Abule-Oja, Bariga, St. Finbarr's Axis",
     passwordSalt: "b2c3d4e5f6a17890",
     passwordHash: "7b134d193fa05928d3e691238dc8f06059d0473ce17f9dc6e9921da8a6234fe6cbe55106b107056637e6da48a903e1e6955a8f4c9c1b33230a1c6e11be6f5ef5",
     isVerified: true,
     ninOrLicense: "NIN-29104819203",
+    tenantsHousedCount: 12,
+    rentalsHistory: [
+      { id: "rent-4", tenantName: "Blessing Eze (Medicine)", propertyTitle: "Quiet Self-Contain", neighborhood: "Abule-Oja", date: "2024-01-08", amount: 350000 },
+      { id: "rent-5", tenantName: "Sandra & Rita (Engineering)", propertyTitle: "2-Bed Shared Flat", neighborhood: "Bariga", date: "2023-12-05", amount: 520000 },
+    ],
     createdAt: "2024-01-05",
   },
   {
@@ -449,10 +476,17 @@ export const INITIAL_USERS: StoredUser[] = [
     role: "LANDLORD",
     avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80",
     agencyName: "Alabi Commercial & Residential Estate",
+    bio: "Property developer and landlord owning gated student complexes on Commercial Avenue and Onike. Direct landlord rentals with zero agent commissions.",
+    specializations: "Yaba Commercial Ave, Onike Residential Estates",
     passwordSalt: "c3d4e5f6a1b27890",
     passwordHash: "7b134d193fa05928d3e691238dc8f06059d0473ce17f9dc6e9921da8a6234fe6cbe55106b107056637e6da48a903e1e6955a8f4c9c1b33230a1c6e11be6f5ef5",
     isVerified: true,
     ninOrLicense: "NIN-77192830491",
+    tenantsHousedCount: 26,
+    rentalsHistory: [
+      { id: "rent-6", tenantName: "Dr. Kemi Adeleke (Lecturer)", propertyTitle: "Serviced 1-Bed Apartment", neighborhood: "Onike", date: "2024-01-11", amount: 900000 },
+      { id: "rent-7", tenantName: "Dayo Oladipo (Software Engineer)", propertyTitle: "Studio Apartment", neighborhood: "Yaba", date: "2023-12-22", amount: 850000 },
+    ],
     createdAt: "2024-01-08",
   },
 ];
@@ -468,13 +502,38 @@ export function getUserById(id: string): StoredUser | undefined {
   return activeUsers.find((u) => u.id === id);
 }
 
-export function createUser(user: Omit<StoredUser, "id" | "createdAt">): StoredUser {
+export function createUser(user: Omit<StoredUser, "id" | "createdAt" | "tenantsHousedCount" | "rentalsHistory">): StoredUser {
   const newUser: StoredUser = {
     ...user,
     id: "user-" + Date.now(),
+    tenantsHousedCount: 0,
+    rentalsHistory: [],
     createdAt: new Date().toISOString(),
   };
   activeUsers = [newUser, ...activeUsers];
   return newUser;
 }
+
+export function updateUser(id: string, updates: Partial<StoredUser>): StoredUser | undefined {
+  const user = activeUsers.find((u) => u.id === id);
+  if (!user) return undefined;
+
+  Object.assign(user, updates);
+  return user;
+}
+
+export function recordRentalSuccess(userId: string, record: Omit<TenantRentalRecord, "id">): StoredUser | undefined {
+  const user = activeUsers.find((u) => u.id === userId);
+  if (!user) return undefined;
+
+  const newRecord: TenantRentalRecord = {
+    ...record,
+    id: "rent-" + Date.now(),
+  };
+
+  user.tenantsHousedCount = (user.tenantsHousedCount || 0) + 1;
+  user.rentalsHistory = [newRecord, ...(user.rentalsHistory || [])];
+  return user;
+}
+
 

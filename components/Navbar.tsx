@@ -98,17 +98,33 @@ export default function Navbar() {
           {/* Action CTAs & Auth Controls */}
           <div className="hidden sm:flex items-center gap-3">
             {currentUser ? (
-              <div className="flex items-center gap-2.5">
-                <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200">
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/agent/dashboard"
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
+                    pathname === "/agent/dashboard"
+                      ? "bg-emerald-50 text-emerald-800"
+                      : "text-slate-700 hover:bg-slate-100"
+                  }`}
+                >
+                  Dashboard
+                </Link>
+
+                <Link
+                  href="/agent/profile"
+                  className="flex items-center gap-1.5 p-1.5 pr-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-colors"
+                  title="My Profile"
+                >
                   <img
                     src={currentUser.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80"}
                     alt=""
                     className="w-6 h-6 rounded-full object-cover"
                   />
-                  <span className="text-xs font-bold text-slate-800 max-w-[100px] truncate">
+                  <span className="text-xs font-bold text-slate-800 max-w-[90px] truncate">
                     {currentUser.name}
                   </span>
-                </div>
+                </Link>
+
                 <button
                   onClick={handleLogout}
                   className="p-2 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
@@ -181,21 +197,39 @@ export default function Navbar() {
           })}
           <div className="pt-2 border-t border-slate-100 flex flex-col gap-2">
             {currentUser ? (
-              <div className="flex items-center justify-between p-2 bg-slate-50 rounded-xl">
-                <div className="flex items-center gap-2">
-                  <img
-                    src={currentUser.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80"}
-                    alt=""
-                    className="w-6 h-6 rounded-full object-cover"
-                  />
-                  <span className="text-xs font-bold text-slate-800">{currentUser.name}</span>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between p-2 bg-slate-50 rounded-xl">
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={currentUser.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80"}
+                      alt=""
+                      className="w-6 h-6 rounded-full object-cover"
+                    />
+                    <span className="text-xs font-bold text-slate-800">{currentUser.name}</span>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="text-xs font-bold text-red-600 hover:underline"
+                  >
+                    Sign Out
+                  </button>
                 </div>
-                <button
-                  onClick={handleLogout}
-                  className="text-xs font-bold text-red-600 hover:underline"
-                >
-                  Sign Out
-                </button>
+                <div className="grid grid-cols-2 gap-2">
+                  <Link
+                    href="/agent/dashboard"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="text-center py-2 text-xs font-bold text-slate-800 bg-slate-100 rounded-xl"
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/agent/profile"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="text-center py-2 text-xs font-bold text-slate-800 bg-slate-100 rounded-xl"
+                  >
+                    Edit Profile
+                  </Link>
+                </div>
               </div>
             ) : (
               <Link
