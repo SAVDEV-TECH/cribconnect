@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import VideoTourModal from "@/components/VideoTourModal";
 import RelocationModal from "@/components/RelocationModal";
 import ProUpgradeModal from "@/components/ProUpgradeModal";
+import GoogleOneTap from "@/components/GoogleOneTap";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://cribconnect.vercel.app";
 
@@ -95,6 +96,7 @@ export default function RootLayout({
           <VideoTourModal />
           <RelocationModal />
           <ProUpgradeModal />
+          <GoogleOneTap />
         </AppProvider>
       </body>
     </html>
