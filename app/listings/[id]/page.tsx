@@ -32,6 +32,8 @@ export default function ListingDetailPage() {
   const [tenantName, setTenantName] = useState("");
   const [tenantPhone, setTenantPhone] = useState("");
   const [inspectionDate, setInspectionDate] = useState("");
+  const [inspectionTime, setInspectionTime] = useState("11:00 AM - 1:00 PM");
+  const [inspectionMessage, setInspectionMessage] = useState("");
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
 
@@ -135,6 +137,8 @@ export default function ListingDetailPage() {
           tenantName,
           tenantPhone,
           preferredDate: inspectionDate,
+          preferredTime: inspectionTime,
+          message: inspectionMessage || "I would like to schedule a physical inspection.",
         }),
       });
       if (res.ok) {
@@ -373,11 +377,30 @@ export default function ListingDetailPage() {
                     onChange={(e) => setTenantPhone(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="date"
+                      required
+                      value={inspectionDate}
+                      onChange={(e) => setInspectionDate(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    />
+                    <select
+                      value={inspectionTime}
+                      onChange={(e) => setInspectionTime(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    >
+                      <option value="9:00 AM - 11:00 AM">Morning (9am - 11am)</option>
+                      <option value="11:00 AM - 1:00 PM">Midday (11am - 1pm)</option>
+                      <option value="2:00 PM - 4:00 PM">Afternoon (2pm - 4pm)</option>
+                      <option value="4:00 PM - 6:00 PM">Evening (4pm - 6pm)</option>
+                    </select>
+                  </div>
                   <input
-                    type="date"
-                    required
-                    value={inspectionDate}
-                    onChange={(e) => setInspectionDate(e.target.value)}
+                    type="text"
+                    placeholder="Note for Agent (e.g. 200L Student, checking water)"
+                    value={inspectionMessage}
+                    onChange={(e) => setInspectionMessage(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
                   <button

@@ -21,6 +21,9 @@ import {
   DollarSign,
   AlertCircle,
   Edit,
+  XCircle,
+  Check,
+  Send,
 } from "lucide-react";
 
 export default function AgentDashboardPage() {
@@ -31,6 +34,11 @@ export default function AgentDashboardPage() {
   const [listings, setListings] = useState<any[]>([]);
   const [rentalsHistory, setRentalsHistory] = useState<any[]>([]);
   const [tenantsHousedCount, setTenantsHousedCount] = useState(0);
+
+  // Inspection Bookings state
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [bookingFilter, setBookingFilter] = useState<"ALL" | "PENDING" | "CONFIRMED">("ALL");
+  const [updatingBookingId, setUpdatingBookingId] = useState<string | null>(null);
 
   // "Record a Rental / Tenant Housed" modal state
   const [showRentModal, setShowRentModal] = useState(false);
@@ -55,11 +63,65 @@ export default function AgentDashboardPage() {
         setRentalsHistory(data.profile.rentalsHistory || []);
         setTenantsHousedCount(data.profile.tenantsHousedCount || 0);
       }
+
+      // Fetch inspections
+      const bRes = await fetch("/api/bookings");
+      if (bRes.ok) {
+        const bData = await bRes.json();
+        setBookings(bData.bookings || []);
+      }
     } catch (e) {
       console.error(e);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleUpdateBookingStatus = async (
+    id: string,
+    status: "PENDING" | "CONFIRMED" | "DECLINED" | "COMPLETED",
+    tenantPhone?: string,
+    tenantName?: string,
+    listingTitle?: string,
+    preferredDate?: string,
+    preferredTime?: string
+  ) => {
+    setUpdatingBookingId(id);
+    try {
+      const res = await fetch("/api/bookings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status }),
+      });
+
+      if (res.ok) {
+        setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status } : b)));
+        setSuccessMessage(`Inspection status updated to ${status}!`);
+        setTimeout(() => setSuccessMessage(null), 4000);
+
+        // If confirming, launch WhatsApp to confirm time with student
+        if (status === "CONFIRMED" && tenantPhone) {
+          const cleanPhone = tenantPhone.replace(/\D/g, "");
+          const intlPhone = cleanPhone.startsWith("0") ? "234" + cleanPhone.slice(1) : cleanPhone;
+          const msg = encodeURIComponent(
+            `Hello ${tenantName || "there"}! Your physical walkthrough for "${listingTitle || "the apartment"}" on CribConnect has been confirmed for ${preferredDate || "your requested date"} (${preferredTime || "scheduled time"}). See you then!`
+          );
+          window.open(`https://wa.me/${intlPhone}?text=${msg}`, "_blank");
+        }
+      }
+    } catch (err) {
+      console.error("Failed to update booking status:", err);
+    } finally {
+      setUpdatingBookingId(null);
+    }
+  };
+
+  const handleConvertBookingToRental = (b: any) => {
+    setRentalTenantName(b.tenantName);
+    const matchingListing = listings.find((l) => l.id === b.listingId);
+    setSelectedListingForRent(matchingListing || { id: b.listingId, title: b.listingTitle });
+    setRentalAmount(matchingListing ? String(matchingListing.price) : "450000");
+    setShowRentModal(true);
   };
 
   useEffect(() => {
@@ -124,6 +186,14 @@ export default function AgentDashboardPage() {
 
   const activeListingsCount = listings.filter((l) => l.isAvailable).length;
   const totalDealVolume = rentalsHistory.reduce((acc, curr) => acc + (curr.amount || 0), 0);
+  const pendingBookingsCount = bookings.filter((b) => b.status === "PENDING").length;
+  const confirmedBookingsCount = bookings.filter((b) => b.status === "CONFIRMED").length;
+
+  const filteredBookings = bookings.filter((b) => {
+    if (bookingFilter === "PENDING") return b.status === "PENDING";
+    if (bookingFilter === "CONFIRMED") return b.status === "CONFIRMED";
+    return true;
+  });
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
@@ -273,6 +343,209 @@ export default function AgentDashboardPage() {
           <UserCheck className="w-4 h-4" />
           <span>+ Log Housed Tenant</span>
         </button>
+      </div>
+
+      {/* SECTION: Physical Inspection Inquiries & Walkthroughs */}
+      <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <h2 className="text-lg font-black text-slate-900 tracking-tight">
+                Physical Inspection Inquiries ({bookings.length})
+              </h2>
+              {pendingBookingsCount > 0 && (
+                <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-black uppercase tracking-wider animate-pulse">
+                  {pendingBookingsCount} Action Needed
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Verified students and relocators requesting on-site apartment walkthroughs.
+            </p>
+          </div>
+
+          {/* Filter Pills */}
+          <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl">
+            <button
+              onClick={() => setBookingFilter("ALL")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                bookingFilter === "ALL"
+                  ? "bg-white text-emerald-800 shadow-2xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              All ({bookings.length})
+            </button>
+            <button
+              onClick={() => setBookingFilter("PENDING")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                bookingFilter === "PENDING"
+                  ? "bg-white text-amber-800 shadow-2xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              Pending ({pendingBookingsCount})
+            </button>
+            <button
+              onClick={() => setBookingFilter("CONFIRMED")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                bookingFilter === "CONFIRMED"
+                  ? "bg-white text-emerald-800 shadow-2xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              Confirmed ({confirmedBookingsCount})
+            </button>
+          </div>
+        </div>
+
+        {/* Bookings List */}
+        {filteredBookings.length === 0 ? (
+          <div className="p-8 text-center rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
+            <Calendar className="w-8 h-8 text-slate-300 mx-auto" />
+            <p className="text-xs font-bold text-slate-600">No inspection bookings in this filter.</p>
+            <p className="text-[11px] text-slate-400">
+              When students book walkthroughs on your listings, they will show up here.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredBookings.map((b) => {
+              const cleanPhone = (b.tenantPhone || "").replace(/\D/g, "");
+              const intlPhone = cleanPhone.startsWith("0") ? "234" + cleanPhone.slice(1) : cleanPhone;
+              const waLink = `https://wa.me/${intlPhone}?text=${encodeURIComponent(
+                `Hello ${b.tenantName}! Reaching out regarding your inspection request on CribConnect for "${b.listingTitle}".`
+              )}`;
+
+              return (
+                <div
+                  key={b.id}
+                  className="p-5 rounded-2xl border border-slate-200/90 hover:border-emerald-300 bg-white shadow-2xs transition-all space-y-4 flex flex-col justify-between"
+                >
+                  <div className="space-y-3">
+                    {/* Header: Student Name + Status Badge */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-sm flex items-center justify-center shrink-0 border border-emerald-200">
+                          {b.tenantName ? b.tenantName.charAt(0).toUpperCase() : "S"}
+                        </div>
+                        <div>
+                          <h3 className="font-extrabold text-sm text-slate-900 leading-tight">
+                            {b.tenantName}
+                          </h3>
+                          <span className="text-[11px] text-slate-500 font-medium">
+                            📞 {b.tenantPhone}
+                          </span>
+                        </div>
+                      </div>
+
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                          b.status === "CONFIRMED"
+                            ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                            : b.status === "PENDING"
+                            ? "bg-amber-100 text-amber-800 border border-amber-200"
+                            : b.status === "COMPLETED"
+                            ? "bg-purple-100 text-purple-800 border border-purple-200"
+                            : "bg-red-50 text-red-700"
+                        }`}
+                      >
+                        {b.status}
+                      </span>
+                    </div>
+
+                    {/* Listing Title */}
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                        Requested Property
+                      </span>
+                      <Link
+                        href={`/listings/${b.listingId}`}
+                        className="text-xs font-bold text-slate-900 hover:text-emerald-700 line-clamp-1 block"
+                      >
+                        {b.listingTitle}
+                      </Link>
+                    </div>
+
+                    {/* Inspection Date & Time */}
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-50 text-slate-700 font-semibold">
+                        <Calendar className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span className="truncate">{b.preferredDate || "Any Day"}</span>
+                      </div>
+                      <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-50 text-slate-700 font-semibold">
+                        <Clock className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span className="truncate">{b.preferredTime || "11am - 1pm"}</span>
+                      </div>
+                    </div>
+
+                    {/* Student Message/Note */}
+                    {b.message && (
+                      <p className="text-xs text-slate-600 italic bg-slate-50/70 p-2.5 rounded-xl border border-slate-100/80">
+                        &quot;{b.message}&quot;
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center gap-2">
+                    {b.status === "PENDING" ? (
+                      <>
+                        <button
+                          disabled={updatingBookingId === b.id}
+                          onClick={() =>
+                            handleUpdateBookingStatus(
+                              b.id,
+                              "CONFIRMED",
+                              b.tenantPhone,
+                              b.tenantName,
+                              b.listingTitle,
+                              b.preferredDate,
+                              b.preferredTime
+                            )
+                          }
+                          className="flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-xs transition-all flex items-center justify-center gap-1.5"
+                        >
+                          <Check className="w-3.5 h-3.5 stroke-[3]" />
+                          <span>Confirm & Chat</span>
+                        </button>
+
+                        <button
+                          disabled={updatingBookingId === b.id}
+                          onClick={() => handleUpdateBookingStatus(b.id, "DECLINED")}
+                          className="py-2 px-3 rounded-xl bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-700 font-bold text-xs transition-colors"
+                        >
+                          Decline
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <a
+                          href={waLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 py-2 px-3 rounded-xl bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#128C7E] font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          <span>Chat on WhatsApp</span>
+                        </a>
+
+                        <button
+                          onClick={() => handleConvertBookingToRental(b)}
+                          className="py-2 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs transition-colors flex items-center gap-1"
+                          title="If this student rented the apartment, log it to increase your housed tenants count"
+                        >
+                          <UserCheck className="w-3.5 h-3.5" />
+                          <span>Log Housed</span>
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* TWO COLUMN SECTION: Listings Manager + Housed Tenants History */}

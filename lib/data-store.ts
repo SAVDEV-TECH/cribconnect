@@ -88,12 +88,15 @@ export interface InspectionBooking {
   id: string;
   listingId: string;
   listingTitle: string;
+  agentId?: string;
+  agentName?: string;
   tenantName: string;
   tenantPhone: string;
   tenantEmail: string;
   preferredDate: string;
+  preferredTime?: string;
   message: string;
-  status: "PENDING" | "CONFIRMED";
+  status: "PENDING" | "CONFIRMED" | "DECLINED" | "COMPLETED";
   createdAt: string;
 }
 
@@ -363,10 +366,43 @@ export const INITIAL_REQUESTS: HousingRequest[] = [
   },
 ];
 
+export const INITIAL_BOOKINGS: InspectionBooking[] = [
+  {
+    id: "book-1",
+    listingId: "crib-1",
+    listingTitle: "Executive Self-Contain | 4 Mins to UNILAG New Hall Gate",
+    agentId: "agent-kola",
+    agentName: "Kolawole Adebayo",
+    tenantName: "Chioma Okeke",
+    tenantPhone: "08034451122",
+    tenantEmail: "chioma.okeke@unilag.edu.ng",
+    preferredDate: "2026-10-22",
+    preferredTime: "11:00 AM - 1:00 PM",
+    message: "Hi Kolawole, my semester starts next week. I would love to see the compound and verify the borehole water pressure in person.",
+    status: "PENDING",
+    createdAt: "2026-10-18T10:30:00Z",
+  },
+  {
+    id: "book-2",
+    listingId: "crib-4",
+    listingTitle: "Serviced Studio with AC & Inverter | Commercial Ave, Yaba",
+    agentId: "user-landlord-tunde",
+    agentName: "Chief Tunde Alabi",
+    tenantName: "Ibrahim Salami",
+    tenantPhone: "08129983344",
+    tenantEmail: "ibrahim.tech@gmail.com",
+    preferredDate: "2026-10-23",
+    preferredTime: "2:00 PM - 4:00 PM",
+    message: "I work remotely and need to check the inverter stability and internet speed before making payment.",
+    status: "CONFIRMED",
+    createdAt: "2026-10-19T14:15:00Z",
+  },
+];
+
 // In-memory active stores (persist for serverless container lifecycle)
 let activeListings: Listing[] = [...INITIAL_LISTINGS];
 let activeRequests: HousingRequest[] = [...INITIAL_REQUESTS];
-let activeBookings: InspectionBooking[] = [];
+let activeBookings: InspectionBooking[] = [...INITIAL_BOOKINGS];
 
 export function getListingsStore(): Listing[] {
   return activeListings;
@@ -417,6 +453,25 @@ export function addBookingStore(booking: Omit<InspectionBooking, "id" | "created
 
 export function getBookingsStore(): InspectionBooking[] {
   return activeBookings;
+}
+
+export function getBookingsByAgent(agentId: string, agentName?: string): InspectionBooking[] {
+  return activeBookings.filter((b) => {
+    if (b.agentId && b.agentId === agentId) return true;
+    if (agentName && b.agentName?.toLowerCase() === agentName.toLowerCase()) return true;
+    const listing = getListingById(b.listingId);
+    if (listing && (listing.agentId === agentId || (agentName && listing.agentName.toLowerCase() === agentName.toLowerCase()))) {
+      return true;
+    }
+    return false;
+  });
+}
+
+export function updateBookingStatus(id: string, status: "PENDING" | "CONFIRMED" | "DECLINED" | "COMPLETED"): InspectionBooking | undefined {
+  const booking = activeBookings.find((b) => b.id === id);
+  if (!booking) return undefined;
+  booking.status = status;
+  return booking;
 }
 
 // --- User Authentication Store ---
