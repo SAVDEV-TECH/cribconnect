@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
@@ -125,7 +125,7 @@ function ListingsContent() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by street (e.g. St. Finbarr's, Alara, Akoka, Abule Oja)..."
+              placeholder="Search by street (e.g. Choba Road, Ozuoba, Aluu, Rumuola)..."
               className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none"
             />
           </div>
@@ -180,12 +180,13 @@ function ListingsContent() {
               onChange={(e) => setNeighborhood(e.target.value)}
               className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 font-medium text-slate-800 focus:outline-none"
             >
-              <option value="ALL">All Hubs</option>
-              <option value="Akoka">Akoka (Gates Axis)</option>
-              <option value="Onike">Onike</option>
-              <option value="Abule-Oja">Abule-Oja</option>
-              <option value="Yaba">Yaba / Sabo</option>
-              <option value="Bariga">Bariga</option>
+              <option value="ALL">All Areas</option>
+              <option value="Choba">Choba (Main Gate)</option>
+              <option value="Ozuoba">Ozuoba (Budget Zone)</option>
+              <option value="Aluu">Aluu (Back Gate)</option>
+              <option value="Rumuola">Rumuola</option>
+              <option value="Rumuokoro">Rumuokoro</option>
+              <option value="GRA Port Harcourt">GRA PH (Premium)</option>
             </select>
           </div>
 
@@ -366,3 +367,4 @@ export default function ListingsPage() {
     </Suspense>
   );
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState, useRef } from "react";
 import Script from "next/script";
@@ -378,3 +378,4 @@ export default function GoogleOneTap() {
     </>
   );
 }
+

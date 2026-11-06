@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Currency, formatMoney as formatMoneyUtil, DEMO_PERSONAS, DemoPersona } from "@/lib/types";
@@ -53,7 +53,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [currency, setCurrency] = useState<Currency>("NGN");
-  const [selectedUniversity, setSelectedUniversity] = useState<string>("University of Lagos (UNILAG)");
+  const [selectedUniversity, setSelectedUniversity] = useState<string>("University of Port Harcourt (UNIPORT)");
   const [isRelocationModalOpen, setIsRelocationModalOpen] = useState(false);
   const [videoTourUrl, setVideoTourUrl] = useState<string | null>(null);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);

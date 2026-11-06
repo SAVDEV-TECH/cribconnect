@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -92,11 +92,11 @@ export default function AgentsPage() {
             onChange={(e) => setCampusFilter(e.target.value)}
             className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 font-medium text-slate-800"
           >
-            <option value="ALL">All Campuses</option>
-            <option value="UNILAG">UNILAG (Akoka / Yaba)</option>
-            <option value="Yaba">Yaba College of Technology</option>
-            <option value="LASU">Lagos State University</option>
-            <option value="UI">University of Ibadan</option>
+            <option value="ALL">All Campus Areas</option>
+            <option value="UNIPORT">UNIPORT (Choba / Ozuoba)</option>
+            <option value="Choba">Choba Main Gate Area</option>
+            <option value="Aluu">Aluu Back Gate Area</option>
+            <option value="RSU">Rivers State University (RSU)</option>
           </select>
           <span className="text-slate-500">
             {filteredAgents.length} Agents Listed
@@ -250,3 +250,4 @@ export default function AgentsPage() {
     </div>
   );
 }
+

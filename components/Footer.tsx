@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import Link from "next/link";
 import { Building2, ShieldCheck, Heart, MapPin, Phone, Mail } from "lucide-react";
 
@@ -31,23 +31,23 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2 text-slate-400">
               <li>
-                <Link href="/listings?university=UNILAG" className="hover:text-white transition-colors">
-                  UNILAG (Akoka, Onike, Abule-Oja)
+                <Link href="/listings?neighborhood=Choba" className="hover:text-white transition-colors">
+                  UNIPORT (Choba, Ozuoba, Main Gate)
                 </Link>
               </li>
               <li>
-                <Link href="/listings?university=Yaba" className="hover:text-white transition-colors">
-                  Yaba College of Technology (Sabo)
+                <Link href="/listings?neighborhood=Aluu" className="hover:text-white transition-colors">
+                  Aluu Back Gate Area (Budget Zone)
                 </Link>
               </li>
               <li>
-                <Link href="/listings?university=LASU" className="hover:text-white transition-colors">
-                  Lagos State University (Ojo)
+                <Link href="/listings?neighborhood=Rumuola" className="hover:text-white transition-colors">
+                  Rumuola (Quiet & Residential)
                 </Link>
               </li>
               <li>
-                <Link href="/listings?university=UI" className="hover:text-white transition-colors">
-                  University of Ibadan (UI Bodija)
+                <Link href="/listings?neighborhood=GRA Port Harcourt" className="hover:text-white transition-colors">
+                  GRA Port Harcourt (Premium Serviced)
                 </Link>
               </li>
             </ul>
@@ -121,3 +121,4 @@ export default function Footer() {
     </footer>
   );
 }
+

@@ -1,11 +1,11 @@
-// app/not-found.tsx — Custom 404 page
+﻿// app/not-found.tsx — Custom 404 page
 import Link from "next/link";
 import { Home, Search, MessageSquare, ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Page Not Found | CribConnect",
-  description: "The page you're looking for doesn't exist. Find student housing near UNILAG and YabaTech on CribConnect.",
+  description: "The page you're looking for doesn't exist. Find student housing near UNIPORT Port Harcourt on CribConnect.",
 };
 
 export default function NotFound() {
@@ -70,3 +70,4 @@ export default function NotFound() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import { useApp } from "@/context/AppContext";
@@ -96,9 +96,9 @@ export default function RelocationModal() {
                   onChange={(e) => setTargetUni(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 >
-                  <option value="University of Lagos (UNILAG)">University of Lagos (UNILAG - Akoka / Yaba)</option>
-                  <option value="Yaba College of Technology">Yaba College of Technology (YabaTech)</option>
-                  <option value="Lagos State University (LASU)">Lagos State University (LASU)</option>
+                  <option value="University of Port Harcourt (UNIPORT)">University of Port Harcourt (UNIPORT - Choba)</option>
+                  <option value="Rivers State University (RSU)">Rivers State University (RSU - Nkpolu-Oroworukwo)</option>
+                  <option value="Captain Elechi Amadi Polytechnic">Captain Elechi Amadi Polytechnic (Rumuola)</option>
                   <option value="University of Ibadan (UI)">University of Ibadan (UI)</option>
                   <option value="Covenant University">Covenant University</option>
                 </select>
@@ -206,7 +206,7 @@ export default function RelocationModal() {
                       Kolawole Adebayo
                     </span>
                     <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded-full flex items-center gap-0.5">
-                      <ShieldCheck className="w-2.5 h-2.5" /> UNILAG Specialist
+                      <ShieldCheck className="w-2.5 h-2.5" /> UNIPORT Specialist
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-500 line-clamp-1">

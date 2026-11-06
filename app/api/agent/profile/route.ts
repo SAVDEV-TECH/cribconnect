@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifySessionToken, sanitizeText, sanitizeUrl, isValidPhone } from "@/lib/auth-security";
 import { getUserById, updateUser, getListingsStore } from "@/lib/data-store";
@@ -109,3 +109,4 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Failed to update profile" }, { status: 500 });
   }
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
@@ -323,7 +323,7 @@ export default function AgentProfilePage() {
                 type="text"
                 value={formData.specializations}
                 onChange={(e) => setFormData({ ...formData, specializations: e.target.value })}
-                placeholder="e.g. UNILAG Main & New Hall Gates, Akoka, Onike, Abule-Oja"
+                placeholder="e.g. UNIPORT Choba Main Gate, Aluu Back Gate, Rumuola, Ozuoba"
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
               <span className="text-[10px] text-slate-400 mt-1 block">Students filter for agents specializing in their desired campus gate.</span>
@@ -365,3 +365,4 @@ export default function AgentProfilePage() {
     </div>
   );
 }
+

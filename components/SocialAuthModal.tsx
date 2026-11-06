@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -92,10 +92,10 @@ export default function SocialAuthModal({
       tag: "Primary Connected Profile",
     },
     {
-      name: "Kolawole Adebayo",
+      name: "Emeka Chukwudi",
       email: provider === "google" ? "kolawole.adebayo@gmail.com" : "kolawole.agent@facebook.com",
       avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
-      tag: "UNILAG Verified Realtor",
+      tag: "UNIPORT Verified Realtor",
     },
     {
       name: "Chief Tunde Alabi",
@@ -522,3 +522,4 @@ export default function SocialAuthModal({
     </div>
   );
 }
+

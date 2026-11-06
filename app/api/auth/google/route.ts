@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import {
   createSessionToken,
@@ -156,8 +156,8 @@ export async function POST(req: NextRequest) {
         bio:
           chosenRole === "LANDLORD"
             ? "Verified property owner renting student accommodations with zero agency fees."
-            : "Licensed Lagos realtor helping students and relocators find verified cribs near campus.",
-        specializations: "UNILAG, YabaTech, Akoka, Onike, Bariga",
+            : "Licensed Port Harcourt realtor helping students and relocators find verified cribs near campus.",
+        specializations: "UNIPORT, Choba, Rumuola, Onike, Bariga",
         passwordSalt: salt,
         passwordHash: hash,
         isVerified: false,
@@ -198,3 +198,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Google authentication failed. Please try again." }, { status: 500 });
   }
 }
+

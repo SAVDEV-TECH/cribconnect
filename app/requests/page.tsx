@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -26,9 +26,9 @@ export default function HousingRequestsPage() {
   const [formData, setFormData] = useState({
     tenantName: "",
     tenantPhone: "",
-    tenantSchool: "UNILAG Fresher",
+    tenantSchool: "UNIPORT Fresher",
     title: "",
-    preferredArea: "Akoka / Onike",
+    preferredArea: "Choba / Ozuoba",
     maxBudget: "500000",
     propertyType: "SELF_CONTAIN",
     moveInDate: "Next 2 Weeks",
@@ -73,9 +73,9 @@ export default function HousingRequestsPage() {
         setFormData({
           tenantName: "",
           tenantPhone: "",
-          tenantSchool: "UNILAG Fresher",
+          tenantSchool: "UNIPORT Fresher",
           title: "",
-          preferredArea: "Akoka / Onike",
+          preferredArea: "Choba / Ozuoba",
           maxBudget: "500000",
           propertyType: "SELF_CONTAIN",
           moveInDate: "Next 2 Weeks",
@@ -264,7 +264,7 @@ export default function HousingRequestsPage() {
                   <label className="block text-xs font-bold text-slate-700 mb-1">School / Faculty</label>
                   <input
                     type="text"
-                    placeholder="e.g. UNILAG 100L Law"
+                    placeholder="e.g. UNIPORT 100L Engineering"
                     value={formData.tenantSchool}
                     onChange={(e) => setFormData({ ...formData, tenantSchool: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
@@ -277,7 +277,7 @@ export default function HousingRequestsPage() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Self-contain within 5 mins walk of UNILAG New Hall Gate"
+                  placeholder="e.g. Self-contain within 5 mins walk of UNIPORT Choba Main Gate"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
@@ -301,7 +301,7 @@ export default function HousingRequestsPage() {
                   <label className="block text-xs font-bold text-slate-700 mb-1">Preferred Location</label>
                   <input
                     type="text"
-                    placeholder="e.g. Akoka, Onike, Abule-Oja"
+                    placeholder="e.g. Choba, Ozuoba, Aluu, Rumuola"
                     value={formData.preferredArea}
                     onChange={(e) => setFormData({ ...formData, preferredArea: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
@@ -335,3 +335,4 @@ export default function HousingRequestsPage() {
     </div>
   );
 }
+

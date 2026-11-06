@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
@@ -32,37 +32,37 @@ interface MapInnerProps {
   onSelectListing?: (id: string) => void;
 }
 
-// Campus Gate Pins for UNILAG
+// Campus Gate Pins for UNIPORT
 const CAMPUS_PINS = [
   {
-    name: "UNILAG Main Gate (Akoka)",
-    lat: 6.5186,
-    lng: 3.3881,
+    name: "UNIPORT Choba Main Gate",
+    lat: 4.8984,
+    lng: 6.9315,
     desc: "Primary entry for commercial buses & campus cabs",
   },
   {
-    name: "UNILAG New Hall Gate",
-    lat: 6.5195,
-    lng: 3.386,
+    name: "UNIPORT Admin Gate",
+    lat: 4.8990,
+    lng: 6.9320,
     desc: "Direct access to undergraduate halls of residence",
   },
   {
-    name: "UNILAG Education Gate",
-    lat: 6.516,
-    lng: 3.391,
+    name: "UNIPORT Faculty of Sciences Gate",
+    lat: 4.8975,
+    lng: 6.9330,
     desc: "Direct access to Faculty of Education and Sports Centre",
   },
   {
-    name: "YabaTech Main Gate",
-    lat: 6.5101,
-    lng: 3.3754,
+    name: "UNIPORT Back Gate (Aluu Road)",
+    lat: 4.9112,
+    lng: 6.9187,
     desc: "Herbert Macaulay Way campus gate",
   },
 ];
 
 export default function MapInner({
   listings,
-  center = [6.5186, 3.3881],
+  center = [4.8984, 6.9315],
   zoom = 14,
   activeListingId,
   onSelectListing,

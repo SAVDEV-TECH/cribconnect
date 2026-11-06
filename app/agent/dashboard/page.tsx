@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -139,7 +139,7 @@ export default function AgentDashboardPage() {
         body: JSON.stringify({
           listingId: selectedListingForRent?.id,
           propertyTitle: selectedListingForRent?.title || "Rental Accommodation",
-          neighborhood: selectedListingForRent?.neighborhood || "Akoka",
+          neighborhood: selectedListingForRent?.neighborhood || "Choba",
           tenantName: rentalTenantName,
           amount: parseFloat(rentalAmount) || selectedListingForRent?.price || 450000,
           date: rentalDate,
@@ -214,7 +214,7 @@ export default function AgentDashboardPage() {
               {profile?.agencyName || "Verified Housing Specialist"} • {profile?.role}
             </p>
             <p className="text-[11px] text-emerald-700 font-semibold mt-0.5">
-              📍 Specialization: {profile?.specializations || "UNILAG, Akoka, Onike"}
+              📍 Specialization: {profile?.specializations || "UNIPORT, Choba, Rumuola"}
             </p>
           </div>
         </div>
@@ -718,7 +718,7 @@ export default function AgentDashboardPage() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Chidi Nwosu (UNILAG Fresher)"
+                  placeholder="e.g. Chisom Okereke (UNIPORT Fresher)"
                   value={rentalTenantName}
                   onChange={(e) => setRentalTenantName(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
@@ -733,7 +733,7 @@ export default function AgentDashboardPage() {
                   type="text"
                   required
                   placeholder="e.g. Self-Contain on Jaja Street"
-                  value={selectedListingForRent?.title || "Self-Contain in Akoka"}
+                  value={selectedListingForRent?.title || "Self-Contain in Choba"}
                   onChange={(e) => {
                     if (selectedListingForRent) {
                       setSelectedListingForRent({ ...selectedListingForRent, title: e.target.value });
@@ -787,3 +787,4 @@ export default function AgentDashboardPage() {
     </div>
   );
 }
+

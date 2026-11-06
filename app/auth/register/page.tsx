@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import Link from "next/link";
@@ -87,7 +87,7 @@ export default function RegisterPage() {
             Create Agent or Landlord Account
           </h1>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            Connect directly with verified students and relocators searching for housing in Lagos.
+            Connect directly with verified students and relocators searching for housing near UNIPORT, Port Harcourt.
           </p>
         </div>
 
@@ -122,7 +122,7 @@ export default function RegisterPage() {
           </div>
           <p className="text-[11px] text-slate-500 mt-1.5 px-1">
             {role === "AGENT"
-              ? "🏢 For brokers & agencies managing student apartments around Lagos campuses."
+              ? "🏢 For brokers & agencies managing student apartments around UNIPORT, Choba, PH."
               : "🏠 For direct property owners or caretakers renting with 0% agency fees."}
           </p>
         </div>
@@ -188,7 +188,7 @@ export default function RegisterPage() {
             <input
               type="text"
               required
-              placeholder="e.g. Kolawole Adebayo"
+              placeholder="e.g. Emeka Chukwudi"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
@@ -335,3 +335,4 @@ export default function RegisterPage() {
     </div>
   );
 }
+

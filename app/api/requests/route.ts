@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { getRequestsStore, addRequestStore } from "@/lib/data-store";
 
 export const dynamic = "force-dynamic";
@@ -28,11 +28,11 @@ export async function POST(req: NextRequest) {
       tenantName: body.tenantName,
       tenantPhone: body.tenantPhone || "+234 800 000 0000",
       tenantWhatsapp: body.tenantWhatsapp?.replace(/\D/g, "") || body.tenantPhone?.replace(/\D/g, "") || "2348000000000",
-      tenantSchool: body.tenantSchool || "UNILAG Student",
+      tenantSchool: body.tenantSchool || "UNIPORT Student",
       title: body.title,
       description: body.description || "Looking for reliable accommodation matching my budget.",
-      targetUniversity: body.targetUniversity || "University of Lagos (UNILAG)",
-      preferredArea: body.preferredArea || "Akoka / Yaba Axis",
+      targetUniversity: body.targetUniversity || "University of Port Harcourt (UNIPORT)",
+      preferredArea: body.preferredArea || "Choba / Ozuoba",
       maxBudget: parseFloat(body.maxBudget),
       propertyType: body.propertyType || "SELF_CONTAIN",
       moveInDate: body.moveInDate || "As soon as possible",
@@ -44,3 +44,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Failed to create request" }, { status: 500 });
   }
 }
+

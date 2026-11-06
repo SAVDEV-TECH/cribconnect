@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { MOCK_USERS, MOCK_AGENT_PROFILES, MOCK_LISTINGS } from "@/lib/mock-data";
 
 export const dynamic = "force-dynamic";
@@ -37,3 +37,4 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Failed to fetch agents" }, { status: 500 });
   }
 }
+

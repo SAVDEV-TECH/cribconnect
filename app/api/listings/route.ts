@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { getListingsStore, addListingStore, Listing } from "@/lib/data-store";
 
 export const dynamic = "force-dynamic";
@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
       address: body.address || body.neighborhood + ", Lagos",
       neighborhood: body.neighborhood,
       city: "Lagos",
-      universityNearby: body.universityNearby || "University of Lagos (UNILAG)",
+      universityNearby: body.universityNearby || "University of Port Harcourt (UNIPORT)",
       distanceToCampusMinutes: parseInt(body.distanceToCampusMinutes) || 8,
       distanceDescription: body.distanceDescription || `${body.distanceToCampusMinutes || 8} mins to campus gate`,
       latitude: parseFloat(body.latitude) || 6.5186,
@@ -112,3 +112,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Failed to create listing" }, { status: 500 });
   }
 }
+

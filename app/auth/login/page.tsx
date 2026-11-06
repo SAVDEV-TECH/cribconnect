@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import Link from "next/link";
@@ -184,19 +184,19 @@ export default function LoginPage() {
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
-              onClick={() => setDemoCredentials("kolawole@adeyemirealty.ng")}
+              onClick={() => setDemoCredentials("emeka@chukwudirealty.ng")}
               className="p-2 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 text-left text-[11px] transition-colors"
             >
-              <span className="font-bold text-slate-800 block">Kolawole (Agent)</span>
-              <span className="text-slate-400 text-[10px]">UNILAG Specialist</span>
+              <span className="font-bold text-slate-800 block">Emeka (Agent)</span>
+              <span className="text-slate-400 text-[10px]">UNIPORT Specialist</span>
             </button>
 
             <button
               type="button"
-              onClick={() => setDemoCredentials("tunde@alabiproperties.com")}
+              onClick={() => setDemoCredentials("nkem@duruproperties.com")}
               className="p-2 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 text-left text-[11px] transition-colors"
             >
-              <span className="font-bold text-slate-800 block">Chief Tunde</span>
+              <span className="font-bold text-slate-800 block">Chief Nkem</span>
               <span className="text-slate-400 text-[10px]">Property Owner</span>
             </button>
           </div>
@@ -233,3 +233,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

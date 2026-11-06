@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import {
   addBookingStore,
@@ -114,3 +114,4 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Failed to update booking status." }, { status: 500 });
   }
 }
+

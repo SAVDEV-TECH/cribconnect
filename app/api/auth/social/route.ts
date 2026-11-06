@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import {
   createSessionToken,
@@ -71,8 +71,8 @@ export async function POST(req: NextRequest) {
         bio:
           chosenRole === "LANDLORD"
             ? "Verified property owner renting clean student accommodations with zero agent markups."
-            : "Licensed Lagos realtor helping students and relocators find verified cribs near campus.",
-        specializations: "UNILAG, YabaTech, Akoka, Onike, Bariga",
+            : "Licensed Port Harcourt realtor helping students and relocators find verified cribs near campus.",
+        specializations: "UNIPORT, Choba, Rumuola, Onike, Bariga",
         passwordSalt: salt,
         passwordHash: hash,
         isVerified: Boolean(body.isVerified),
@@ -113,3 +113,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Failed to authenticate with social provider." }, { status: 500 });
   }
 }
+

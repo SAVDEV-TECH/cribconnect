@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -63,7 +63,7 @@ export default function Navbar() {
                 Crib<span className="text-emerald-600">Connect</span>
               </span>
               <span className="block text-[10px] text-slate-500 font-medium tracking-wide">
-                Verified Student & Relocation Rentals
+                UNIPORT Verified Student Rentals · PH
               </span>
             </div>
           </Link>

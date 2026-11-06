@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -42,7 +42,7 @@ export default function ListPropertyPage() {
 
   const [formData, setFormData] = useState({
     title: "",
-    neighborhood: "Akoka",
+    neighborhood: "Choba",
     propertyType: "SELF_CONTAIN",
     price: "",
     cautionFee: "",
@@ -290,7 +290,7 @@ export default function ListPropertyPage() {
               <input
                 type="text"
                 required
-                placeholder="e.g. Modern Executive Self-Contain on Jaja Street"
+                placeholder="e.g. Clean Self-Contain 5 Mins to UNIPORT Choba Gate"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
@@ -307,12 +307,13 @@ export default function ListPropertyPage() {
                   onChange={(e) => setFormData({ ...formData, neighborhood: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 >
-                  <option value="Akoka">Akoka (Near UNILAG Gates)</option>
-                  <option value="Onike">Onike (Quiet & Residential)</option>
-                  <option value="Abule-Oja">Abule-Oja (2nd Gate Axis)</option>
-                  <option value="Yaba">Yaba / Commercial Ave</option>
-                  <option value="Bariga">Bariga / St. Finbarr&apos;s</option>
-                  <option value="Surulere">Surulere Axis</option>
+                  <option value="Choba">Choba (Near UNIPORT Main Gate)</option>
+                  <option value="Ozuoba">Ozuoba (Budget Zone)</option>
+                  <option value="Aluu">Aluu (Back Gate Area)</option>
+                  <option value="Rumuola">Rumuola (Quiet &amp; Residential)</option>
+                  <option value="Rumuokoro">Rumuokoro (Commercial Axis)</option>
+                  <option value="Rumuigbo">Rumuigbo (Mid-Range)</option>
+                  <option value="GRA Port Harcourt">GRA Port Harcourt (Premium)</option>
                 </select>
               </div>
 
@@ -383,7 +384,7 @@ export default function ListPropertyPage() {
               </label>
               <input
                 type="text"
-                placeholder="e.g. 14B Jaja Street, behind UNILAG New Hall"
+                placeholder="e.g. 12A Choba Road, near UNIPORT Main Gate"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
@@ -523,3 +524,4 @@ export default function ListPropertyPage() {
     </div>
   );
 }
+

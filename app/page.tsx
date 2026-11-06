@@ -33,7 +33,7 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto text-center relative z-10 space-y-6">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-xs font-bold text-emerald-400">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Verified Student & Relocation Housing in Lagos</span>
+            <span>Verified Student Housing Near UNIPORT, Port Harcourt</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-tight">
@@ -44,7 +44,7 @@ export default function HomePage() {
           </h1>
 
           <p className="max-w-2xl mx-auto text-slate-300 text-sm sm:text-base leading-relaxed">
-            Stop losing money to roadside &quot;inspection fee&quot; scams. Connect directly with verified agents near UNILAG, YabaTech, and surrounding hubs on WhatsApp with zero hidden charges.
+            Stop losing money to roadside &quot;inspection fee&quot; scams. Connect directly with verified agents near UNIPORT Choba Gate, Aluu Back Gate, and surrounding areas — zero hidden charges.
           </p>
 
           {/* Clean, Simple Search Box */}
@@ -59,12 +59,13 @@ export default function HomePage() {
                   defaultValue="ALL"
                   className="w-full bg-slate-50 text-slate-900 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 >
-                  <option value="ALL">All Hubs (Akoka, Onike, Yaba)</option>
-                  <option value="Akoka">Akoka (Near UNILAG Gates)</option>
-                  <option value="Onike">Onike (Quiet & Residential)</option>
-                  <option value="Abule-Oja">Abule-Oja (2nd Gate Axis)</option>
-                  <option value="Yaba">Yaba / Commercial Ave</option>
-                  <option value="Bariga">Bariga / St. Finbarr&apos;s</option>
+                  <option value="ALL">All Areas (Choba, Rumuola…)</option>
+                  <option value="Choba">Choba (Near Main Gate)</option>
+                  <option value="Ozuoba">Ozuoba (Budget Zone)</option>
+                  <option value="Aluu">Aluu (Back Gate Area)</option>
+                  <option value="Rumuola">Rumuola (Quiet & Residential)</option>
+                  <option value="Rumuokoro">Rumuokoro (Commercial Axis)</option>
+                  <option value="GRA Port Harcourt">GRA PH (Premium)</option>
                 </select>
               </div>
 
@@ -91,13 +92,13 @@ export default function HomePage() {
                 </label>
                 <select
                   name="maxPrice"
-                  defaultValue="1000000"
+                  defaultValue="500000"
                   className="w-full bg-slate-50 text-slate-900 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 >
+                  <option value="200000">Under ₦200,000 / yr</option>
+                  <option value="300000">Under ₦300,000 / yr</option>
                   <option value="400000">Under ₦400,000 / yr</option>
-                  <option value="600000">Under ₦600,000 / yr</option>
-                  <option value="850000">Under ₦850,000 / yr</option>
-                  <option value="1500000">Up to ₦1,500,000 / yr</option>
+                  <option value="600000">Up to ₦600,000 / yr</option>
                 </select>
               </div>
 
@@ -117,10 +118,10 @@ export default function HomePage() {
           <div className="flex flex-wrap items-center justify-center gap-2 pt-2 text-xs">
             <span className="text-slate-400 font-medium">Quick Picks:</span>
             <Link
-              href="/listings?neighborhood=Akoka"
+              href="/listings?neighborhood=Choba"
               className="px-3 py-1 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700 font-medium transition-colors"
             >
-              🚶 Akoka (4-8 mins to Gate)
+              🚶 Choba (5-8 mins to Gate)
             </Link>
             <Link
               href="/listings?propertyType=SELF_CONTAIN"
@@ -129,10 +130,10 @@ export default function HomePage() {
               🏠 Self-Contains
             </Link>
             <Link
-              href="/listings?maxPrice=500000"
+              href="/listings?maxPrice=250000"
               className="px-3 py-1 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700 font-medium transition-colors"
             >
-              💰 Under ₦500k
+              💰 Under ₦250k
             </Link>
           </div>
         </div>
@@ -143,10 +144,10 @@ export default function HomePage() {
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-6">
           <div>
             <span className="text-xs uppercase tracking-wider font-extrabold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">
-              Handpicked & Verified
+              Handpicked &amp; Verified
             </span>
             <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
-              Available Cribs Near Campus
+              Available Cribs Near UNIPORT
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
               Inspected student rooms with direct agent WhatsApp, video tours, and clear upfront pricing.
@@ -178,10 +179,10 @@ export default function HomePage() {
                 Can&apos;t find what you want?
               </span>
               <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
-                Tell verified agents what you need.
+                Tell verified UNIPORT agents what you need.
               </h2>
               <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                Post your target budget and campus gate. Verified agents monitoring the board will send matching houses directly to your WhatsApp!
+                Post your target budget and preferred campus gate area. Verified agents monitoring the board will send matching houses directly to your WhatsApp!
               </p>
             </div>
 
@@ -236,7 +237,7 @@ export default function HomePage() {
             Why Rent Through CribConnect?
           </h2>
           <p className="text-xs sm:text-sm text-slate-500">
-            Built specifically to solve the stressful rental problems in Nigerian university hubs.
+            Built specifically to solve the stressful rental problems faced by UNIPORT students in Port Harcourt.
           </p>
         </div>
 
@@ -247,7 +248,7 @@ export default function HomePage() {
             </div>
             <h3 className="font-bold text-base text-slate-900">100% Verified Agents</h3>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Every agent on CribConnect has their NIN and office verified. Zero roadside scams, zero disappearing agents.
+              Every agent on CribConnect has their NIN and office address verified. Zero roadside scams, zero disappearing agents.
             </p>
           </div>
 
@@ -257,7 +258,7 @@ export default function HomePage() {
             </div>
             <h3 className="font-bold text-base text-slate-900">Virtual Walkthroughs</h3>
             <p className="text-xs text-slate-600 leading-relaxed">
-              See video walkthroughs of the rooms, water pressure, generator setup, and compound gate before traveling.
+              See video walkthroughs of the rooms, water pressure, generator setup, and compound gate before traveling to PH.
             </p>
           </div>
 
