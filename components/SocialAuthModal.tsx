@@ -219,8 +219,8 @@ export default function SocialAuthModal({
           title: "Sign in with Apple",
           subtitle: "Use your Apple ID for fast and private authentication",
           icon: AppleLogo,
-          headerColor: "bg-slate-900 text-white",
-          btnBg: "bg-slate-900 hover:bg-black text-white",
+          headerColor: "bg-gray-900 text-white",
+          btnBg: "bg-gray-900 hover:bg-black text-white",
         };
       case "google":
       default:
@@ -228,7 +228,7 @@ export default function SocialAuthModal({
           title: "Sign in with Google",
           subtitle: "Choose an account to continue to CribConnect",
           icon: GoogleLogo,
-          headerColor: "bg-white text-slate-900 border-b border-slate-100",
+          headerColor: "bg-white text-gray-900 border-b border-gray-100",
           btnBg: "bg-emerald-600 hover:bg-emerald-700 text-white",
         };
     }
@@ -238,16 +238,16 @@ export default function SocialAuthModal({
   const IconComponent = currentInfo.icon;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-2xl max-w-md w-full overflow-hidden">
         {/* Top Header */}
         <div className={`p-5 flex items-center justify-between ${currentInfo.headerColor}`}>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-white shadow-xs flex items-center justify-center shrink-0 border border-slate-100">
+            <div className="w-10 h-10 rounded-xl bg-white shadow-xs flex items-center justify-center shrink-0 border border-gray-100">
               <IconComponent className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-extrabold tracking-tight">
+              <h2 className="text-base font-semibold tracking-tight">
                 {currentInfo.title}
               </h2>
               <p className="text-[11px] opacity-80 font-medium">
@@ -277,10 +277,10 @@ export default function SocialAuthModal({
               <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto animate-bounce">
                 <Check className="w-6 h-6 stroke-[3]" />
               </div>
-              <h3 className="text-base font-extrabold text-slate-900">
+              <h3 className="text-base font-semibold text-gray-900">
                 Connected Successfully!
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-gray-500">
                 Redirecting you to CribConnect portal...
               </p>
             </div>
@@ -288,17 +288,17 @@ export default function SocialAuthModal({
             <>
               {/* Role Selection: Agent vs Landlord */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">
                   I am signing in / registering as:
                 </label>
-                <div className="grid grid-cols-2 p-1 bg-slate-100 rounded-xl gap-1">
+                <div className="grid grid-cols-2 p-1 bg-gray-100 rounded-xl gap-1">
                   <button
                     type="button"
                     onClick={() => setRole("AGENT")}
                     className={`py-2 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
                       role === "AGENT"
                         ? "bg-white text-emerald-700 shadow-xs"
-                        : "text-slate-600 hover:text-slate-900"
+                        : "text-gray-600 hover:text-gray-900"
                     }`}
                   >
                     <span>Real Estate Agent</span>
@@ -309,13 +309,13 @@ export default function SocialAuthModal({
                     className={`py-2 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
                       role === "LANDLORD"
                         ? "bg-white text-emerald-700 shadow-xs"
-                        : "text-slate-600 hover:text-slate-900"
+                        : "text-gray-600 hover:text-gray-900"
                     }`}
                   >
                     <span>Property Owner</span>
                   </button>
                 </div>
-                <p className="text-[10px] text-slate-500 mt-1">
+                <p className="text-[10px] text-gray-500 mt-1">
                   {role === "AGENT"
                     ? "✓ You can list multiple student accommodations & earn agency commissions."
                     : "✓ Direct landlord / caretaker listing with 0% middleman fees."}
@@ -323,8 +323,8 @@ export default function SocialAuthModal({
               </div>
 
               {/* Provider Quick Switcher */}
-              <div className="flex items-center justify-center gap-2 pt-1 border-t border-slate-100">
-                <span className="text-[11px] font-semibold text-slate-400">Switch platform:</span>
+              <div className="flex items-center justify-center gap-2 pt-1 border-t border-gray-100">
+                <span className="text-[11px] font-semibold text-gray-400">Switch platform:</span>
                 <button
                   type="button"
                   onClick={() => {
@@ -334,7 +334,7 @@ export default function SocialAuthModal({
                   className={`p-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-all ${
                     provider === "google"
                       ? "border-emerald-500 bg-emerald-50/50 text-emerald-800"
-                      : "border-slate-200 hover:bg-slate-50 text-slate-600"
+                      : "border-gray-200 hover:bg-gray-50 text-gray-600"
                   }`}
                 >
                   <GoogleLogo className="w-3.5 h-3.5" />
@@ -349,7 +349,7 @@ export default function SocialAuthModal({
                   className={`p-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-all ${
                     provider === "facebook"
                       ? "border-[#1877F2] bg-blue-50/50 text-[#1877F2]"
-                      : "border-slate-200 hover:bg-slate-50 text-slate-600"
+                      : "border-gray-200 hover:bg-gray-50 text-gray-600"
                   }`}
                 >
                   <FacebookLogo className="w-3.5 h-3.5" />
@@ -363,8 +363,8 @@ export default function SocialAuthModal({
                   }}
                   className={`p-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-all ${
                     provider === "apple"
-                      ? "border-slate-900 bg-slate-100 text-slate-900"
-                      : "border-slate-200 hover:bg-slate-50 text-slate-600"
+                      ? "border-gray-900 bg-gray-100 text-gray-900"
+                      : "border-gray-200 hover:bg-gray-50 text-gray-600"
                   }`}
                 >
                   <AppleLogo className="w-3.5 h-3.5" />
@@ -381,22 +381,22 @@ export default function SocialAuthModal({
                         type="button"
                         disabled={loading}
                         onClick={handleGoogleOAuthPopup}
-                        className="w-full py-2.5 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-900 font-extrabold text-xs flex items-center justify-center gap-2.5 shadow-2xs hover:border-slate-400 transition-all hover:scale-[1.01]"
+                        className="w-full py-2.5 px-4 rounded-xl border border-gray-300 bg-white hover:bg-gray-50 text-gray-900 font-semibold text-xs flex items-center justify-center gap-2.5 shadow-2xs hover:border-gray-400 transition-all"
                       >
                         <GoogleLogo className="w-4 h-4 shrink-0" />
                         <span>Launch Official Google OAuth Popup</span>
                       </button>
                       <div className="relative flex py-1 items-center">
-                        <div className="flex-grow border-t border-slate-200"></div>
-                        <span className="flex-shrink mx-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        <div className="flex-grow border-t border-gray-200"></div>
+                        <span className="flex-shrink mx-2 text-[10px] font-bold uppercase tracking-wider text-gray-400">
                           Or select account below
                         </span>
-                        <div className="flex-grow border-t border-slate-200"></div>
+                        <div className="flex-grow border-t border-gray-200"></div>
                       </div>
                     </div>
                   )}
 
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400 block">
                     Select a Verified Profile
                   </span>
                   <div className="space-y-2">
@@ -406,27 +406,27 @@ export default function SocialAuthModal({
                         type="button"
                         disabled={loading}
                         onClick={() => handleAuthenticate(p)}
-                        className="w-full p-2.5 rounded-2xl border border-slate-200 hover:border-emerald-400 hover:bg-emerald-50/40 text-left flex items-center gap-3 transition-all group"
+                        className="w-full p-2.5 rounded-xl border border-gray-200 hover:border-emerald-400 hover:bg-emerald-50/40 text-left flex items-center gap-3 transition-all group"
                       >
                         <img
                           src={p.avatar}
                           alt={p.name}
-                          className="w-10 h-10 rounded-full object-cover border border-slate-200"
+                          className="w-10 h-10 rounded-full object-cover border border-gray-200"
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-slate-900 group-hover:text-emerald-700 truncate">
+                            <span className="text-xs font-bold text-gray-900 group-hover:text-emerald-700 truncate">
                               {p.name}
                             </span>
-                            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 font-semibold shrink-0">
+                            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 font-semibold shrink-0">
                               {p.tag}
                             </span>
                           </div>
-                          <span className="text-[11px] text-slate-500 block truncate">
+                          <span className="text-[11px] text-gray-500 block truncate">
                             {p.email}
                           </span>
                         </div>
-                        <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-emerald-600 shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                        <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-emerald-600 shrink-0 group-hover:trangray-x-0.5 transition-transform" />
                       </button>
                     ))}
                   </div>
@@ -445,20 +445,20 @@ export default function SocialAuthModal({
                 /* Custom Email Form */
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
                       Enter Account Details
                     </span>
                     <button
                       type="button"
                       onClick={() => setUseCustomAccount(false)}
-                      className="text-[11px] font-bold text-slate-500 hover:underline"
+                      className="text-[11px] font-bold text-gray-500 hover:underline"
                     >
                       ← Back to saved profiles
                     </button>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
                       Full Name *
                     </label>
                     <input
@@ -466,12 +466,12 @@ export default function SocialAuthModal({
                       placeholder="e.g. Chinedu Eze"
                       value={customName}
                       onChange={(e) => setCustomName(e.target.value)}
-                      className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                      className="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
                       {provider.toUpperCase()} Email Address *
                     </label>
                     <input
@@ -479,12 +479,12 @@ export default function SocialAuthModal({
                       placeholder={`e.g. chinedu@${provider === "google" ? "gmail.com" : provider === "apple" ? "icloud.com" : "realty.ng"}`}
                       value={customEmail}
                       onChange={(e) => setCustomEmail(e.target.value)}
-                      className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                      className="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
                       Phone Number (Optional)
                     </label>
                     <input
@@ -492,7 +492,7 @@ export default function SocialAuthModal({
                       placeholder="08012345678"
                       value={customPhone}
                       onChange={(e) => setCustomPhone(e.target.value)}
-                      className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                      className="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     />
                   </div>
 
@@ -500,7 +500,7 @@ export default function SocialAuthModal({
                     type="button"
                     disabled={loading || !customName || !customEmail}
                     onClick={() => handleAuthenticate()}
-                    className={`w-full py-2.5 px-4 rounded-xl font-extrabold text-xs shadow-md transition-all flex items-center justify-center gap-2 ${currentInfo.btnBg} disabled:opacity-50`}
+                    className={`w-full py-2.5 px-4 rounded-xl font-semibold text-xs shadow-sm transition-all flex items-center justify-center gap-2 ${currentInfo.btnBg} disabled:opacity-50`}
                   >
                     <span>{loading ? "Connecting..." : `Continue as ${customName || "User"}`}</span>
                     <ArrowRight className="w-4 h-4" />
@@ -509,7 +509,7 @@ export default function SocialAuthModal({
               )}
 
               {/* Security Badge */}
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center gap-2 text-[10px] text-slate-500">
+              <div className="p-3 rounded-xl bg-gray-50 border border-gray-100 flex items-center gap-2 text-[10px] text-gray-500">
                 <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span>
                   Protected by HMAC-SHA256 encrypted sessions and OWASP rate limiting.

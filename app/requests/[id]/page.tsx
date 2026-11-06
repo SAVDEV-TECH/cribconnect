@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -71,7 +71,7 @@ export default function RequestDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-20 text-center text-xs text-slate-500">
+      <div className="max-w-7xl mx-auto px-4 py-20 text-center text-xs text-gray-500">
         Loading housing request details...
       </div>
     );
@@ -80,10 +80,10 @@ export default function RequestDetailPage() {
   if (!request) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-20 text-center space-y-4">
-        <h2 className="text-xl font-bold text-slate-900">Request Not Found</h2>
+        <h2 className="text-xl font-bold text-gray-900">Request Not Found</h2>
         <Link
           href="/requests"
-          className="inline-block px-4 py-2 bg-brand-600 text-white rounded-xl text-xs font-semibold"
+          className="inline-block px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-semibold"
         >
           Back to Requests Board
         </Link>
@@ -100,7 +100,7 @@ export default function RequestDetailPage() {
       <div>
         <Link
           href="/requests"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors"
         >
           <ChevronLeft className="w-4 h-4" />
           <span>Back to Housing Requests Board</span>
@@ -108,7 +108,7 @@ export default function RequestDetailPage() {
       </div>
 
       {/* Main Request Header Card */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-5">
+      <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8 shadow-sm space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
             <img
@@ -117,11 +117,11 @@ export default function RequestDetailPage() {
                 "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=120"
               }
               alt={request.student.name}
-              className="w-14 h-14 rounded-full object-cover border-2 border-slate-200"
+              className="w-14 h-14 rounded-full object-cover border-2 border-gray-200"
             />
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-black text-slate-900">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
                   {request.student.name}
                 </h1>
                 <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${
@@ -132,36 +132,36 @@ export default function RequestDetailPage() {
                   Status: {request.status}
                 </span>
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-gray-500">
                 {request.student.city || "Student Relocator"} • {request.targetUniversity}
               </p>
             </div>
           </div>
 
-          <div className="text-left sm:text-right bg-slate-50 sm:bg-transparent p-3 sm:p-0 rounded-xl border sm:border-0 border-slate-100">
-            <span className="text-[10px] uppercase font-bold text-slate-400 block">
+          <div className="text-left sm:text-right bg-gray-50 sm:bg-transparent p-3 sm:p-0 rounded-xl border sm:border-0 border-gray-100">
+            <span className="text-[10px] uppercase font-bold text-gray-400 block">
               Budget Ceiling
             </span>
-            <span className="text-2xl font-black text-slate-900">
+            <span className="text-2xl font-bold text-gray-900">
               {formatMoney(request.maxBudget)}
             </span>
-            <span className="text-xs text-slate-500 block">/year max rent</span>
+            <span className="text-xs text-gray-500 block">/year max rent</span>
           </div>
         </div>
 
-        <div className="border-t border-slate-100 pt-4 space-y-2">
-          <h2 className="text-lg font-bold text-slate-900">{request.title}</h2>
-          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed whitespace-pre-line">
+        <div className="border-t border-gray-100 pt-4 space-y-2">
+          <h2 className="text-lg font-bold text-gray-900">{request.title}</h2>
+          <p className="text-xs sm:text-sm text-gray-600 leading-relaxed whitespace-pre-line">
             {request.description}
           </p>
         </div>
 
         <div className="flex flex-wrap gap-2 text-xs pt-2">
-          <span className="bg-slate-100 text-slate-700 px-3 py-1 rounded-lg font-medium">
+          <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-lg font-medium">
             Property: <strong>{request.propertyType.replace("_", " ")}</strong>
           </span>
-          <span className="bg-slate-100 text-slate-700 px-3 py-1 rounded-lg font-medium flex items-center gap-1">
-            <Calendar className="w-3.5 h-3.5 text-slate-400" />
+          <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-lg font-medium flex items-center gap-1">
+            <Calendar className="w-3.5 h-3.5 text-gray-400" />
             <span>Target Move-in: {request.moveInDate}</span>
           </span>
           {request.needsRoommate && (
@@ -176,23 +176,23 @@ export default function RequestDetailPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
               <span>Agent Proposals & Pitches</span>
-              <span className="text-xs bg-brand-50 text-brand-700 font-extrabold px-2 py-0.5 rounded-full border border-brand-200">
+              <span className="text-xs bg-emerald-50 text-emerald-700 font-semibold px-2 py-0.5 rounded-full border border-emerald-200">
                 {proposals.length} Pitches
               </span>
             </h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-gray-500">
               Verified local agents have reviewed this student&apos;s request and submitted the following custom options.
             </p>
           </div>
         </div>
 
         {proposals.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-2xl border border-slate-200 p-8 space-y-3">
-            <Clock className="w-10 h-10 text-slate-300 mx-auto" />
-            <h3 className="font-bold text-slate-800 text-sm">No agent proposals yet</h3>
-            <p className="text-xs text-slate-500">
+          <div className="text-center py-16 bg-white rounded-xl border border-gray-200 p-8 space-y-3">
+            <Clock className="w-10 h-10 text-gray-300 mx-auto" />
+            <h3 className="font-bold text-gray-800 text-sm">No agent proposals yet</h3>
+            <p className="text-xs text-gray-500">
               Verified local agents in Akoka & Yaba are currently reviewing this request.
             </p>
           </div>
@@ -218,12 +218,12 @@ export default function RequestDetailPage() {
               return (
                 <div
                   key={prop.id}
-                  className={`bg-white rounded-2xl border transition-all p-6 flex flex-col justify-between space-y-4 shadow-sm ${
+                  className={`bg-white rounded-xl border transition-all p-6 flex flex-col justify-between space-y-4 shadow-sm ${
                     isAccepted
                       ? "border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-50/10"
                       : isShortlisted
                       ? "border-amber-400 bg-amber-50/10"
-                      : "border-slate-200 hover:border-slate-300"
+                      : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
                   <div className="space-y-4">
@@ -240,14 +240,14 @@ export default function RequestDetailPage() {
                         />
                         <div>
                           <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-sm text-slate-900">
+                            <span className="font-bold text-sm text-gray-900">
                               {agent.name}
                             </span>
                             {isVerified && (
                               <ShieldCheck className="w-4 h-4 text-emerald-600" />
                             )}
                           </div>
-                          <span className="text-[11px] text-slate-500 block -mt-0.5">
+                          <span className="text-[11px] text-gray-500 block -mt-0.5">
                             {agentProfile?.agencyName || "Accredited Agent"} • ★{" "}
                             {agentProfile?.rating?.toFixed(1) || "5.0"}
                           </span>
@@ -255,12 +255,12 @@ export default function RequestDetailPage() {
                       </div>
 
                       <span
-                        className={`text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                        className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${
                           isAccepted
                             ? "bg-emerald-100 text-emerald-800"
                             : isShortlisted
                             ? "bg-amber-100 text-amber-800"
-                            : "bg-slate-100 text-slate-700"
+                            : "bg-gray-100 text-gray-700"
                         }`}
                       >
                         {prop.status}
@@ -268,8 +268,8 @@ export default function RequestDetailPage() {
                     </div>
 
                     {/* Pitch Message */}
-                    <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 text-xs text-slate-700 leading-relaxed whitespace-pre-line">
-                      <span className="font-semibold text-slate-900 block mb-1 text-[11px] uppercase tracking-wider text-slate-400">
+                    <div className="bg-gray-50 p-3.5 rounded-xl border border-gray-100 text-xs text-gray-700 leading-relaxed whitespace-pre-line">
+                      <span className="font-semibold text-gray-900 block mb-1 text-[11px] uppercase tracking-wider text-gray-400">
                         Agent Proposal Pitch:
                       </span>
                       &quot;{prop.pitchMessage}&quot;
@@ -277,7 +277,7 @@ export default function RequestDetailPage() {
 
                     {/* Linked Property Card (if any) */}
                     {prop.listing && (
-                      <div className="p-3 rounded-xl border border-slate-200 bg-white flex gap-3 items-center">
+                      <div className="p-3 rounded-xl border border-gray-200 bg-white flex gap-3 items-center">
                         <img
                           src={
                             listingPhotos[0] ||
@@ -287,19 +287,19 @@ export default function RequestDetailPage() {
                           className="w-16 h-16 rounded-lg object-cover shrink-0"
                         />
                         <div className="flex-1 min-w-0 text-xs">
-                          <span className="text-[10px] font-bold text-brand-600 uppercase">
+                          <span className="text-[10px] font-bold text-emerald-600 uppercase">
                             Attached Property:
                           </span>
-                          <h4 className="font-bold text-slate-900 truncate">
+                          <h4 className="font-bold text-gray-900 truncate">
                             {prop.listing.title}
                           </h4>
-                          <span className="text-slate-500 text-[11px] block">
+                          <span className="text-gray-500 text-[11px] block">
                             {prop.listing.distanceDescription || prop.listing.neighborhood}
                           </span>
                           <div className="flex items-center gap-2 mt-1">
                             <Link
                               href={`/listings/${prop.listing.id}`}
-                              className="text-[11px] font-bold text-brand-600 hover:underline flex items-center gap-0.5"
+                              className="text-[11px] font-bold text-emerald-600 hover:underline flex items-center gap-0.5"
                             >
                               <span>Inspect Property</span>
                               <ExternalLink className="w-3 h-3" />
@@ -320,22 +320,22 @@ export default function RequestDetailPage() {
                     )}
 
                     {/* Transparent Financial Itemization */}
-                    <div className="border-t border-slate-100 pt-3 text-xs space-y-1">
-                      <div className="flex justify-between text-slate-600">
+                    <div className="border-t border-gray-100 pt-3 text-xs space-y-1">
+                      <div className="flex justify-between text-gray-600">
                         <span>Proposed Rent:</span>
-                        <span className="font-bold text-slate-900">
+                        <span className="font-bold text-gray-900">
                           {formatMoney(prop.proposedPrice)}
                         </span>
                       </div>
-                      <div className="flex justify-between text-slate-500 text-[11px]">
+                      <div className="flex justify-between text-gray-500 text-[11px]">
                         <span>Agency & Agreement (10%):</span>
                         <span>{formatMoney(prop.agencyFee)}</span>
                       </div>
-                      <div className="flex justify-between text-slate-500 text-[11px]">
+                      <div className="flex justify-between text-gray-500 text-[11px]">
                         <span>Caution Deposit:</span>
                         <span>{formatMoney(prop.cautionFee)}</span>
                       </div>
-                      <div className="flex justify-between font-bold text-slate-900 pt-1 border-t border-slate-100 text-sm">
+                      <div className="flex justify-between font-bold text-gray-900 pt-1 border-t border-gray-100 text-sm">
                         <span>Total Move-in Upfront:</span>
                         <span className="text-emerald-700">
                           {formatMoney(prop.totalUpfront)}
@@ -345,7 +345,7 @@ export default function RequestDetailPage() {
                   </div>
 
                   {/* Actions Bar */}
-                  <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                  <div className="pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2">
                     {/* WhatsApp Quick Direct Connect */}
                     <a
                       href={`https://wa.me/${(agent.whatsapp || agent.phone || "+2348034452299").replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hello ${agent.name}, I reviewed your CribConnect proposal for "${request.title}". Let's discuss!`)}`}
@@ -365,7 +365,7 @@ export default function RequestDetailPage() {
                             type="button"
                             disabled={actionLoadingId === prop.id}
                             onClick={() => handleUpdateProposalStatus(prop.id, "SHORTLISTED")}
-                            className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold"
+                            className="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold"
                           >
                             Shortlist
                           </button>
@@ -376,7 +376,7 @@ export default function RequestDetailPage() {
                             type="button"
                             disabled={actionLoadingId === prop.id}
                             onClick={() => handleUpdateProposalStatus(prop.id, "ACCEPTED")}
-                            className="px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-sm flex items-center gap-1"
+                            className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm flex items-center gap-1"
                           >
                             <Check className="w-3.5 h-3.5" />
                             <span>Accept Proposal</span>

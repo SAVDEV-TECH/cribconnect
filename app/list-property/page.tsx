@@ -16,7 +16,6 @@ import {
   DollarSign,
   ShieldCheck,
   ArrowRight,
-  Sparkles,
   User,
   LogIn,
   HelpCircle,
@@ -144,18 +143,18 @@ export default function ListPropertyPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-xl p-6 sm:p-10 space-y-8">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-10 space-y-8">
         {/* Top Header & Auth State */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-6">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold mb-2">
-              <Sparkles className="w-3.5 h-3.5" />
+              <Building2 className="w-3.5 h-3.5" />
               <span>Landlord & Agent Portal</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
               List a Property
             </h1>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-gray-500 mt-1">
               Upload photos & video walkthrough. Students will contact your WhatsApp directly.
             </p>
           </div>
@@ -169,7 +168,7 @@ export default function ListPropertyPage() {
                   className="w-8 h-8 rounded-full object-cover"
                 />
                 <div>
-                  <span className="font-bold text-slate-900 block truncate max-w-[130px]">
+                  <span className="font-bold text-gray-900 block truncate max-w-[130px]">
                     {currentUser.name}
                   </span>
                   <span className="text-[10px] text-emerald-700 font-bold">
@@ -181,7 +180,7 @@ export default function ListPropertyPage() {
               <div className="text-right">
                 <Link
                   href="/auth/login"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold transition-colors"
                 >
                   <LogIn className="w-3.5 h-3.5" />
                   <span>Agent / Landlord Sign In</span>
@@ -192,45 +191,45 @@ export default function ListPropertyPage() {
         </div>
 
         {/* 3-Step Agent & Landlord Progression Guide */}
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
+        <div className="p-4 rounded-2xl bg-gray-50 border border-gray-200/80 space-y-3">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-emerald-600" />
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-800">
+            <Building2 className="w-4 h-4 text-emerald-600" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-800">
               How Listing as an Agent or Landlord Works:
             </h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white border border-slate-200 shadow-2xs">
-              <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-black text-xs shrink-0 mt-0.5">
+            <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white border border-gray-200 shadow-2xs">
+              <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
                 1
               </div>
               <div>
-                <span className="text-xs font-bold text-slate-900 block">Instant Role Access</span>
-                <span className="text-[11px] text-slate-500 leading-snug block mt-0.5">
+                <span className="text-xs font-bold text-gray-900 block">Instant Role Access</span>
+                <span className="text-[11px] text-gray-500 leading-snug block mt-0.5">
                   Sign in with Google, Facebook, or Email. Your account gets immediate listing rights.
                 </span>
               </div>
             </div>
 
-            <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white border border-slate-200 shadow-2xs">
-              <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-black text-xs shrink-0 mt-0.5">
+            <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white border border-gray-200 shadow-2xs">
+              <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
                 2
               </div>
               <div>
-                <span className="text-xs font-bold text-slate-900 block">Upload Media & Rent</span>
-                <span className="text-[11px] text-slate-500 leading-snug block mt-0.5">
+                <span className="text-xs font-bold text-gray-900 block">Upload Media & Rent</span>
+                <span className="text-[11px] text-gray-500 leading-snug block mt-0.5">
                   Upload photos, paste video tour link, and set annual rent in Naira (₦). Goes live immediately.
                 </span>
               </div>
             </div>
 
-            <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white border border-slate-200 shadow-2xs">
-              <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-black text-xs shrink-0 mt-0.5">
+            <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white border border-gray-200 shadow-2xs">
+              <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
                 3
               </div>
               <div>
-                <span className="text-xs font-bold text-slate-900 block">Direct Leads & Verified Badge</span>
-                <span className="text-[11px] text-slate-500 leading-snug block mt-0.5">
+                <span className="text-xs font-bold text-gray-900 block">Direct Leads & Verified Badge</span>
+                <span className="text-[11px] text-gray-500 leading-snug block mt-0.5">
                   Students message your WhatsApp. Add NIN/License in Profile for green Verified badge.
                 </span>
               </div>
@@ -242,7 +241,7 @@ export default function ListPropertyPage() {
         {!currentUser && (
           <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <span className="text-xs font-extrabold text-emerald-950 block">
+              <span className="text-xs font-semibold text-emerald-950 block">
                 Want this listing tied to your verified profile?
               </span>
               <span className="text-[11px] text-emerald-800 block">
@@ -253,7 +252,7 @@ export default function ListPropertyPage() {
               <button
                 type="button"
                 onClick={() => openSocialAuth("google")}
-                className="px-3 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-transform hover:scale-[1.02]"
+                className="px-3 py-1.5 rounded-xl border border-gray-300 bg-white hover:bg-gray-50 text-gray-800 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-transform"
               >
                 <GoogleLogo className="w-3.5 h-3.5" />
                 <span>Google</span>
@@ -261,7 +260,7 @@ export default function ListPropertyPage() {
               <button
                 type="button"
                 onClick={() => openSocialAuth("facebook")}
-                className="px-3 py-1.5 rounded-xl bg-[#1877F2] hover:bg-[#166fe5] text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-transform hover:scale-[1.02]"
+                className="px-3 py-1.5 rounded-xl bg-[#1877F2] hover:bg-[#166fe5] text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-transform"
               >
                 <FacebookLogo className="w-3.5 h-3.5 fill-white" />
                 <span>Facebook</span>
@@ -279,12 +278,12 @@ export default function ListPropertyPage() {
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Section 1: Property Details */}
           <div className="space-y-4">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-1">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100 pb-1">
               1. Basic Property Information
             </h2>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label className="block text-xs font-bold text-gray-700 mb-1">
                 Listing Title *
               </label>
               <input
@@ -293,19 +292,19 @@ export default function ListPropertyPage() {
                 placeholder="e.g. Clean Self-Contain 5 Mins to UNIPORT Choba Gate"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-gray-700 mb-1">
                   Neighborhood Hub *
                 </label>
                 <select
                   value={formData.neighborhood}
                   onChange={(e) => setFormData({ ...formData, neighborhood: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 >
                   <option value="Choba">Choba (Near UNIPORT Main Gate)</option>
                   <option value="Ozuoba">Ozuoba (Budget Zone)</option>
@@ -318,13 +317,13 @@ export default function ListPropertyPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-gray-700 mb-1">
                   Property Category *
                 </label>
                 <select
                   value={formData.propertyType}
                   onChange={(e) => setFormData({ ...formData, propertyType: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 >
                   <option value="SELF_CONTAIN">Self-Contain (Single Room with Toilet/Bath)</option>
                   <option value="ONE_BED">1-Bedroom Apartment (Room & Parlour)</option>
@@ -336,7 +335,7 @@ export default function ListPropertyPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-gray-700 mb-1">
                   Annual Rent (₦) *
                 </label>
                 <input
@@ -345,12 +344,12 @@ export default function ListPropertyPage() {
                   placeholder="e.g. 450000"
                   value={formData.price}
                   onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-gray-700 mb-1">
                   Caution Deposit (₦)
                 </label>
                 <input
@@ -358,12 +357,12 @@ export default function ListPropertyPage() {
                   placeholder="e.g. 45000"
                   value={formData.cautionFee}
                   onChange={(e) => setFormData({ ...formData, cautionFee: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-gray-700 mb-1">
                   Walk to Gate (Mins)
                 </label>
                 <input
@@ -373,13 +372,13 @@ export default function ListPropertyPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, distanceToCampusMinutes: e.target.value })
                   }
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label className="block text-xs font-bold text-gray-700 mb-1">
                 Street Address / Landmark Description
               </label>
               <input
@@ -387,12 +386,12 @@ export default function ListPropertyPage() {
                 placeholder="e.g. 12A Choba Road, near UNIPORT Main Gate"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label className="block text-xs font-bold text-gray-700 mb-1">
                 Description & House Features
               </label>
               <textarea
@@ -400,14 +399,14 @@ export default function ListPropertyPage() {
                 placeholder="Describe water pressure, power source, compound security, gate closing time..."
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
             </div>
           </div>
 
           {/* Section 2: Real Media Upload (Photos & Video) */}
           <div className="space-y-4">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-1">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100 pb-1">
               2. Upload House Photos & Video Walkthrough
             </h2>
 
@@ -421,7 +420,7 @@ export default function ListPropertyPage() {
 
           {/* Section 3: Amenities */}
           <div className="space-y-3">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-1">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100 pb-1">
               3. Verified Amenities
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -435,11 +434,11 @@ export default function ListPropertyPage() {
                     className={`flex items-center gap-2 p-2.5 rounded-xl border text-left text-xs font-medium transition-all ${
                       checked
                         ? "bg-emerald-50 border-emerald-400 text-emerald-800 font-bold"
-                        : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
+                        : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
                     }`}
                   >
                     <CheckCircle2
-                      className={`w-4 h-4 ${checked ? "text-emerald-600" : "text-slate-300"}`}
+                      className={`w-4 h-4 ${checked ? "text-emerald-600" : "text-gray-300"}`}
                     />
                     <span>{amenity}</span>
                   </button>
@@ -450,13 +449,13 @@ export default function ListPropertyPage() {
 
           {/* Section 4: Contact Info */}
           <div className="space-y-4">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-1">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100 pb-1">
               4. Direct Contact Information (For WhatsApp Inquiries)
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-gray-700 mb-1">
                   Agent / Landlord Name *
                 </label>
                 <input
@@ -465,12 +464,12 @@ export default function ListPropertyPage() {
                   placeholder="e.g. Kolawole Adebayo"
                   value={formData.agentName}
                   onChange={(e) => setFormData({ ...formData, agentName: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-gray-700 mb-1">
                   WhatsApp Number *
                 </label>
                 <input
@@ -479,7 +478,7 @@ export default function ListPropertyPage() {
                   placeholder="e.g. 08034452299"
                   value={formData.agentWhatsapp}
                   onChange={(e) => setFormData({ ...formData, agentWhatsapp: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
               </div>
             </div>
@@ -489,7 +488,7 @@ export default function ListPropertyPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-4 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-extrabold text-sm shadow-xl shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all hover:scale-[1.01]"
+            className="w-full py-4 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-semibold text-sm shadow-sm shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all"
           >
             <span>{loading ? "Publishing Property..." : "Publish Listing on CribConnect"}</span>
             <ArrowRight className="w-4 h-4" />

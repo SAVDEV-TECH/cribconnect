@@ -2,19 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { getListingsStore, getRequestsStore } from "@/lib/data-store";
 import ListingCard from "@/components/ListingCard";
-import {
-  Search,
-  ShieldCheck,
-  Video,
-  MapPin,
-  ArrowRight,
-  CheckCircle2,
-  Sparkles,
-  MessageSquare,
-  PlusCircle,
-  Building2,
-  Users,
-} from "lucide-react";
+import { Search, ShieldCheck, Video, CheckCircle2, ArrowRight, MessageSquare } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -24,255 +12,185 @@ export default function HomePage() {
   const activeRequests = getRequestsStore().slice(0, 2);
 
   return (
-    <div className="space-y-16 pb-20">
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white pt-16 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
-        {/* Subtle background glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-80 bg-emerald-500/10 blur-3xl rounded-full pointer-events-none" />
+    <div className="bg-white">
 
-        <div className="max-w-4xl mx-auto text-center relative z-10 space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-xs font-bold text-emerald-400">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Verified Student Housing Near UNIPORT, Port Harcourt</span>
-          </div>
+      {/* Hero */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-16 pb-14 text-center">
+        <p className="text-sm font-medium text-emerald-600 mb-4">
+          Verified student housing · Port Harcourt
+        </p>
+        <h1 className="text-3xl sm:text-5xl font-bold text-gray-900 leading-tight tracking-tight max-w-3xl mx-auto">
+          Find a home near UNIPORT<br className="hidden sm:block" /> before you arrive.
+        </h1>
+        <p className="mt-5 text-base text-gray-500 max-w-xl mx-auto leading-relaxed">
+          Connect directly with verified agents in Choba, Rumuola, Aluu and surrounding areas. No scams, no hidden fees.
+        </p>
 
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-tight">
-            Find your student home <br className="hidden sm:inline" />
-            <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-500 bg-clip-text text-transparent">
-              before arriving on campus.
-            </span>
-          </h1>
+        {/* Search bar */}
+        <form
+          action="/listings"
+          method="GET"
+          className="mt-8 max-w-2xl mx-auto bg-white border border-gray-200 rounded-xl shadow-sm p-2 flex flex-col sm:flex-row gap-2"
+        >
+          <select
+            name="neighborhood"
+            defaultValue="ALL"
+            className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+          >
+            <option value="ALL">All areas</option>
+            <option value="Choba">Choba — Near Main Gate</option>
+            <option value="Ozuoba">Ozuoba — Budget Zone</option>
+            <option value="Aluu">Aluu — Back Gate</option>
+            <option value="Rumuola">Rumuola — Quiet & Residential</option>
+            <option value="Rumuokoro">Rumuokoro — Commercial</option>
+            <option value="GRA Port Harcourt">GRA Port Harcourt — Premium</option>
+          </select>
 
-          <p className="max-w-2xl mx-auto text-slate-300 text-sm sm:text-base leading-relaxed">
-            Stop losing money to roadside &quot;inspection fee&quot; scams. Connect directly with verified agents near UNIPORT Choba Gate, Aluu Back Gate, and surrounding areas — zero hidden charges.
-          </p>
+          <select
+            name="propertyType"
+            defaultValue="ALL"
+            className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+          >
+            <option value="ALL">Any type</option>
+            <option value="SELF_CONTAIN">Self-Contain</option>
+            <option value="ONE_BED">1-Bedroom</option>
+            <option value="TWO_BED">2-Bedroom</option>
+            <option value="STUDIO">Serviced Studio</option>
+          </select>
 
-          {/* Clean, Simple Search Box */}
-          <div className="mt-8 bg-white p-3 sm:p-4 rounded-2xl shadow-2xl max-w-3xl mx-auto text-left border border-slate-100">
-            <form action="/listings" method="GET" className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
-              <div>
-                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Neighborhood
-                </label>
-                <select
-                  name="neighborhood"
-                  defaultValue="ALL"
-                  className="w-full bg-slate-50 text-slate-900 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                >
-                  <option value="ALL">All Areas (Choba, Rumuola…)</option>
-                  <option value="Choba">Choba (Near Main Gate)</option>
-                  <option value="Ozuoba">Ozuoba (Budget Zone)</option>
-                  <option value="Aluu">Aluu (Back Gate Area)</option>
-                  <option value="Rumuola">Rumuola (Quiet & Residential)</option>
-                  <option value="Rumuokoro">Rumuokoro (Commercial Axis)</option>
-                  <option value="GRA Port Harcourt">GRA PH (Premium)</option>
-                </select>
-              </div>
+          <button
+            type="submit"
+            className="px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors flex items-center justify-center gap-2 shrink-0"
+          >
+            <Search className="w-4 h-4" />
+            Search
+          </button>
+        </form>
 
-              <div>
-                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Type
-                </label>
-                <select
-                  name="propertyType"
-                  defaultValue="ALL"
-                  className="w-full bg-slate-50 text-slate-900 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                >
-                  <option value="ALL">All Types</option>
-                  <option value="SELF_CONTAIN">Self-Contain</option>
-                  <option value="ONE_BED">1-Bedroom Flat</option>
-                  <option value="TWO_BED">2-Bedroom Flat</option>
-                  <option value="STUDIO">Serviced Studio</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Budget
-                </label>
-                <select
-                  name="maxPrice"
-                  defaultValue="500000"
-                  className="w-full bg-slate-50 text-slate-900 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                >
-                  <option value="200000">Under ₦200,000 / yr</option>
-                  <option value="300000">Under ₦300,000 / yr</option>
-                  <option value="400000">Under ₦400,000 / yr</option>
-                  <option value="600000">Up to ₦600,000 / yr</option>
-                </select>
-              </div>
-
-              <div className="flex items-end">
-                <button
-                  type="submit"
-                  className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/30 transition-all hover:scale-[1.02]"
-                >
-                  <Search className="w-4 h-4" />
-                  <span>Search Cribs</span>
-                </button>
-              </div>
-            </form>
-          </div>
-
-          {/* Quick Filter Pills */}
-          <div className="flex flex-wrap items-center justify-center gap-2 pt-2 text-xs">
-            <span className="text-slate-400 font-medium">Quick Picks:</span>
-            <Link
-              href="/listings?neighborhood=Choba"
-              className="px-3 py-1 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700 font-medium transition-colors"
-            >
-              🚶 Choba (5-8 mins to Gate)
-            </Link>
-            <Link
-              href="/listings?propertyType=SELF_CONTAIN"
-              className="px-3 py-1 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700 font-medium transition-colors"
-            >
-              🏠 Self-Contains
-            </Link>
-            <Link
-              href="/listings?maxPrice=250000"
-              className="px-3 py-1 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700 font-medium transition-colors"
-            >
-              💰 Under ₦250k
-            </Link>
-          </div>
+        {/* Quick links */}
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-sm text-gray-500">
+          <span>Popular:</span>
+          <Link href="/listings?neighborhood=Choba" className="text-emerald-600 hover:underline">Choba</Link>
+          <span>·</span>
+          <Link href="/listings?propertyType=SELF_CONTAIN" className="text-emerald-600 hover:underline">Self-Contain</Link>
+          <span>·</span>
+          <Link href="/listings?maxPrice=250000" className="text-emerald-600 hover:underline">Under ₦250k</Link>
+          <span>·</span>
+          <Link href="/listings?neighborhood=Aluu" className="text-emerald-600 hover:underline">Back Gate Area</Link>
         </div>
       </section>
 
-      {/* Featured Properties Grid */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-6">
-          <div>
-            <span className="text-xs uppercase tracking-wider font-extrabold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">
-              Handpicked &amp; Verified
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
-              Available Cribs Near UNIPORT
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              Inspected student rooms with direct agent WhatsApp, video tours, and clear upfront pricing.
-            </p>
-          </div>
+      {/* Divider */}
+      <div className="border-t border-gray-100" />
 
+      {/* Listings */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-14">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">Available properties</h2>
+            <p className="text-sm text-gray-500 mt-0.5">{allListings.length} verified listings near UNIPORT</p>
+          </div>
           <Link
             href="/listings"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 group"
+            className="text-sm text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1"
           >
-            <span>View All {allListings.length} Properties</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            View all <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {featuredListings.map((listing) => (
             <ListingCard key={listing.id} listing={listing} />
           ))}
         </div>
       </section>
 
-      {/* "Can't find a place?" Housing Request Callout */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-gradient-to-r from-emerald-950 via-slate-900 to-slate-900 rounded-3xl p-6 sm:p-10 text-white border border-emerald-900/50 shadow-xl relative overflow-hidden">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
-            <div className="space-y-2 max-w-xl">
-              <span className="text-xs uppercase tracking-wider font-extrabold text-amber-400 bg-amber-500/20 px-3 py-1 rounded-full border border-amber-500/30">
-                Can&apos;t find what you want?
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
-                Tell verified UNIPORT agents what you need.
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                Post your target budget and preferred campus gate area. Verified agents monitoring the board will send matching houses directly to your WhatsApp!
-              </p>
-            </div>
+      {/* Divider */}
+      <div className="border-t border-gray-100" />
 
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href="/requests"
-                className="px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs shadow-lg transition-all hover:scale-105"
-              >
-                + Post Housing Need (Free)
-              </Link>
-              <Link
-                href="/requests"
-                className="px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs border border-slate-700 transition-colors"
-              >
-                See Current Student Requests
-              </Link>
-            </div>
-          </div>
-
-          {/* Live Request Snippets */}
-          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10 pt-6 border-t border-slate-800">
-            {activeRequests.map((req) => (
-              <div
-                key={req.id}
-                className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-4 space-y-2"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-bold text-white">{req.tenantName} ({req.tenantSchool})</span>
-                  <span className="text-xs font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded">
-                    Max ₦{req.maxBudget.toLocaleString()} / yr
-                  </span>
-                </div>
-                <p className="text-xs text-slate-300 font-medium line-clamp-1">{req.title}</p>
-                <p className="text-[11px] text-slate-400 line-clamp-2">{req.description}</p>
-                <div className="flex items-center justify-between text-[11px] pt-1 text-emerald-400 font-semibold">
-                  <span>📍 {req.preferredArea}</span>
-                  <Link href="/requests" className="hover:underline flex items-center gap-1">
-                    <span>View Request</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 3 Pillars of Tenant Trust */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-xl mx-auto space-y-2 mb-10">
-          <h2 className="text-2xl font-black text-slate-900">
-            Why Rent Through CribConnect?
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-500">
-            Built specifically to solve the stressful rental problems faced by UNIPORT students in Port Harcourt.
-          </p>
+      {/* Why CribConnect */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-14">
+        <div className="text-center mb-10">
+          <h2 className="text-xl font-bold text-gray-900">Why use CribConnect?</h2>
+          <p className="text-sm text-gray-500 mt-1">Built for UNIPORT students to find housing safely and easily.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-2.5">
-            <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
-              <ShieldCheck className="w-5 h-5" />
+          {[
+            {
+              icon: <ShieldCheck className="w-5 h-5 text-emerald-600" />,
+              title: "Verified agents only",
+              body: "Every agent has been identity-checked. No anonymous listings, no roadside touts.",
+            },
+            {
+              icon: <Video className="w-5 h-5 text-emerald-600" />,
+              title: "Video walkthroughs",
+              body: "Watch a video tour of the room, compound, water supply and generator before you travel.",
+            },
+            {
+              icon: <CheckCircle2 className="w-5 h-5 text-emerald-600" />,
+              title: "Transparent fees",
+              body: "See the full breakdown: rent + agency fee + caution deposit. No surprises on move-in day.",
+            },
+          ].map((item, i) => (
+            <div key={i} className="bg-gray-50 rounded-xl p-6 space-y-3">
+              <div className="w-9 h-9 rounded-lg bg-white border border-gray-200 flex items-center justify-center shadow-sm">
+                {item.icon}
+              </div>
+              <h3 className="font-semibold text-gray-900 text-sm">{item.title}</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">{item.body}</p>
             </div>
-            <h3 className="font-bold text-base text-slate-900">100% Verified Agents</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Every agent on CribConnect has their NIN and office address verified. Zero roadside scams, zero disappearing agents.
+          ))}
+        </div>
+      </section>
+
+      {/* Divider */}
+      <div className="border-t border-gray-100" />
+
+      {/* Housing Requests CTA */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-14">
+        <div className="bg-gray-50 rounded-2xl p-8 sm:p-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="max-w-md space-y-2">
+            <div className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">
+              <MessageSquare className="w-3.5 h-3.5" />
+              Reverse marketplace
+            </div>
+            <h2 className="text-xl font-bold text-gray-900">Can't find what you need?</h2>
+            <p className="text-sm text-gray-500 leading-relaxed">
+              Post your budget and preferred area. Verified agents will send matching properties directly to your WhatsApp.
             </p>
+
+            {/* Live Requests Preview */}
+            <div className="pt-4 space-y-2">
+              {activeRequests.map((req) => (
+                <div key={req.id} className="bg-white border border-gray-200 rounded-lg px-3 py-2.5 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-gray-800 truncate">{req.tenantName} · {req.tenantSchool}</p>
+                    <p className="text-xs text-gray-500 truncate">{req.title}</p>
+                  </div>
+                  <span className="text-xs font-semibold text-emerald-700 shrink-0">₦{req.maxBudget.toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-2.5">
-            <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
-              <Video className="w-5 h-5" />
-            </div>
-            <h3 className="font-bold text-base text-slate-900">Virtual Walkthroughs</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              See video walkthroughs of the rooms, water pressure, generator setup, and compound gate before traveling to PH.
-            </p>
-          </div>
-
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-2.5">
-            <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
-              <CheckCircle2 className="w-5 h-5" />
-            </div>
-            <h3 className="font-bold text-base text-slate-900">Total Fee Transparency</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              See exact breakdowns: Annual Rent + Agreement/Agency Fee + Caution Deposit = Total Move-in Upfront. No surprise charges.
-            </p>
+          <div className="flex flex-col gap-3 shrink-0">
+            <Link
+              href="/requests"
+              className="px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors text-center"
+            >
+              Post your housing need
+            </Link>
+            <Link
+              href="/requests"
+              className="px-5 py-2.5 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium transition-colors text-center"
+            >
+              View all requests
+            </Link>
           </div>
         </div>
       </section>
+
     </div>
   );
 }

@@ -174,10 +174,10 @@ export default function AgentDashboardPage() {
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-16 animate-pulse space-y-6">
-        <div className="h-8 bg-slate-200 rounded w-1/3" />
+        <div className="h-8 bg-gray-200 rounded w-1/3" />
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-32 bg-slate-200 rounded-2xl" />
+            <div key={i} className="h-32 bg-gray-200 rounded-xl" />
           ))}
         </div>
       </div>
@@ -198,19 +198,19 @@ export default function AgentDashboardPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
       {/* Top Banner & Profile Header */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+      <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <img
             src={profile?.avatar || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200"}
             alt={profile?.name}
-            className="w-16 h-16 rounded-2xl object-cover border-2 border-emerald-500 shadow-md"
+            className="w-16 h-16 rounded-xl object-cover border border-gray-200 shadow-sm"
           />
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-black text-slate-900">{profile?.name}</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{profile?.name}</h1>
               <ShieldCheck className="w-5 h-5 text-emerald-600" />
             </div>
-            <p className="text-xs text-slate-500 font-medium">
+            <p className="text-xs text-gray-500 font-medium">
               {profile?.agencyName || "Verified Housing Specialist"} • {profile?.role}
             </p>
             <p className="text-[11px] text-emerald-700 font-semibold mt-0.5">
@@ -222,7 +222,7 @@ export default function AgentDashboardPage() {
         <div className="flex flex-wrap items-center gap-2.5">
           <Link
             href="/agent/profile"
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold transition-colors"
           >
             <Edit className="w-4 h-4" />
             <span>Edit Profile & Photo</span>
@@ -230,7 +230,7 @@ export default function AgentDashboardPage() {
 
           <Link
             href="/list-property"
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/30 transition-all hover:scale-105"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm shadow-emerald-600/30 transition-all"
           >
             <PlusCircle className="w-4 h-4" />
             <span>+ List New Crib</span>
@@ -239,7 +239,7 @@ export default function AgentDashboardPage() {
       </div>
 
       {successMessage && (
-        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-2.5 shadow-sm">
+        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-2.5 shadow-sm">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
           <span>{successMessage}</span>
         </div>
@@ -248,68 +248,68 @@ export default function AgentDashboardPage() {
       {/* KPI METRICS (Including Tenants Housed) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Main Metric: How many people they have rented house for */}
-        <div className="bg-gradient-to-br from-emerald-950 to-slate-900 text-white p-6 rounded-3xl border border-emerald-900/60 shadow-lg relative overflow-hidden flex flex-col justify-between">
+        <div className="bg-white p-6 rounded-xl border border-gray-200 flex flex-col justify-between">
           <div className="space-y-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald-700">
               Primary Achievement
             </span>
-            <h3 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+            <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
               {tenantsHousedCount}
             </h3>
-            <p className="text-xs font-bold text-slate-300">
+            <p className="text-xs text-gray-500">
               Tenants & Students Housed
             </p>
           </div>
-          <div className="pt-4 flex items-center justify-between text-[11px] text-emerald-300 font-medium">
+          <div className="pt-4 flex items-center justify-between text-[11px] text-emerald-700 font-medium border-t border-gray-100 mt-2">
             <span>Verified Rentals Completed</span>
-            <UserCheck className="w-4 h-4 text-emerald-400" />
+            <UserCheck className="w-4 h-4 text-emerald-600" />
           </div>
         </div>
 
         {/* Total Deal Volume */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
           <div className="space-y-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
               Total Volume Closed
             </span>
-            <h3 className="text-2xl sm:text-3xl font-black text-slate-900">
+            <h3 className="text-2xl sm:text-3xl font-bold text-gray-900">
               ₦{totalDealVolume.toLocaleString()}
             </h3>
-            <p className="text-xs text-slate-500 font-medium">Rental payments facilitated</p>
+            <p className="text-xs text-gray-500 font-medium">Rental payments facilitated</p>
           </div>
-          <div className="pt-4 flex items-center justify-between text-[11px] text-slate-400 font-medium">
+          <div className="pt-4 flex items-center justify-between text-[11px] text-gray-400 font-medium">
             <span>Annual Rent Handled</span>
             <TrendingUp className="w-4 h-4 text-emerald-600" />
           </div>
         </div>
 
         {/* Active Listings */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
           <div className="space-y-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
               Current Inventory
             </span>
-            <h3 className="text-2xl sm:text-3xl font-black text-slate-900">
+            <h3 className="text-2xl sm:text-3xl font-bold text-gray-900">
               {activeListingsCount}
             </h3>
-            <p className="text-xs text-slate-500 font-medium">Active Cribs live on site</p>
+            <p className="text-xs text-gray-500 font-medium">Active Cribs live on site</p>
           </div>
-          <div className="pt-4 flex items-center justify-between text-[11px] text-slate-400 font-medium">
+          <div className="pt-4 flex items-center justify-between text-[11px] text-gray-400 font-medium">
             <span>Available for inspection</span>
-            <Building2 className="w-4 h-4 text-slate-500" />
+            <Building2 className="w-4 h-4 text-gray-500" />
           </div>
         </div>
 
         {/* Rating & Trust */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
           <div className="space-y-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
               Student Trust Score
             </span>
-            <h3 className="text-2xl sm:text-3xl font-black text-slate-900">
+            <h3 className="text-2xl sm:text-3xl font-bold text-gray-900">
               4.9 / 5.0
             </h3>
-            <p className="text-xs text-slate-500 font-medium">100% Zero-Scam Record</p>
+            <p className="text-xs text-gray-500 font-medium">100% Zero-Scam Record</p>
           </div>
           <div className="pt-4 flex items-center justify-between text-[11px] text-emerald-700 font-bold">
             <span>NIN Verified Status</span>
@@ -319,16 +319,16 @@ export default function AgentDashboardPage() {
       </div>
 
       {/* QUICK ACTION: Record a Completed Rental */}
-      <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-200 rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-bold">
             <Sparkles className="w-3 h-3" />
             <span>Increase Your Credibility Badge</span>
           </div>
-          <h2 className="text-lg font-black text-slate-900">
+          <h2 className="text-lg font-bold text-gray-900">
             Did you just rent a house to a student or newcomer?
           </h2>
-          <p className="text-xs text-slate-600">
+          <p className="text-xs text-gray-600">
             Log the completed rental to update your public <strong>&quot;Tenants Housed&quot;</strong> counter and attract more clients.
           </p>
         </div>
@@ -338,7 +338,7 @@ export default function AgentDashboardPage() {
             setSelectedListingForRent(null);
             setShowRentModal(true);
           }}
-          className="px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md shadow-emerald-600/30 flex items-center gap-2 shrink-0 transition-all hover:scale-105"
+          className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-sm shadow-emerald-600/30 flex items-center gap-2 shrink-0 transition-all"
         >
           <UserCheck className="w-4 h-4" />
           <span>+ Log Housed Tenant</span>
@@ -346,32 +346,32 @@ export default function AgentDashboardPage() {
       </div>
 
       {/* SECTION: Physical Inspection Inquiries & Walkthroughs */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+      <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8 shadow-sm space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-5">
           <div>
             <div className="flex items-center gap-2.5">
-              <h2 className="text-lg font-black text-slate-900 tracking-tight">
+              <h2 className="text-lg font-bold text-gray-900 tracking-tight">
                 Physical Inspection Inquiries ({bookings.length})
               </h2>
               {pendingBookingsCount > 0 && (
-                <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-black uppercase tracking-wider animate-pulse">
+                <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold uppercase tracking-wider animate-pulse">
                   {pendingBookingsCount} Action Needed
                 </span>
               )}
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-gray-500 mt-0.5">
               Verified students and relocators requesting on-site apartment walkthroughs.
             </p>
           </div>
 
           {/* Filter Pills */}
-          <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl">
+          <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-xl">
             <button
               onClick={() => setBookingFilter("ALL")}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                 bookingFilter === "ALL"
                   ? "bg-white text-emerald-800 shadow-2xs"
-                  : "text-slate-600 hover:text-slate-900"
+                  : "text-gray-600 hover:text-gray-900"
               }`}
             >
               All ({bookings.length})
@@ -381,7 +381,7 @@ export default function AgentDashboardPage() {
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                 bookingFilter === "PENDING"
                   ? "bg-white text-amber-800 shadow-2xs"
-                  : "text-slate-600 hover:text-slate-900"
+                  : "text-gray-600 hover:text-gray-900"
               }`}
             >
               Pending ({pendingBookingsCount})
@@ -391,7 +391,7 @@ export default function AgentDashboardPage() {
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                 bookingFilter === "CONFIRMED"
                   ? "bg-white text-emerald-800 shadow-2xs"
-                  : "text-slate-600 hover:text-slate-900"
+                  : "text-gray-600 hover:text-gray-900"
               }`}
             >
               Confirmed ({confirmedBookingsCount})
@@ -401,10 +401,10 @@ export default function AgentDashboardPage() {
 
         {/* Bookings List */}
         {filteredBookings.length === 0 ? (
-          <div className="p-8 text-center rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
-            <Calendar className="w-8 h-8 text-slate-300 mx-auto" />
-            <p className="text-xs font-bold text-slate-600">No inspection bookings in this filter.</p>
-            <p className="text-[11px] text-slate-400">
+          <div className="p-8 text-center rounded-xl bg-gray-50 border border-gray-100 space-y-2">
+            <Calendar className="w-8 h-8 text-gray-300 mx-auto" />
+            <p className="text-xs font-bold text-gray-600">No inspection bookings in this filter.</p>
+            <p className="text-[11px] text-gray-400">
               When students book walkthroughs on your listings, they will show up here.
             </p>
           </div>
@@ -420,27 +420,27 @@ export default function AgentDashboardPage() {
               return (
                 <div
                   key={b.id}
-                  className="p-5 rounded-2xl border border-slate-200/90 hover:border-emerald-300 bg-white shadow-2xs transition-all space-y-4 flex flex-col justify-between"
+                  className="p-5 rounded-xl border border-gray-200/90 hover:border-emerald-300 bg-white shadow-2xs transition-all space-y-4 flex flex-col justify-between"
                 >
                   <div className="space-y-3">
                     {/* Header: Student Name + Status Badge */}
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-sm flex items-center justify-center shrink-0 border border-emerald-200">
+                        <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 font-semibold text-sm flex items-center justify-center shrink-0 border border-emerald-200">
                           {b.tenantName ? b.tenantName.charAt(0).toUpperCase() : "S"}
                         </div>
                         <div>
-                          <h3 className="font-extrabold text-sm text-slate-900 leading-tight">
+                          <h3 className="font-semibold text-sm text-gray-900 leading-tight">
                             {b.tenantName}
                           </h3>
-                          <span className="text-[11px] text-slate-500 font-medium">
+                          <span className="text-[11px] text-gray-500 font-medium">
                             📞 {b.tenantPhone}
                           </span>
                         </div>
                       </div>
 
                       <span
-                        className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                           b.status === "CONFIRMED"
                             ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
                             : b.status === "PENDING"
@@ -455,13 +455,13 @@ export default function AgentDashboardPage() {
                     </div>
 
                     {/* Listing Title */}
-                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                    <div className="p-2.5 rounded-xl bg-gray-50 border border-gray-100">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">
                         Requested Property
                       </span>
                       <Link
                         href={`/listings/${b.listingId}`}
-                        className="text-xs font-bold text-slate-900 hover:text-emerald-700 line-clamp-1 block"
+                        className="text-xs font-bold text-gray-900 hover:text-emerald-700 line-clamp-1 block"
                       >
                         {b.listingTitle}
                       </Link>
@@ -469,11 +469,11 @@ export default function AgentDashboardPage() {
 
                     {/* Inspection Date & Time */}
                     <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-50 text-slate-700 font-semibold">
+                      <div className="flex items-center gap-2 p-2 rounded-xl bg-gray-50 text-gray-700 font-semibold">
                         <Calendar className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                         <span className="truncate">{b.preferredDate || "Any Day"}</span>
                       </div>
-                      <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-50 text-slate-700 font-semibold">
+                      <div className="flex items-center gap-2 p-2 rounded-xl bg-gray-50 text-gray-700 font-semibold">
                         <Clock className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                         <span className="truncate">{b.preferredTime || "11am - 1pm"}</span>
                       </div>
@@ -481,14 +481,14 @@ export default function AgentDashboardPage() {
 
                     {/* Student Message/Note */}
                     {b.message && (
-                      <p className="text-xs text-slate-600 italic bg-slate-50/70 p-2.5 rounded-xl border border-slate-100/80">
+                      <p className="text-xs text-gray-600 italic bg-gray-50/70 p-2.5 rounded-xl border border-gray-100/80">
                         &quot;{b.message}&quot;
                       </p>
                     )}
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center gap-2">
+                  <div className="pt-2 border-t border-gray-100 flex flex-wrap items-center gap-2">
                     {b.status === "PENDING" ? (
                       <>
                         <button
@@ -504,7 +504,7 @@ export default function AgentDashboardPage() {
                               b.preferredTime
                             )
                           }
-                          className="flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-xs transition-all flex items-center justify-center gap-1.5"
+                          className="flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-xs transition-all flex items-center justify-center gap-1.5"
                         >
                           <Check className="w-3.5 h-3.5 stroke-[3]" />
                           <span>Confirm & Chat</span>
@@ -513,7 +513,7 @@ export default function AgentDashboardPage() {
                         <button
                           disabled={updatingBookingId === b.id}
                           onClick={() => handleUpdateBookingStatus(b.id, "DECLINED")}
-                          className="py-2 px-3 rounded-xl bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-700 font-bold text-xs transition-colors"
+                          className="py-2 px-3 rounded-xl bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-700 font-bold text-xs transition-colors"
                         >
                           Decline
                         </button>
@@ -553,7 +553,7 @@ export default function AgentDashboardPage() {
         {/* Left Column: Manage Properties (2 Cols) */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-black text-slate-900">
+            <h2 className="text-lg font-bold text-gray-900">
               My Rental Listings ({listings.length})
             </h2>
             <Link
@@ -566,9 +566,9 @@ export default function AgentDashboardPage() {
           </div>
 
           {listings.length === 0 ? (
-            <div className="bg-white rounded-3xl border border-slate-200 p-8 text-center space-y-3">
-              <Building2 className="w-10 h-10 text-slate-300 mx-auto" />
-              <p className="text-xs text-slate-500">You haven&apos;t listed any properties yet.</p>
+            <div className="bg-white rounded-xl border border-gray-200 p-8 text-center space-y-3">
+              <Building2 className="w-10 h-10 text-gray-300 mx-auto" />
+              <p className="text-xs text-gray-500">You haven&apos;t listed any properties yet.</p>
               <Link
                 href="/list-property"
                 className="inline-flex px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold"
@@ -581,7 +581,7 @@ export default function AgentDashboardPage() {
               {listings.map((l) => (
                 <div
                   key={l.id}
-                  className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-xs hover:shadow-md transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                  className="bg-white rounded-xl border border-gray-200 p-4 sm:p-5 shadow-xs hover:shadow-sm transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
                 >
                   <div className="flex items-center gap-3.5">
                     <img
@@ -591,7 +591,7 @@ export default function AgentDashboardPage() {
                           : "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=200"
                       }
                       alt=""
-                      className="w-16 h-16 rounded-xl object-cover border border-slate-100 shrink-0"
+                      className="w-16 h-16 rounded-xl object-cover border border-gray-100 shrink-0"
                     />
                     <div>
                       <div className="flex items-center gap-2">
@@ -599,25 +599,25 @@ export default function AgentDashboardPage() {
                           className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                             l.isAvailable
                               ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                              : "bg-slate-100 text-slate-600"
+                              : "bg-gray-100 text-gray-600"
                           }`}
                         >
                           {l.isAvailable ? "Available" : "Rented Out"}
                         </span>
-                        <span className="text-xs font-bold text-slate-900">
+                        <span className="text-xs font-bold text-gray-900">
                           ₦{(l.price || 0).toLocaleString()} / yr
                         </span>
                       </div>
-                      <h3 className="font-bold text-sm text-slate-900 mt-1 line-clamp-1">
+                      <h3 className="font-bold text-sm text-gray-900 mt-1 line-clamp-1">
                         {l.title}
                       </h3>
-                      <span className="text-[11px] text-slate-400 block">
+                      <span className="text-[11px] text-gray-400 block">
                         📍 {l.neighborhood} • 🚶 {l.distanceDescription || "5m to Gate"}
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 w-full sm:w-auto justify-end pt-2 sm:pt-0 border-t sm:border-0 border-slate-100">
+                  <div className="flex items-center gap-2 w-full sm:w-auto justify-end pt-2 sm:pt-0 border-t sm:border-0 border-gray-100">
                     {l.isAvailable && (
                       <button
                         onClick={() => {
@@ -632,7 +632,7 @@ export default function AgentDashboardPage() {
                     )}
                     <Link
                       href={`/listings/${l.id}`}
-                      className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
+                      className="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
                       title="View public listing"
                     >
                       <Eye className="w-4 h-4" />
@@ -647,16 +647,16 @@ export default function AgentDashboardPage() {
         {/* Right Column: Tenants Housed History (1 Col) */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
+            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
               <UserCheck className="w-5 h-5 text-emerald-600" />
               <span>Tenants Housed ({rentalsHistory.length})</span>
             </h2>
           </div>
 
           {rentalsHistory.length === 0 ? (
-            <div className="bg-white rounded-3xl border border-slate-200 p-8 text-center space-y-2">
-              <Users className="w-8 h-8 text-slate-300 mx-auto" />
-              <p className="text-xs text-slate-500">No completed rentals logged yet.</p>
+            <div className="bg-white rounded-xl border border-gray-200 p-8 text-center space-y-2">
+              <Users className="w-8 h-8 text-gray-300 mx-auto" />
+              <p className="text-xs text-gray-500">No completed rentals logged yet.</p>
               <button
                 onClick={() => setShowRentModal(true)}
                 className="text-xs font-bold text-emerald-700 hover:underline"
@@ -669,18 +669,18 @@ export default function AgentDashboardPage() {
               {rentalsHistory.map((item) => (
                 <div
                   key={item.id}
-                  className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs space-y-2"
+                  className="bg-white rounded-xl border border-gray-200 p-4 shadow-xs space-y-2"
                 >
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-slate-900">{item.tenantName}</span>
+                    <span className="font-bold text-gray-900">{item.tenantName}</span>
                     <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
                       ₦{(item.amount || 0).toLocaleString()}
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-600 font-medium">
+                  <p className="text-[11px] text-gray-600 font-medium">
                     🏠 {item.propertyTitle} ({item.neighborhood})
                   </p>
-                  <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-100">
+                  <div className="flex items-center justify-between text-[10px] text-gray-400 pt-1 border-t border-gray-100">
                     <span>Housed on {item.date}</span>
                     <span className="text-emerald-600 font-semibold flex items-center gap-1">
                       <CheckCircle2 className="w-3 h-3" /> Successfully Moved In
@@ -696,15 +696,15 @@ export default function AgentDashboardPage() {
       {/* MODAL: Record a Tenant Housed */}
       {showRentModal && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-xl font-black text-slate-900">Record Housed Tenant</h3>
-                <p className="text-xs text-slate-500">Boosts your Verified Agent public score</p>
+                <h3 className="text-xl font-bold text-gray-900">Record Housed Tenant</h3>
+                <p className="text-xs text-gray-500">Boosts your Verified Agent public score</p>
               </div>
               <button
                 onClick={() => setShowRentModal(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold"
+                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center font-bold"
               >
                 ✕
               </button>
@@ -712,7 +712,7 @@ export default function AgentDashboardPage() {
 
             <form onSubmit={handleRecordRental} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-gray-700 mb-1">
                   Tenant Name & Details *
                 </label>
                 <input
@@ -721,12 +721,12 @@ export default function AgentDashboardPage() {
                   placeholder="e.g. Chisom Okereke (UNIPORT Fresher)"
                   value={rentalTenantName}
                   onChange={(e) => setRentalTenantName(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-gray-700 mb-1">
                   Property Housed *
                 </label>
                 <input
@@ -739,13 +739,13 @@ export default function AgentDashboardPage() {
                       setSelectedListingForRent({ ...selectedListingForRent, title: e.target.value });
                     }
                   }}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
                     Annual Rent (₦) *
                   </label>
                   <input
@@ -754,12 +754,12 @@ export default function AgentDashboardPage() {
                     placeholder="e.g. 450000"
                     value={rentalAmount}
                     onChange={(e) => setRentalAmount(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
                     Date Housed *
                   </label>
                   <input
@@ -767,7 +767,7 @@ export default function AgentDashboardPage() {
                     required
                     value={rentalDate}
                     onChange={(e) => setRentalDate(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
                 </div>
               </div>
@@ -775,7 +775,7 @@ export default function AgentDashboardPage() {
               <button
                 type="submit"
                 disabled={recordingRent}
-                className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-1.5 transition-all"
+                className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-sm shadow-emerald-600/30 flex items-center justify-center gap-1.5 transition-all"
               >
                 <span>{recordingRent ? "Recording..." : "Save Completed Rental"}</span>
                 <CheckCircle2 className="w-4 h-4" />

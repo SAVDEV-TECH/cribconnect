@@ -13,7 +13,6 @@ import {
   CheckCircle2,
   AlertCircle,
   ArrowRight,
-  Sparkles,
   MapPin,
   Award,
   ArrowLeft,
@@ -136,8 +135,8 @@ export default function AgentProfilePage() {
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16 animate-pulse space-y-6">
-        <div className="h-8 bg-slate-200 rounded w-1/3" />
-        <div className="h-64 bg-slate-200 rounded-3xl" />
+        <div className="h-8 bg-gray-200 rounded w-1/3" />
+        <div className="h-64 bg-gray-200 rounded-2xl" />
       </div>
     );
   }
@@ -145,26 +144,26 @@ export default function AgentProfilePage() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
       {/* Top Header & Navigation */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-6">
         <div>
           <Link
             href="/agent/dashboard"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 mb-2"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-500 hover:text-gray-900 mb-2"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Dashboard</span>
           </Link>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
             {formData.role === "LANDLORD" ? "Landlord Profile" : "Agent Profile & Credentials"}
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-gray-500 mt-1">
             Update your profile picture, contact numbers, and specializations visible to students.
           </p>
         </div>
 
         <Link
           href="/agent/dashboard"
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-sm transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-xs font-bold shadow-sm transition-colors"
         >
           <LayoutDashboard className="w-4 h-4" />
           <span>Go to Dashboard</span>
@@ -191,9 +190,9 @@ export default function AgentProfilePage() {
       {/* Profile Form Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left: Photo Upload & Verified Badge */}
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm flex flex-col items-center text-center space-y-4 h-fit">
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm flex flex-col items-center text-center space-y-4 h-fit">
           <div className="relative group">
-            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-emerald-500 shadow-lg bg-slate-100">
+            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-emerald-500 shadow-lg bg-gray-100">
               <img
                 src={formData.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400"}
                 alt={formData.name}
@@ -221,8 +220,8 @@ export default function AgentProfilePage() {
           />
 
           <div>
-            <h2 className="text-base font-black text-slate-900">{formData.name}</h2>
-            <span className="text-xs text-slate-500 font-medium">{formData.agencyName || "Independent Realtor"}</span>
+            <h2 className="text-base font-bold text-gray-900">{formData.name}</h2>
+            <span className="text-xs text-gray-500 font-medium">{formData.agencyName || "Independent Realtor"}</span>
           </div>
 
           {formData.isVerified && (
@@ -233,17 +232,17 @@ export default function AgentProfilePage() {
           )}
 
           {/* Tenants Housed Quick Metric */}
-          <div className="w-full pt-4 border-t border-slate-100 flex items-center justify-around text-center">
+          <div className="w-full pt-4 border-t border-gray-100 flex items-center justify-around text-center">
             <div>
-              <span className="text-xl font-black text-emerald-700">{formData.tenantsHousedCount}</span>
-              <span className="block text-[10px] text-slate-500 font-semibold uppercase tracking-wider">
+              <span className="text-xl font-bold text-emerald-700">{formData.tenantsHousedCount}</span>
+              <span className="block text-[10px] text-gray-500 font-semibold uppercase tracking-wider">
                 Tenants Housed
               </span>
             </div>
-            <div className="h-8 w-px bg-slate-200" />
+            <div className="h-8 w-px bg-gray-200" />
             <div>
-              <span className="text-xl font-black text-slate-900">4.9 ★</span>
-              <span className="block text-[10px] text-slate-500 font-semibold uppercase tracking-wider">
+              <span className="text-xl font-bold text-gray-900">4.9 ★</span>
+              <span className="block text-[10px] text-gray-500 font-semibold uppercase tracking-wider">
                 Rating
               </span>
             </div>
@@ -251,61 +250,61 @@ export default function AgentProfilePage() {
         </div>
 
         {/* Right: Edit Profile Form */}
-        <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-6 sm:p-8 shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-6">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-1">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100 pb-1">
               Personal & Agency Details
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Full Legal Name *</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Full Legal Name *</label>
                 <input
                   type="text"
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Work Email (Registered)</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Work Email (Registered)</label>
                 <input
                   type="email"
                   disabled
                   value={formData.email}
-                  className="w-full bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-500 font-medium cursor-not-allowed"
+                  className="w-full bg-gray-100 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-500 font-medium cursor-not-allowed"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Phone Number *</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Phone Number *</label>
                 <input
                   type="tel"
                   required
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">WhatsApp Number (For Direct Chats) *</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">WhatsApp Number (For Direct Chats) *</label>
                 <input
                   type="tel"
                   required
                   value={formData.whatsapp}
                   onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label className="block text-xs font-bold text-gray-700 mb-1">
                 {formData.role === "LANDLORD" ? "Estate / Property Complex Name" : "Agency / Firm Name"}
               </label>
               <input
@@ -313,48 +312,48 @@ export default function AgentProfilePage() {
                 value={formData.agencyName}
                 onChange={(e) => setFormData({ ...formData, agencyName: e.target.value })}
                 placeholder="e.g. Adeyemi & Partners Realty"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Campus & Neighborhood Specializations</label>
+              <label className="block text-xs font-bold text-gray-700 mb-1">Campus & Neighborhood Specializations</label>
               <input
                 type="text"
                 value={formData.specializations}
                 onChange={(e) => setFormData({ ...formData, specializations: e.target.value })}
                 placeholder="e.g. UNIPORT Choba Main Gate, Aluu Back Gate, Rumuola, Ozuoba"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
-              <span className="text-[10px] text-slate-400 mt-1 block">Students filter for agents specializing in their desired campus gate.</span>
+              <span className="text-[10px] text-gray-400 mt-1 block">Students filter for agents specializing in their desired campus gate.</span>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Professional Bio / About You</label>
+              <label className="block text-xs font-bold text-gray-700 mb-1">Professional Bio / About You</label>
               <textarea
                 rows={3}
                 value={formData.bio}
                 onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                 placeholder="Tell students about your experience, how long you've operated in the area, and your commitment to transparent rentals..."
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">NIN or Realtor License Number</label>
+              <label className="block text-xs font-bold text-gray-700 mb-1">NIN or Realtor License Number</label>
               <input
                 type="text"
                 value={formData.ninOrLicense}
                 onChange={(e) => setFormData({ ...formData, ninOrLicense: e.target.value })}
                 placeholder="e.g. LAG-REA-2023-8891 or NIN-..."
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
             </div>
 
             <button
               type="submit"
               disabled={saving}
-              className="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all hover:scale-[1.01] disabled:opacity-50"
+              className="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-md shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
             >
               <span>{saving ? "Saving Changes..." : "Save Profile Changes"}</span>
               <ArrowRight className="w-4 h-4" />

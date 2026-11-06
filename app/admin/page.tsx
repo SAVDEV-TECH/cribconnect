@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import { useApp } from "@/context/AppContext";
@@ -105,16 +105,16 @@ export default function AdminPage() {
         <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto">
           <ShieldAlert className="w-8 h-8" />
         </div>
-        <h2 className="text-xl font-black text-slate-900">
+        <h2 className="text-xl font-bold text-gray-900">
           Admin Portal Access Restricted
         </h2>
-        <p className="text-xs text-slate-600 leading-relaxed max-w-md mx-auto">
+        <p className="text-xs text-gray-600 leading-relaxed max-w-md mx-auto">
           You are currently signed in as <strong>{currentUser?.name}</strong> ({currentUser?.role}).
           To test agent document approval, listing moderation, and dispute screening, click the button below to switch to the Platform Admin persona.
         </p>
         <button
           onClick={() => switchPersona("admin-tola")}
-          className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition-all cursor-pointer"
+          className="px-5 py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
         >
           Switch to Tola Balogun (Trust & Safety Admin)
         </button>
@@ -129,84 +129,84 @@ export default function AdminPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Admin Header Banner */}
-      <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-red-950 rounded-3xl p-6 sm:p-10 text-white border border-red-900/40 shadow-xl space-y-3">
+      <div className="bg-gradient-to-r from-gray-950 via-gray-900 to-red-950 rounded-xl p-6 sm:p-10 text-white border border-red-900/40 shadow-sm space-y-3">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/20 text-red-300 border border-red-500/30 text-xs font-bold">
           <ShieldCheck className="w-3.5 h-3.5" />
           <span>Trust & Safety Compliance Panel</span>
         </div>
-        <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
+        <h1 className="text-2xl sm:text-4xl font-semibold tracking-tight">
           Platform Administration & Moderation
         </h1>
-        <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
+        <p className="text-xs sm:text-sm text-gray-300 max-w-2xl leading-relaxed">
           Screen incoming real estate agent credentials, inspect submitted government NIN identity records, validate student scam reports, and ensure quality control across all campus rental listings.
         </p>
       </div>
 
       {/* KPI Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
-          <span className="text-slate-400 text-xs font-semibold uppercase">
+        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-xs space-y-1">
+          <span className="text-gray-400 text-xs font-semibold uppercase">
             Pending Agent Approvals
           </span>
-          <div className="text-2xl font-black text-amber-600">
+          <div className="text-2xl font-bold text-amber-600">
             {pendingAgents.length}
           </div>
-          <span className="text-[11px] text-slate-500">Awaiting document inspection</span>
+          <span className="text-[11px] text-gray-500">Awaiting document inspection</span>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
-          <span className="text-slate-400 text-xs font-semibold uppercase">
+        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-xs space-y-1">
+          <span className="text-gray-400 text-xs font-semibold uppercase">
             Verified Agents
           </span>
-          <div className="text-2xl font-black text-emerald-600">
+          <div className="text-2xl font-bold text-emerald-600">
             {verifiedAgents.length}
           </div>
-          <span className="text-[11px] text-slate-500">ID & NIN confirmed</span>
+          <span className="text-[11px] text-gray-500">ID & NIN confirmed</span>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
-          <span className="text-slate-400 text-xs font-semibold uppercase">
+        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-xs space-y-1">
+          <span className="text-gray-400 text-xs font-semibold uppercase">
             Trust & Safety Reports
           </span>
-          <div className="text-2xl font-black text-red-600">
+          <div className="text-2xl font-bold text-red-600">
             {pendingReports.length}
           </div>
-          <span className="text-[11px] text-slate-500">Community safety flags</span>
+          <span className="text-[11px] text-gray-500">Community safety flags</span>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
-          <span className="text-slate-400 text-xs font-semibold uppercase">
+        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-xs space-y-1">
+          <span className="text-gray-400 text-xs font-semibold uppercase">
             Total Agents Onboarded
           </span>
-          <div className="text-2xl font-black text-slate-900">
+          <div className="text-2xl font-bold text-gray-900">
             {agents.length}
           </div>
-          <span className="text-[11px] text-slate-500">UNILAG / Yaba hub</span>
+          <span className="text-[11px] text-gray-500">UNILAG / Yaba hub</span>
         </div>
       </div>
 
       {/* Queue 1: Pending Agent Verification Approvals */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-6 shadow-sm">
+      <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8 space-y-6 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
               <span>Agent ID Verification Queue</span>
               {pendingAgents.length > 0 && (
-                <span className="text-xs bg-amber-100 text-amber-800 font-extrabold px-2 py-0.5 rounded-full">
+                <span className="text-xs bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 rounded-full">
                   {pendingAgents.length} Pending
                 </span>
               )}
             </h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-gray-500">
               Inspect submitted National Identity Number (NIN) and government ID photo proofs before conferring official verified badges.
             </p>
           </div>
         </div>
 
         {pendingAgents.length === 0 ? (
-          <div className="text-center py-10 bg-slate-50 rounded-2xl border border-slate-100 text-xs text-slate-500 space-y-1">
+          <div className="text-center py-10 bg-gray-50 rounded-xl border border-gray-100 text-xs text-gray-500 space-y-1">
             <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
-            <div className="font-bold text-slate-800">All agent applications processed</div>
+            <div className="font-bold text-gray-800">All agent applications processed</div>
             <p className="text-[11px]">No pending verification requests in the queue.</p>
           </div>
         ) : (
@@ -214,7 +214,7 @@ export default function AdminPage() {
             {pendingAgents.map((prof) => (
               <div
                 key={prof.id}
-                className="p-5 rounded-2xl border border-amber-200 bg-amber-50/20 space-y-4"
+                className="p-5 rounded-xl border border-amber-200 bg-amber-50/20 space-y-4"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
@@ -224,13 +224,13 @@ export default function AdminPage() {
                         "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=120"
                       }
                       alt={prof.user.name}
-                      className="w-12 h-12 rounded-full object-cover border border-slate-300"
+                      className="w-12 h-12 rounded-full object-cover border border-gray-300"
                     />
                     <div>
-                      <h3 className="font-bold text-sm text-slate-900">
+                      <h3 className="font-bold text-sm text-gray-900">
                         {prof.user.name}
                       </h3>
-                      <p className="text-xs text-slate-600">
+                      <p className="text-xs text-gray-600">
                         {prof.agencyName || "Independent Realtor"} • {prof.user.email}
                       </p>
                     </div>
@@ -241,32 +241,32 @@ export default function AdminPage() {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs bg-white p-4 rounded-xl border border-slate-200">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs bg-white p-4 rounded-xl border border-gray-200">
                   <div>
-                    <span className="text-[10px] text-slate-400 font-bold uppercase block">
+                    <span className="text-[10px] text-gray-400 font-bold uppercase block">
                       Submitted NIN
                     </span>
-                    <span className="font-mono font-bold text-slate-800">
+                    <span className="font-mono font-bold text-gray-800">
                       {prof.ninNumber || "NIN-99128374655"}
                     </span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 font-bold uppercase block">
+                    <span className="text-[10px] text-gray-400 font-bold uppercase block">
                       Coverage Axis
                     </span>
-                    <span className="font-medium text-slate-800">
+                    <span className="font-medium text-gray-800">
                       {prof.campusSpecialization || "UNILAG / Yaba"}
                     </span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 font-bold uppercase block">
+                    <span className="text-[10px] text-gray-400 font-bold uppercase block">
                       ID Document Scanned Proof
                     </span>
                     <a
                       href={prof.idDocumentUrl || "#"}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-brand-600 font-bold hover:underline flex items-center gap-1"
+                      className="text-emerald-600 font-bold hover:underline flex items-center gap-1"
                     >
                       <span>Inspect Scanned ID</span>
                       <ExternalLink className="w-3 h-3" />
@@ -275,7 +275,7 @@ export default function AdminPage() {
                 </div>
 
                 {prof.bio && (
-                  <p className="text-xs text-slate-600 italic">
+                  <p className="text-xs text-gray-600 italic">
                     &quot;{prof.bio}&quot;
                   </p>
                 )}
@@ -308,29 +308,29 @@ export default function AdminPage() {
       </div>
 
       {/* Queue 2: Trust & Safety Reports Queue */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-6 shadow-sm">
+      <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8 space-y-6 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
               <span>Community Trust & Scam Reports</span>
               {pendingReports.length > 0 && (
-                <span className="text-xs bg-red-100 text-red-800 font-extrabold px-2 py-0.5 rounded-full">
+                <span className="text-xs bg-red-100 text-red-800 font-semibold px-2 py-0.5 rounded-full">
                   {pendingReports.length} Active Flag
                 </span>
               )}
             </h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-gray-500">
               Student complaints regarding inspection fee requests, fake photos, or unverified agents.
             </p>
           </div>
         </div>
 
         {reports.length === 0 ? (
-          <div className="text-center py-10 bg-slate-50 rounded-2xl border border-slate-100 text-xs text-slate-500">
+          <div className="text-center py-10 bg-gray-50 rounded-xl border border-gray-100 text-xs text-gray-500">
             No community reports submitted.
           </div>
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-gray-100">
             {reports.map((rep) => (
               <div
                 key={rep.id}
@@ -338,11 +338,11 @@ export default function AdminPage() {
               >
                 <div className="space-y-1 max-w-2xl">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-slate-900">
+                    <span className="font-bold text-gray-900">
                       Reported: {rep.targetType} ({rep.targetId})
                     </span>
                     <span
-                      className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full ${
+                      className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full ${
                         rep.status === "PENDING"
                           ? "bg-red-100 text-red-800"
                           : "bg-emerald-100 text-emerald-800"
@@ -355,11 +355,11 @@ export default function AdminPage() {
                     Reason: {rep.reason}
                   </div>
                   {rep.details && (
-                    <p className="text-slate-600 text-[11px] leading-relaxed">
+                    <p className="text-gray-600 text-[11px] leading-relaxed">
                       &quot;{rep.details}&quot;
                     </p>
                   )}
-                  <div className="text-[10px] text-slate-400">
+                  <div className="text-[10px] text-gray-400">
                     Flagged by {rep.reporter?.name || "Student"} on{" "}
                     {new Date(rep.createdAt).toLocaleDateString()}
                   </div>
@@ -371,7 +371,7 @@ export default function AdminPage() {
                       type="button"
                       disabled={actionLoadingId === rep.id}
                       onClick={() => handleUpdateReport(rep.id, "DISMISSED")}
-                      className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold"
+                      className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 font-semibold"
                     >
                       Dismiss
                     </button>
@@ -392,11 +392,11 @@ export default function AdminPage() {
       </div>
 
       {/* Registered Agents Overview Table */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-4 shadow-sm">
-        <h2 className="text-lg font-bold text-slate-900">
+      <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8 space-y-4 shadow-sm">
+        <h2 className="text-lg font-bold text-gray-900">
           All Platform Agents ({agents.length})
         </h2>
-        <div className="divide-y divide-slate-100 text-xs">
+        <div className="divide-y divide-gray-100 text-xs">
           {agents.map((ag) => (
             <div
               key={ag.id}
@@ -409,11 +409,11 @@ export default function AdminPage() {
                     "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80"
                   }
                   alt={ag.user?.name}
-                  className="w-8 h-8 rounded-full object-cover border border-slate-200"
+                  className="w-8 h-8 rounded-full object-cover border border-gray-200"
                 />
                 <div>
-                  <span className="font-bold text-slate-900">{ag.user?.name}</span>
-                  <span className="text-[11px] text-slate-500 block">
+                  <span className="font-bold text-gray-900">{ag.user?.name}</span>
+                  <span className="text-[11px] text-gray-500 block">
                     {ag.agencyName || "Independent"} • Tier: <strong>{ag.tier}</strong>
                   </span>
                 </div>
@@ -421,12 +421,12 @@ export default function AdminPage() {
 
               <div className="flex items-center gap-3">
                 <span
-                  className={`text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full ${
+                  className={`text-[10px] font-semibold uppercase px-2.5 py-1 rounded-full ${
                     ag.verificationStatus === "VERIFIED"
                       ? "bg-emerald-100 text-emerald-800"
                       : ag.verificationStatus === "PENDING"
                       ? "bg-amber-100 text-amber-800"
-                      : "bg-slate-100 text-slate-600"
+                      : "bg-gray-100 text-gray-600"
                   }`}
                 >
                   {ag.verificationStatus}

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import { useApp } from "@/context/AppContext";
@@ -94,15 +94,15 @@ export default function MessagesPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col md:flex-row h-[700px]">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col md:flex-row h-[700px]">
         {/* Left Sidebar: Conversations list */}
-        <div className="w-full md:w-80 border-r border-slate-200 flex flex-col bg-slate-50/50">
-          <div className="p-4 border-b border-slate-200">
-            <h2 className="font-bold text-sm text-slate-900 flex items-center gap-2">
-              <MessageSquare className="w-4 h-4 text-brand-600" />
+        <div className="w-full md:w-80 border-r border-gray-200 flex flex-col bg-gray-50/50">
+          <div className="p-4 border-b border-gray-200">
+            <h2 className="font-bold text-sm text-gray-900 flex items-center gap-2">
+              <MessageSquare className="w-4 h-4 text-emerald-600" />
               <span>In-App Messages</span>
             </h2>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-[11px] text-gray-500">
               Encrypted & anti-scam monitored channel
             </p>
           </div>
@@ -111,10 +111,10 @@ export default function MessagesPage() {
             {/* Conversation 1: Kolawole */}
             <button
               onClick={() => setActivePartnerId("agent-kolawole")}
-              className={`w-full p-3 rounded-2xl text-left flex items-center gap-3 transition-colors ${
+              className={`w-full p-3 rounded-xl text-left flex items-center gap-3 transition-colors ${
                 activePartnerId === "agent-kolawole"
-                  ? "bg-white shadow-xs border border-slate-200 ring-1 ring-brand-500/20"
-                  : "hover:bg-slate-100"
+                  ? "bg-white shadow-xs border border-gray-200 ring-1 ring-emerald-500/20"
+                  : "hover:bg-gray-100"
               }`}
             >
               <img
@@ -124,16 +124,16 @@ export default function MessagesPage() {
               />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-xs text-slate-900 truncate">
+                  <span className="font-bold text-xs text-gray-900 truncate">
                     Kolawole Adebayo
                   </span>
-                  <span className="text-[9px] text-slate-400">Active</span>
+                  <span className="text-[9px] text-gray-400">Active</span>
                 </div>
                 <div className="text-[10px] text-emerald-600 font-medium flex items-center gap-0.5">
                   <ShieldCheck className="w-3 h-3" />
                   <span>Verified UNILAG Agent</span>
                 </div>
-                <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                <p className="text-[11px] text-gray-500 truncate mt-0.5">
                   Check out the proposal for St. Finbarr&apos;s...
                 </p>
               </div>
@@ -142,28 +142,28 @@ export default function MessagesPage() {
             {/* Conversation 2: Chidi */}
             <button
               onClick={() => setActivePartnerId("student-chidi")}
-              className={`w-full p-3 rounded-2xl text-left flex items-center gap-3 transition-colors ${
+              className={`w-full p-3 rounded-xl text-left flex items-center gap-3 transition-colors ${
                 activePartnerId === "student-chidi"
-                  ? "bg-white shadow-xs border border-slate-200 ring-1 ring-brand-500/20"
-                  : "hover:bg-slate-100"
+                  ? "bg-white shadow-xs border border-gray-200 ring-1 ring-emerald-500/20"
+                  : "hover:bg-gray-100"
               }`}
             >
               <img
                 src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100"
                 alt="Chidi"
-                className="w-10 h-10 rounded-full object-cover border border-slate-300 shrink-0"
+                className="w-10 h-10 rounded-full object-cover border border-gray-300 shrink-0"
               />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-xs text-slate-900 truncate">
+                  <span className="font-bold text-xs text-gray-900 truncate">
                     Chidi Nwosu
                   </span>
-                  <span className="text-[9px] text-slate-400">Today</span>
+                  <span className="text-[9px] text-gray-400">Today</span>
                 </div>
                 <div className="text-[10px] text-blue-600 font-medium">
                   UNILAG Computer Science Fresher
                 </div>
-                <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                <p className="text-[11px] text-gray-500 truncate mt-0.5">
                   Is generator fuel included in service charge?
                 </p>
               </div>
@@ -174,16 +174,16 @@ export default function MessagesPage() {
         {/* Right Area: Active Chat */}
         <div className="flex-1 flex flex-col bg-white">
           {/* Thread Header */}
-          <div className="p-4 border-b border-slate-200 flex items-center justify-between gap-4 bg-white">
+          <div className="p-4 border-b border-gray-200 flex items-center justify-between gap-4 bg-white">
             <div className="flex items-center gap-3">
               <img
                 src={partnerAvatar}
                 alt={partnerName}
-                className="w-10 h-10 rounded-full object-cover border border-slate-200"
+                className="w-10 h-10 rounded-full object-cover border border-gray-200"
               />
               <div>
                 <div className="flex items-center gap-1.5">
-                  <h3 className="font-bold text-sm text-slate-900">{partnerName}</h3>
+                  <h3 className="font-bold text-sm text-gray-900">{partnerName}</h3>
                 </div>
                 <span className="text-[11px] text-emerald-600 font-medium">
                   Verified Contact • Online
@@ -217,7 +217,7 @@ export default function MessagesPage() {
           {/* Message History */}
           <div className="flex-1 p-4 overflow-y-auto space-y-3">
             {activeThread.length === 0 ? (
-              <div className="text-center py-20 text-xs text-slate-400">
+              <div className="text-center py-20 text-xs text-gray-400">
                 No messages yet. Send a greeting to start chatting!
               </div>
             ) : (
@@ -229,16 +229,16 @@ export default function MessagesPage() {
                     className={`flex ${isMe ? "justify-end" : "justify-start"}`}
                   >
                     <div
-                      className={`max-w-md rounded-2xl px-4 py-2.5 text-xs leading-relaxed space-y-1 ${
+                      className={`max-w-md rounded-xl px-4 py-2.5 text-xs leading-relaxed space-y-1 ${
                         isMe
-                          ? "bg-brand-600 text-white rounded-br-xs"
-                          : "bg-slate-100 text-slate-900 rounded-bl-xs"
+                          ? "bg-emerald-600 text-white rounded-br-xs"
+                          : "bg-gray-100 text-gray-900 rounded-bl-xs"
                       }`}
                     >
                       <p>{m.content}</p>
                       <div
                         className={`text-[9px] flex items-center justify-end gap-1 ${
-                          isMe ? "text-brand-200" : "text-slate-400"
+                          isMe ? "text-emerald-200" : "text-gray-400"
                         }`}
                       >
                         <span>
@@ -259,19 +259,19 @@ export default function MessagesPage() {
           {/* Message Input Box */}
           <form
             onSubmit={handleSendMessage}
-            className="p-3 border-t border-slate-200 flex items-center gap-2 bg-slate-50"
+            className="p-3 border-t border-gray-200 flex items-center gap-2 bg-gray-50"
           >
             <input
               type="text"
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder={`Write a message to ${partnerName.split(" ")[0]}...`}
-              className="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none bg-white"
+              className="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
             />
             <button
               type="submit"
               disabled={isSending || !newMessage.trim()}
-              className="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-bold text-xs shadow-sm flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs shadow-sm flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <Send className="w-3.5 h-3.5" />
               <span>Send</span>

@@ -212,25 +212,25 @@ export default function GoogleOneTap() {
       />
 
       {/* Google One Tap Floating Overlay (Top-Right / Fixed) */}
-      <div className="fixed top-20 right-4 sm:right-8 z-50 max-w-sm w-full bg-white rounded-3xl border border-slate-200 shadow-2xl p-5 space-y-4 animate-in slide-in-from-top-4 fade-in duration-300">
+      <div className="fixed top-20 right-4 sm:right-8 z-50 max-w-sm w-full bg-white rounded-xl border border-gray-200 shadow-2xl p-5 space-y-4 animate-in slide-in-from-top-4 fade-in duration-300">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-white border border-gray-200 shadow-2xs flex items-center justify-center shrink-0">
               <GoogleLogo className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-xs font-black text-slate-900 tracking-tight block">
+              <span className="text-xs font-bold text-gray-900 tracking-tight block">
                 Google One-Tap Sign In
               </span>
-              <span className="text-[10px] text-slate-500 font-medium block">
+              <span className="text-[10px] text-gray-500 font-medium block">
                 Instant access to CribConnect
               </span>
             </div>
           </div>
           <button
             onClick={dismissOneTap}
-            className="p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+            className="p-1 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
             title="Dismiss"
           >
             <X className="w-4 h-4" />
@@ -242,10 +242,10 @@ export default function GoogleOneTap() {
             <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
               <Check className="w-5 h-5 stroke-[3]" />
             </div>
-            <span className="text-xs font-bold text-slate-900 block">
+            <span className="text-xs font-bold text-gray-900 block">
               Signed in successfully!
             </span>
-            <span className="text-[11px] text-slate-500 block">
+            <span className="text-[11px] text-gray-500 block">
               Ready to list properties and contact students.
             </span>
           </div>
@@ -253,17 +253,17 @@ export default function GoogleOneTap() {
           <>
             {/* Role Switcher */}
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
                 Signing in as:
               </span>
-              <div className="grid grid-cols-2 p-1 bg-slate-100 rounded-xl gap-1 text-[11px] font-bold">
+              <div className="grid grid-cols-2 p-1 bg-gray-100 rounded-xl gap-1 text-[11px] font-bold">
                 <button
                   type="button"
                   onClick={() => setRole("AGENT")}
                   className={`py-1.5 px-2 rounded-lg transition-all ${
                     role === "AGENT"
                       ? "bg-white text-emerald-700 shadow-2xs"
-                      : "text-slate-600 hover:text-slate-900"
+                      : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
                   Agent
@@ -274,7 +274,7 @@ export default function GoogleOneTap() {
                   className={`py-1.5 px-2 rounded-lg transition-all ${
                     role === "LANDLORD"
                       ? "bg-white text-emerald-700 shadow-2xs"
-                      : "text-slate-600 hover:text-slate-900"
+                      : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
                   Landlord
@@ -294,22 +294,22 @@ export default function GoogleOneTap() {
                       email: "saviour.tech@gmail.com",
                     })
                   }
-                  className="w-full p-2.5 rounded-2xl border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/40 text-left flex items-center gap-3 transition-all group shadow-2xs"
+                  className="w-full p-2.5 rounded-xl border border-gray-200 hover:border-emerald-500 hover:bg-emerald-50/40 text-left flex items-center gap-3 transition-all group shadow-2xs"
                 >
                   <img
                     src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80"
                     alt="Google Account"
-                    className="w-9 h-9 rounded-full object-cover border border-slate-200 shrink-0"
+                    className="w-9 h-9 rounded-full object-cover border border-gray-200 shrink-0"
                   />
                   <div className="flex-1 min-w-0">
-                    <span className="text-xs font-bold text-slate-900 block truncate group-hover:text-emerald-700">
+                    <span className="text-xs font-bold text-gray-900 block truncate group-hover:text-emerald-700">
                       Saviour Adeyemi
                     </span>
-                    <span className="text-[11px] text-slate-500 block truncate">
+                    <span className="text-[11px] text-gray-500 block truncate">
                       saviour.tech@gmail.com
                     </span>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-emerald-600 shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                  <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-emerald-600 shrink-0 group-hover:trangray-x-0.5 transition-transform" />
                 </button>
 
                 <div className="flex items-center justify-between text-[11px] pt-1">
@@ -323,7 +323,7 @@ export default function GoogleOneTap() {
                   <button
                     type="button"
                     onClick={dismissOneTap}
-                    className="text-slate-400 hover:text-slate-600 font-semibold"
+                    className="text-gray-400 hover:text-gray-600 font-semibold"
                   >
                     Not now
                   </button>
@@ -337,14 +337,14 @@ export default function GoogleOneTap() {
                   placeholder="Your Name (e.g. Saviour)"
                   value={customName}
                   onChange={(e) => setCustomName(e.target.value)}
-                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
                 <input
                   type="email"
                   placeholder="your.email@gmail.com"
                   value={customEmail}
                   onChange={(e) => setCustomEmail(e.target.value)}
-                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
                 <button
                   type="button"
@@ -359,7 +359,7 @@ export default function GoogleOneTap() {
                   <button
                     type="button"
                     onClick={() => setIsCustomMode(false)}
-                    className="text-[10px] text-slate-400 hover:underline"
+                    className="text-[10px] text-gray-400 hover:underline"
                   >
                     ← Back to saved profile
                   </button>
@@ -368,7 +368,7 @@ export default function GoogleOneTap() {
             )}
 
             {/* Official Google Badge */}
-            <div className="flex items-center gap-1.5 text-[9px] text-slate-400 pt-1 border-t border-slate-100">
+            <div className="flex items-center gap-1.5 text-[9px] text-gray-400 pt-1 border-t border-gray-100">
               <ShieldCheck className="w-3 h-3 text-emerald-600 shrink-0" />
               <span>Google Identity Services • Verified & Encrypted</span>
             </div>

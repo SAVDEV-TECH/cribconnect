@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import { useApp } from "@/context/AppContext";
@@ -53,8 +53,8 @@ export default function ProUpgradeModal() {
   const yearlyPriceNgn = 48000; // 20% discount
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/80 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white rounded-xl max-w-lg w-full overflow-hidden shadow-2xl border border-gray-200">
         {/* Header */}
         <div className="bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 p-6 text-white relative">
           <button
@@ -67,7 +67,7 @@ export default function ProUpgradeModal() {
             <span className="p-2 rounded-xl bg-white/20 backdrop-blur">
               <Zap className="w-6 h-6 text-yellow-200 fill-yellow-200" />
             </span>
-            <span className="text-xs uppercase tracking-wider font-extrabold text-yellow-100 bg-white/20 px-2.5 py-0.5 rounded-full">
+            <span className="text-xs uppercase tracking-wider font-semibold text-yellow-100 bg-white/20 px-2.5 py-0.5 rounded-full">
               Agent Growth Tier
             </span>
           </div>
@@ -84,22 +84,22 @@ export default function ProUpgradeModal() {
               <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto animate-bounce">
                 <CheckCircle2 className="w-10 h-10" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900">Upgrade Successful!</h3>
-              <p className="text-xs text-slate-600">
+              <h3 className="text-xl font-bold text-gray-900">Upgrade Successful!</h3>
+              <p className="text-xs text-gray-600">
                 You are now a <strong>CribConnect Pro Agent</strong>. Unlimited listings and featured placement badges have been activated.
               </p>
             </div>
           ) : (
             <>
               {/* Billing Toggle */}
-              <div className="flex items-center justify-center gap-3 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+              <div className="flex items-center justify-center gap-3 bg-gray-100 p-1 rounded-xl text-xs font-semibold">
                 <button
                   type="button"
                   onClick={() => setBillingCycle("monthly")}
                   className={`px-4 py-2 rounded-lg transition-all ${
                     billingCycle === "monthly"
-                      ? "bg-white text-slate-900 shadow-sm"
-                      : "text-slate-600"
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-600"
                   }`}
                 >
                   Monthly: {formatMoney(monthlyPriceNgn)} / mo
@@ -109,8 +109,8 @@ export default function ProUpgradeModal() {
                   onClick={() => setBillingCycle("yearly")}
                   className={`px-4 py-2 rounded-lg transition-all flex items-center gap-1 ${
                     billingCycle === "yearly"
-                      ? "bg-white text-slate-900 shadow-sm"
-                      : "text-slate-600"
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-600"
                   }`}
                 >
                   <span>Annual: {formatMoney(yearlyPriceNgn)} / yr</span>
@@ -121,7 +121,7 @@ export default function ProUpgradeModal() {
               </div>
 
               {/* Feature Checklist */}
-              <div className="space-y-2.5 text-xs text-slate-700 bg-amber-50/60 p-4 rounded-xl border border-amber-100">
+              <div className="space-y-2.5 text-xs text-gray-700 bg-amber-50/60 p-4 rounded-xl border border-amber-100">
                 <div className="flex items-start gap-2.5">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                   <div>
@@ -159,7 +159,7 @@ export default function ProUpgradeModal() {
                 type="button"
                 disabled={isLoading}
                 onClick={handleUpgrade}
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold text-sm shadow-lg shadow-amber-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold text-sm shadow-sm shadow-amber-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isLoading ? (
                   <span>Processing Secure Checkout...</span>
@@ -171,7 +171,7 @@ export default function ProUpgradeModal() {
                 )}
               </button>
 
-              <p className="text-[11px] text-center text-slate-400">
+              <p className="text-[11px] text-center text-gray-400">
                 Secured 256-bit simulated escrow & payment gateway. Cancel anytime from agent dashboard.
               </p>
             </>

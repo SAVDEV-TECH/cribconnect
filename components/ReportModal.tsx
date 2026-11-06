@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import { X, AlertTriangle, ShieldAlert, CheckCircle2 } from "lucide-react";
@@ -63,8 +63,8 @@ export default function ReportModal({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/80 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white rounded-xl max-w-md w-full overflow-hidden shadow-2xl border border-gray-200">
         <div className="bg-red-600 p-5 text-white flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ShieldAlert className="w-5 h-5 text-red-200" />
@@ -79,26 +79,26 @@ export default function ReportModal({
           {submitted ? (
             <div className="text-center py-6 space-y-2">
               <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
-              <h4 className="font-bold text-slate-900">Report Submitted</h4>
-              <p className="text-xs text-slate-500">
+              <h4 className="font-bold text-gray-900">Report Submitted</h4>
+              <p className="text-xs text-gray-500">
                 Our trust & safety compliance team has flagged this item for administrative review. Thank you for keeping student housing safe!
               </p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
-                <span className="text-slate-500">Reporting {targetType.toLowerCase()}:</span>
-                <p className="font-semibold text-slate-800 truncate">{targetTitle}</p>
+              <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 text-xs">
+                <span className="text-gray-500">Reporting {targetType.toLowerCase()}:</span>
+                <p className="font-semibold text-gray-800 truncate">{targetTitle}</p>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
                   Reason for Flagging
                 </label>
                 <select
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-red-500"
+                  className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs focus:ring-2 focus:ring-red-500"
                 >
                   {reportReasons.map((r) => (
                     <option key={r} value={r}>
@@ -109,7 +109,7 @@ export default function ReportModal({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
                   Additional Details / Evidence (Optional)
                 </label>
                 <textarea
@@ -117,7 +117,7 @@ export default function ReportModal({
                   value={details}
                   onChange={(e) => setDetails(e.target.value)}
                   placeholder="Describe what occurred or paste chat screenshots/links..."
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-red-500"
+                  className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs focus:ring-2 focus:ring-red-500"
                 />
               </div>
 
@@ -125,7 +125,7 @@ export default function ReportModal({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="w-1/3 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-50"
+                  className="w-1/3 py-2.5 rounded-xl border border-gray-300 text-gray-700 text-xs font-semibold hover:bg-gray-50"
                 >
                   Cancel
                 </button>

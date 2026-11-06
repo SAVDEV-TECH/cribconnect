@@ -57,17 +57,17 @@ export default function ListingDetailPage() {
   if (loading) {
     return (
       <div className="max-w-6xl mx-auto px-4 py-12 animate-pulse space-y-6">
-        <div className="h-8 bg-slate-200 rounded w-1/3" />
-        <div className="h-96 bg-slate-200 rounded-3xl" />
+        <div className="h-8 bg-gray-200 rounded w-1/3" />
+        <div className="h-96 bg-gray-200 rounded-xl" />
       </div>
     );
   }
 
   if (!listing) {
     return (
-      <div className="max-w-md mx-auto my-20 p-8 text-center bg-white rounded-3xl border border-slate-200 space-y-4">
-        <h2 className="text-xl font-black text-slate-900">Listing Not Found</h2>
-        <p className="text-xs text-slate-500">This property may have been rented or removed.</p>
+      <div className="max-w-md mx-auto my-20 p-8 text-center bg-white rounded-xl border border-gray-200 space-y-4">
+        <h2 className="text-xl font-bold text-gray-900">Listing Not Found</h2>
+        <p className="text-xs text-gray-500">This property may have been rented or removed.</p>
         <Link
           href="/listings"
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold"
@@ -154,8 +154,8 @@ export default function ListingDetailPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Navigation Breadcrumb */}
-      <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
-        <Link href="/listings" className="inline-flex items-center gap-1.5 hover:text-slate-900">
+      <div className="flex items-center justify-between text-xs font-semibold text-gray-500">
+        <Link href="/listings" className="inline-flex items-center gap-1.5 hover:text-gray-900">
           <ArrowLeft className="w-4 h-4" />
           <span>Back to All Listings</span>
         </Link>
@@ -168,30 +168,30 @@ export default function ListingDetailPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="px-2.5 py-0.5 rounded-full bg-slate-900 text-white text-[11px] font-bold">
+            <span className="px-2.5 py-0.5 rounded-full bg-gray-900 text-white text-[11px] font-bold">
               {listing.propertyType || "Self-Contain"}
             </span>
             <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold flex items-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Verified Listing
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">
             {listing.title}
           </h1>
-          <p className="text-xs text-slate-500 flex items-center gap-1.5 mt-1">
+          <p className="text-xs text-gray-500 flex items-center gap-1.5 mt-1">
             <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>{listing.address || listing.neighborhood}</span>
             <span>•</span>
-            <span className="font-bold text-slate-700">
+            <span className="font-bold text-gray-700">
               🚶 {listing.distanceDescription || `${listing.distanceToCampusMinutes || 5} mins walk to Campus Gate`}
             </span>
           </p>
         </div>
 
         <div className="text-left md:text-right shrink-0">
-          <div className="text-3xl font-black text-slate-900 tracking-tight">
+          <div className="text-3xl font-bold text-gray-900 tracking-tight">
             ₦{price.toLocaleString()}
-            <span className="text-sm font-medium text-slate-500">/{listing.period || "yr"}</span>
+            <span className="text-sm font-medium text-gray-500">/{listing.period || "yr"}</span>
           </div>
           <span className="text-xs text-emerald-700 font-semibold">
             Approx. ₦{Math.round(price / 12).toLocaleString()} / month
@@ -201,7 +201,7 @@ export default function ListingDetailPage() {
 
       {/* Large Image Gallery */}
       <div className="space-y-3">
-        <div className="aspect-[16/9] md:aspect-[21/9] bg-slate-100 rounded-3xl overflow-hidden shadow-md">
+        <div className="aspect-[16/9] md:aspect-[21/9] bg-gray-100 rounded-xl overflow-hidden shadow-sm">
           <img
             src={photos[selectedPhotoIndex]}
             alt={listing.title}
@@ -231,49 +231,49 @@ export default function ListingDetailPage() {
         {/* Left Column: Details & Transparency */}
         <div className="lg:col-span-2 space-y-8">
           {/* Total Move-In Fee Breakdown (Transparent - Anti-Scam) */}
-          <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-3xl p-6 space-y-4">
+          <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-xl p-6 space-y-4">
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-emerald-600" />
-              <h3 className="font-black text-base text-slate-900">
+              <h3 className="font-bold text-base text-gray-900">
                 Transparent Fee Breakdown (Zero Hidden Charges)
               </h3>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-              <div className="bg-white p-3.5 rounded-2xl border border-emerald-100">
-                <span className="text-slate-500 block">Annual Base Rent</span>
-                <span className="text-base font-black text-slate-900">₦{price.toLocaleString()}</span>
+              <div className="bg-white p-3.5 rounded-xl border border-emerald-100">
+                <span className="text-gray-500 block">Annual Base Rent</span>
+                <span className="text-base font-bold text-gray-900">₦{price.toLocaleString()}</span>
               </div>
-              <div className="bg-white p-3.5 rounded-2xl border border-emerald-100">
-                <span className="text-slate-500 block">Caution Deposit</span>
-                <span className="text-base font-black text-slate-900">₦{cautionFee.toLocaleString()}</span>
+              <div className="bg-white p-3.5 rounded-xl border border-emerald-100">
+                <span className="text-gray-500 block">Caution Deposit</span>
+                <span className="text-base font-bold text-gray-900">₦{cautionFee.toLocaleString()}</span>
               </div>
-              <div className="bg-white p-3.5 rounded-2xl border border-emerald-100">
-                <span className="text-slate-500 block">Agreement & Legal</span>
-                <span className="text-base font-black text-slate-900">₦{agencyFee.toLocaleString()}</span>
+              <div className="bg-white p-3.5 rounded-xl border border-emerald-100">
+                <span className="text-gray-500 block">Agreement & Legal</span>
+                <span className="text-base font-bold text-gray-900">₦{agencyFee.toLocaleString()}</span>
               </div>
             </div>
             <div className="pt-2 border-t border-emerald-200/60 flex items-center justify-between text-xs font-bold text-emerald-950">
               <span>Total Estimated Move-in Upfront:</span>
-              <span className="text-base font-black text-emerald-700">₦{totalUpfront.toLocaleString()}</span>
+              <span className="text-base font-bold text-emerald-700">₦{totalUpfront.toLocaleString()}</span>
             </div>
           </div>
 
           {/* Description */}
           <div className="space-y-3">
-            <h3 className="font-black text-lg text-slate-900">About This Crib</h3>
-            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed whitespace-pre-line">
+            <h3 className="font-bold text-lg text-gray-900">About This Crib</h3>
+            <p className="text-xs sm:text-sm text-gray-600 leading-relaxed whitespace-pre-line">
               {listing.description}
             </p>
           </div>
 
           {/* Key Amenities */}
           <div className="space-y-3">
-            <h3 className="font-black text-lg text-slate-900">Amenities & Features</h3>
+            <h3 className="font-bold text-lg text-gray-900">Amenities & Features</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
               {amenities.map((item, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700"
+                  className="flex items-center gap-2 p-3 rounded-xl bg-gray-50 border border-gray-200 text-xs font-semibold text-gray-700"
                 >
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span>{item}</span>
@@ -285,11 +285,11 @@ export default function ListingDetailPage() {
           {/* Video Walkthrough Player (if present) */}
           {listing.videoTourUrl && (
             <div className="space-y-3">
-              <h3 className="font-black text-lg text-slate-900 flex items-center gap-2">
+              <h3 className="font-bold text-lg text-gray-900 flex items-center gap-2">
                 <Video className="w-5 h-5 text-emerald-600" />
                 <span>Video Walkthrough Tour</span>
               </h3>
-              <div className="aspect-video bg-black rounded-3xl overflow-hidden shadow-lg">
+              <div className="aspect-video bg-black rounded-xl overflow-hidden shadow-sm">
                 <iframe
                   src={listing.videoTourUrl}
                   className="w-full h-full"
@@ -303,20 +303,20 @@ export default function ListingDetailPage() {
 
         {/* Right Column: Contact Agent Card (Sticky) */}
         <div className="space-y-6">
-          <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xl space-y-6 sticky top-24">
+          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm space-y-6 sticky top-24">
             {/* Agent Profile Summary */}
-            <div className="flex items-center gap-3.5 pb-4 border-b border-slate-100">
+            <div className="flex items-center gap-3.5 pb-4 border-b border-gray-100">
               <img
                 src={listing.agentAvatar || listing.agent?.avatar || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200"}
                 alt={agentName}
-                className="w-14 h-14 rounded-2xl object-cover border-2 border-emerald-500 shadow-sm"
+                className="w-14 h-14 rounded-xl object-cover border border-gray-200 shadow-sm"
               />
               <div>
                 <div className="flex items-center gap-1.5">
-                  <span className="font-black text-sm text-slate-900">{agentName}</span>
+                  <span className="font-bold text-sm text-gray-900">{agentName}</span>
                   <ShieldCheck className="w-4 h-4 text-emerald-600" />
                 </div>
-                <span className="text-[11px] text-slate-500 font-medium block">
+                <span className="text-[11px] text-gray-500 font-medium block">
                   {listing.agencyName || "Verified Housing Specialist"}
                 </span>
                 <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-bold inline-block mt-0.5">
@@ -332,7 +332,7 @@ export default function ListingDetailPage() {
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full py-3.5 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 transition-all hover:scale-[1.02]"
+                className="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm shadow-emerald-600/30 transition-all hover:scale-[1.02]"
               >
                 <MessageCircle className="w-4 h-4" />
                 <span>Chat with Agent on WhatsApp</span>
@@ -341,16 +341,16 @@ export default function ListingDetailPage() {
               {/* Call */}
               <a
                 href={`tel:${agentPhone}`}
-                className="w-full py-3 px-4 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-xs flex items-center justify-center gap-2 transition-colors"
+                className="w-full py-3 px-4 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold text-xs flex items-center justify-center gap-2 transition-colors"
               >
-                <Phone className="w-4 h-4 text-slate-600" />
+                <Phone className="w-4 h-4 text-gray-600" />
                 <span>Call {agentPhone}</span>
               </a>
             </div>
 
             {/* Book Inspection Form */}
-            <div className="pt-4 border-t border-slate-100 space-y-3">
-              <h4 className="text-xs font-black uppercase tracking-wider text-slate-700">
+            <div className="pt-4 border-t border-gray-100 space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-700">
                 Book a Free Physical Walkthrough
               </h4>
 
@@ -367,7 +367,7 @@ export default function ListingDetailPage() {
                     placeholder="Your Full Name"
                     value={tenantName}
                     onChange={(e) => setTenantName(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
                   <input
                     type="tel"
@@ -375,7 +375,7 @@ export default function ListingDetailPage() {
                     placeholder="Your Phone / WhatsApp"
                     value={tenantPhone}
                     onChange={(e) => setTenantPhone(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
                   <div className="grid grid-cols-2 gap-2">
                     <input
@@ -383,12 +383,12 @@ export default function ListingDetailPage() {
                       required
                       value={inspectionDate}
                       onChange={(e) => setInspectionDate(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     />
                     <select
                       value={inspectionTime}
                       onChange={(e) => setInspectionTime(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-2 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     >
                       <option value="9:00 AM - 11:00 AM">Morning (9am - 11am)</option>
                       <option value="11:00 AM - 1:00 PM">Midday (11am - 1pm)</option>
@@ -401,12 +401,12 @@ export default function ListingDetailPage() {
                     placeholder="Note for Agent (e.g. 200L Student, checking water)"
                     value={inspectionMessage}
                     onChange={(e) => setInspectionMessage(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
                   <button
                     type="submit"
                     disabled={bookingLoading}
-                    className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-colors"
+                    className="w-full py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-white font-bold text-xs transition-colors"
                   >
                     {bookingLoading ? "Booking..." : "Schedule Physical Inspection"}
                   </button>
@@ -415,7 +415,7 @@ export default function ListingDetailPage() {
             </div>
 
             {/* Anti-Scam Advisory */}
-            <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-[11px] space-y-1">
+            <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-[11px] space-y-1">
               <span className="font-bold flex items-center gap-1">
                 <AlertTriangle className="w-3.5 h-3.5 text-amber-600" /> Safety Notice
               </span>

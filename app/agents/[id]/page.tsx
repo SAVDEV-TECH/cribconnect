@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
@@ -46,7 +46,7 @@ export default function AgentProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-20 text-center text-xs text-slate-500">
+      <div className="max-w-7xl mx-auto px-4 py-20 text-center text-xs text-gray-500">
         Loading agent profile...
       </div>
     );
@@ -55,10 +55,10 @@ export default function AgentProfilePage() {
   if (!profile) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-20 text-center space-y-4">
-        <h2 className="text-xl font-bold text-slate-900">Agent Not Found</h2>
+        <h2 className="text-xl font-bold text-gray-900">Agent Not Found</h2>
         <Link
           href="/agents"
-          className="inline-block px-4 py-2 bg-brand-600 text-white rounded-xl text-xs font-semibold"
+          className="inline-block px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-semibold"
         >
           View All Verified Agents
         </Link>
@@ -103,7 +103,7 @@ export default function AgentProfilePage() {
       <div>
         <Link
           href="/agents"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors"
         >
           <ChevronLeft className="w-4 h-4" />
           <span>Back to Verified Agents Directory</span>
@@ -111,7 +111,7 @@ export default function AgentProfilePage() {
       </div>
 
       {/* Main Profile Header */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-10 shadow-sm">
+      <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-10 shadow-sm">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
             <img
@@ -120,24 +120,24 @@ export default function AgentProfilePage() {
                 "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200"
               }
               alt={user.name}
-              className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-emerald-500 shadow-md"
+              className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-emerald-500 shadow-sm"
             />
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                   {user.name}
                 </h1>
                 {isVerified && (
-                  <span className="bg-emerald-100 text-emerald-800 font-extrabold text-xs px-2.5 py-1 rounded-full flex items-center gap-1">
+                  <span className="bg-emerald-100 text-emerald-800 font-semibold text-xs px-2.5 py-1 rounded-full flex items-center gap-1">
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                     <span>Verified Agent</span>
                   </span>
                 )}
               </div>
-              <p className="text-sm font-semibold text-slate-600">
+              <p className="text-sm font-semibold text-gray-600">
                 {profile.agencyName || "Independent Real Estate Specialist"}
               </p>
-              <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 pt-1">
+              <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 pt-1">
                 <span className="flex items-center gap-1 text-amber-600 font-bold">
                   <Star className="w-3.5 h-3.5 fill-amber-500" />
                   {profile.rating.toFixed(1)} ({profile.reviewCount} reviews)
@@ -153,7 +153,7 @@ export default function AgentProfilePage() {
           <div className="flex flex-wrap gap-2.5 w-full md:w-auto">
             <button
               onClick={handleWhatsApp}
-              className="flex-1 md:flex-none px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="flex-1 md:flex-none px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <MessageCircle className="w-4 h-4" />
               <span>WhatsApp Direct</span>
@@ -161,9 +161,9 @@ export default function AgentProfilePage() {
             {user.phone && (
               <a
                 href={`tel:${user.phone}`}
-                className="flex-1 md:flex-none px-4 py-3 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-xs transition-colors flex items-center justify-center gap-2"
+                className="flex-1 md:flex-none px-4 py-3 rounded-xl border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold text-xs transition-colors flex items-center justify-center gap-2"
               >
-                <Phone className="w-4 h-4 text-slate-500" />
+                <Phone className="w-4 h-4 text-gray-500" />
                 <span>Call Agent</span>
               </a>
             )}
@@ -171,34 +171,34 @@ export default function AgentProfilePage() {
         </div>
 
         {/* Verification Badges & Accreditations */}
-        <div className="mt-8 pt-6 border-t border-slate-100 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-1">
-            <span className="text-[11px] font-bold text-slate-400 uppercase">
+        <div className="mt-8 pt-6 border-t border-gray-100 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-1">
+            <span className="text-[11px] font-bold text-gray-400 uppercase">
               Identity Verification
             </span>
             <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
               <span>NIMC National Identity Validated</span>
             </div>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-[11px] text-gray-500">
               Agent NIN and government document screened by platform compliance.
             </p>
           </div>
 
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-1">
-            <span className="text-[11px] font-bold text-slate-400 uppercase">
+          <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-1">
+            <span className="text-[11px] font-bold text-gray-400 uppercase">
               Coverage Territory
             </span>
-            <div className="text-xs font-bold text-slate-800">
+            <div className="text-xs font-bold text-gray-800">
               {coverage.join(", ") || "Akoka & Yaba Environs"}
             </div>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-[11px] text-gray-500">
               Specialized local knowledge of campus proximity and student hostels.
             </p>
           </div>
 
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-1">
-            <span className="text-[11px] font-bold text-slate-400 uppercase">
+          <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-1">
+            <span className="text-[11px] font-bold text-gray-400 uppercase">
               Trust & Badges
             </span>
             <div className="flex flex-wrap gap-1">
@@ -216,8 +216,8 @@ export default function AgentProfilePage() {
 
         {/* Bio */}
         <div className="mt-6 space-y-2">
-          <h3 className="font-bold text-sm text-slate-900">About the Agent</h3>
-          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed whitespace-pre-line">
+          <h3 className="font-bold text-sm text-gray-900">About the Agent</h3>
+          <p className="text-xs sm:text-sm text-gray-600 leading-relaxed whitespace-pre-line">
             {profile.bio || "Dedicated student housing specialist committed to honest dealings."}
           </p>
         </div>
@@ -225,11 +225,11 @@ export default function AgentProfilePage() {
 
       {/* Agent's Active Listings */}
       <div className="space-y-4">
-        <h2 className="text-xl font-bold text-slate-900">
+        <h2 className="text-xl font-bold text-gray-900">
           Available Cribs by {user.name} ({listings.length})
         </h2>
         {listings.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-xs text-slate-500">
+          <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-xs text-gray-500">
             This agent has no active properties at the moment.
           </div>
         ) : (
@@ -255,28 +255,28 @@ export default function AgentProfilePage() {
       </div>
 
       {/* Student Reviews & Testimonials */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 space-y-6 shadow-sm">
+      <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8 space-y-6 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-bold text-slate-900">
+            <h2 className="text-xl font-bold text-gray-900">
               Student Reviews & Testimonials
             </h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-gray-500">
               Verified reviews from students who inspected or rented through {user.name}.
             </p>
           </div>
-          <div className="flex items-center gap-1 text-sm font-black text-amber-600">
+          <div className="flex items-center gap-1 text-sm font-bold text-amber-600">
             <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
             <span>{profile.rating.toFixed(1)} / 5.0</span>
           </div>
         </div>
 
         {reviews.length === 0 ? (
-          <div className="text-center py-8 text-xs text-slate-500">
+          <div className="text-center py-8 text-xs text-gray-500">
             No reviews yet for this agent profile.
           </div>
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-gray-100">
             {reviews.map((rev: any) => (
               <div key={rev.id} className="py-4 space-y-2">
                 <div className="flex items-center justify-between">
@@ -290,10 +290,10 @@ export default function AgentProfilePage() {
                       className="w-8 h-8 rounded-full object-cover"
                     />
                     <div>
-                      <span className="font-bold text-xs text-slate-900 block">
+                      <span className="font-bold text-xs text-gray-900 block">
                         {rev.student.name}
                       </span>
-                      <span className="text-[10px] text-slate-400">
+                      <span className="text-[10px] text-gray-400">
                         {rev.student.currentSchool || "Verified Student"}
                       </span>
                     </div>
@@ -304,7 +304,7 @@ export default function AgentProfilePage() {
                     ))}
                   </div>
                 </div>
-                <p className="text-xs text-slate-600 leading-relaxed pl-10">
+                <p className="text-xs text-gray-600 leading-relaxed pl-10">
                   &quot;{rev.comment}&quot;
                 </p>
               </div>

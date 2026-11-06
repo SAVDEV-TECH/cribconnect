@@ -1,124 +1,81 @@
-﻿import React from "react";
+import React from "react";
 import Link from "next/link";
-import { Building2, ShieldCheck, Heart, MapPin, Phone, Mail } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="bg-slate-950 text-slate-400 border-t border-slate-800 text-xs">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Col 1 */}
-          <div className="space-y-3 md:col-span-1">
+    <footer className="bg-white border-t border-gray-100 text-sm text-gray-500">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+
+          {/* Brand */}
+          <div className="col-span-2 md:col-span-1 space-y-3">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-slate-950 font-bold">
-                <Building2 className="w-4 h-4" />
+              <div className="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center">
+                <span className="text-white text-xs font-bold">C</span>
               </div>
-              <span className="text-white font-bold text-base">CribConnect</span>
+              <span className="font-semibold text-gray-900 text-sm">CribConnect</span>
             </div>
-            <p className="text-slate-400 text-xs leading-relaxed">
-              The &quot;Zillow + Upwork&quot; hybrid platform connecting incoming university students and relocators with verified local housing agents.
+            <p className="text-xs text-gray-400 leading-relaxed max-w-[200px]">
+              Verified student housing near UNIPORT, Port Harcourt.
             </p>
-            <div className="pt-2 flex items-center gap-2 text-emerald-400 text-xs font-semibold">
-              <ShieldCheck className="w-4 h-4" />
-              <span>Zero-Scam Verified Agent Guarantee</span>
+            <div className="flex items-center gap-1.5 text-xs text-emerald-600">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              Zero-scam guarantee
             </div>
           </div>
 
-          {/* Col 2 */}
-          <div>
-            <h4 className="text-white font-semibold text-xs uppercase tracking-wider mb-3">
-              Explore Campus Hubs
-            </h4>
-            <ul className="space-y-2 text-slate-400">
-              <li>
-                <Link href="/listings?neighborhood=Choba" className="hover:text-white transition-colors">
-                  UNIPORT (Choba, Ozuoba, Main Gate)
+          {/* Areas */}
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3">Areas</p>
+            {[
+              { label: "Choba (Main Gate)", href: "/listings?neighborhood=Choba" },
+              { label: "Aluu (Back Gate)", href: "/listings?neighborhood=Aluu" },
+              { label: "Rumuola", href: "/listings?neighborhood=Rumuola" },
+              { label: "GRA Port Harcourt", href: "/listings?neighborhood=GRA Port Harcourt" },
+            ].map((link) => (
+              <div key={link.href}>
+                <Link href={link.href} className="text-xs text-gray-500 hover:text-gray-900 transition-colors">
+                  {link.label}
                 </Link>
-              </li>
-              <li>
-                <Link href="/listings?neighborhood=Aluu" className="hover:text-white transition-colors">
-                  Aluu Back Gate Area (Budget Zone)
-                </Link>
-              </li>
-              <li>
-                <Link href="/listings?neighborhood=Rumuola" className="hover:text-white transition-colors">
-                  Rumuola (Quiet & Residential)
-                </Link>
-              </li>
-              <li>
-                <Link href="/listings?neighborhood=GRA Port Harcourt" className="hover:text-white transition-colors">
-                  GRA Port Harcourt (Premium Serviced)
-                </Link>
-              </li>
-            </ul>
+              </div>
+            ))}
           </div>
 
-          {/* Col 3 */}
-          <div>
-            <h4 className="text-white font-semibold text-xs uppercase tracking-wider mb-3">
-              Marketplace Features
-            </h4>
-            <ul className="space-y-2 text-slate-400">
-              <li>
-                <Link href="/requests" className="hover:text-white transition-colors">
-                  Post Housing Request (Upwork Model)
+          {/* Platform */}
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3">Platform</p>
+            {[
+              { label: "Browse listings", href: "/listings" },
+              { label: "Post a request", href: "/requests" },
+              { label: "Find an agent", href: "/agents" },
+              { label: "List a property", href: "/list-property" },
+            ].map((link) => (
+              <div key={link.href}>
+                <Link href={link.href} className="text-xs text-gray-500 hover:text-gray-900 transition-colors">
+                  {link.label}
                 </Link>
-              </li>
-              <li>
-                <Link href="/listings" className="hover:text-white transition-colors">
-                  Split Map & Video Tours
-                </Link>
-              </li>
-              <li>
-                <Link href="/agents" className="hover:text-white transition-colors">
-                  Verified Agents Directory
-                </Link>
-              </li>
-              <li>
-                <Link href="/agent/dashboard" className="hover:text-white transition-colors">
-                  Agent Growth Portal (Pro Tier)
-                </Link>
-              </li>
-              <li>
-                <Link href="/admin" className="hover:text-white transition-colors">
-                  Admin Trust & Safety Screening
-                </Link>
-              </li>
-            </ul>
+              </div>
+            ))}
           </div>
 
-          {/* Col 4 */}
-          <div>
-            <h4 className="text-white font-semibold text-xs uppercase tracking-wider mb-3">
-              Trust & Safety Support
-            </h4>
-            <p className="text-slate-400 mb-3">
-              Need assistance verifying an agent or resolving a housing dispute?
+          {/* Support */}
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3">Support</p>
+            <p className="text-xs text-gray-400 leading-relaxed">
+              Need help verifying an agent or resolving a dispute?
             </p>
-            <div className="space-y-1.5 text-slate-300">
-              <div className="flex items-center gap-2">
-                <Mail className="w-3.5 h-3.5 text-emerald-400" />
-                <span>support@cribconnect.ng</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Phone className="w-3.5 h-3.5 text-emerald-400" />
-                <span>+234 1 800 2742 (CRIB)</span>
-              </div>
-            </div>
+            <p className="text-xs text-gray-600">support@cribconnect.ng</p>
+            <p className="text-xs text-gray-600">+234 1 800 2742</p>
           </div>
+
         </div>
 
-        <div className="mt-8 pt-6 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-3 text-slate-500 text-[11px]">
-          <div>
-            © 2026 CribConnect Nigeria. All rights reserved. Designed for students relocating to university environments.
-          </div>
-          <div className="flex items-center gap-1">
-            <span>Built with integrity for Nigerian student housing</span>
-            <Heart className="w-3 h-3 text-red-500 fill-red-500" />
-          </div>
+        <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-400">
+          <span>© 2026 CribConnect Nigeria. All rights reserved.</span>
+          <span>Built for UNIPORT students.</span>
         </div>
       </div>
     </footer>
   );
 }
-

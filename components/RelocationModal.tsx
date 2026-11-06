@@ -40,8 +40,8 @@ export default function RelocationModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl max-w-xl w-full overflow-hidden shadow-2xl border border-slate-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/80 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white rounded-xl max-w-xl w-full overflow-hidden shadow-2xl border border-gray-200">
         {/* Header */}
         <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-6 text-white relative">
           <button
@@ -69,32 +69,32 @@ export default function RelocationModal() {
           {step === 1 ? (
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
                   1. Where are you currently relocating from?
                 </label>
                 <div className="relative">
-                  <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                  <MapPin className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
                   <input
                     type="text"
                     value={originCity}
                     onChange={(e) => setOriginCity(e.target.value)}
                     placeholder="e.g., Enugu, Abuja, Port Harcourt, London"
-                    className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
-                <p className="text-[11px] text-slate-500 mt-1">
+                <p className="text-[11px] text-gray-500 mt-1">
                   We match you with agents who provide verified airport/park pick-up guidance and live video tours.
                 </p>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
                   2. Destination University or College
                 </label>
                 <select
                   value={targetUni}
                   onChange={(e) => setTargetUni(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="University of Port Harcourt (UNIPORT)">University of Port Harcourt (UNIPORT - Choba)</option>
                   <option value="Rivers State University (RSU)">Rivers State University (RSU - Nkpolu-Oroworukwo)</option>
@@ -105,7 +105,7 @@ export default function RelocationModal() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
                   3. Expected Move-In Timing
                 </label>
                 <div className="grid grid-cols-2 gap-2">
@@ -121,8 +121,8 @@ export default function RelocationModal() {
                       onClick={() => setMoveInMonth(timing)}
                       className={`p-2.5 rounded-xl border text-xs font-medium text-left transition-all ${
                         moveInMonth === timing
-                          ? "border-brand-600 bg-brand-50 text-brand-700 font-semibold"
-                          : "border-slate-200 text-slate-700 hover:bg-slate-50"
+                          ? "border-emerald-600 bg-emerald-50 text-emerald-700 font-semibold"
+                          : "border-gray-200 text-gray-700 hover:bg-gray-50"
                       }`}
                     >
                       {timing}
@@ -134,7 +134,7 @@ export default function RelocationModal() {
               <button
                 type="button"
                 onClick={() => setStep(2)}
-                className="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm shadow-md transition-all flex items-center justify-center gap-2 mt-4"
+                className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-sm transition-all flex items-center justify-center gap-2 mt-4"
               >
                 <span>Continue to Housing Preferences</span>
                 <ArrowRight className="w-4 h-4" />
@@ -143,7 +143,7 @@ export default function RelocationModal() {
           ) : (
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
                   4. Preferred Apartment Type
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -158,8 +158,8 @@ export default function RelocationModal() {
                       onClick={() => setPropertyType(t.id)}
                       className={`p-3 rounded-xl border text-xs text-center transition-all ${
                         propertyType === t.id
-                          ? "border-brand-600 bg-brand-50 text-brand-700 font-bold"
-                          : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                          ? "border-emerald-600 bg-emerald-50 text-emerald-700 font-bold"
+                          : "border-gray-200 text-gray-600 hover:bg-gray-50"
                       }`}
                     >
                       {t.label}
@@ -170,10 +170,10 @@ export default function RelocationModal() {
 
               <div>
                 <div className="flex justify-between items-center mb-1">
-                  <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                  <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     5. Maximum Annual Rent Budget
                   </label>
-                  <span className="text-sm font-bold text-brand-700">
+                  <span className="text-sm font-bold text-emerald-700">
                     {formatMoney(budget)} / yr
                   </span>
                 </div>
@@ -184,9 +184,9 @@ export default function RelocationModal() {
                   step="25000"
                   value={budget}
                   onChange={(e) => setBudget(Number(e.target.value))}
-                  className="w-full accent-brand-600 cursor-pointer"
+                  className="w-full accent-emerald-600 cursor-pointer"
                 />
-                <div className="flex justify-between text-[10px] text-slate-400 mt-1">
+                <div className="flex justify-between text-[10px] text-gray-400 mt-1">
                   <span>₦200k</span>
                   <span>₦800k</span>
                   <span>₦1.5M+</span>
@@ -194,7 +194,7 @@ export default function RelocationModal() {
               </div>
 
               {/* Matched Specialist Preview */}
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-3">
+              <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200 flex items-center gap-3">
                 <img
                   src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80"
                   alt="Kolawole"
@@ -202,14 +202,14 @@ export default function RelocationModal() {
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <span className="font-semibold text-xs text-slate-900 truncate">
+                    <span className="font-semibold text-xs text-gray-900 truncate">
                       Kolawole Adebayo
                     </span>
                     <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded-full flex items-center gap-0.5">
                       <ShieldCheck className="w-2.5 h-2.5" /> UNIPORT Specialist
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-500 line-clamp-1">
+                  <p className="text-[11px] text-gray-500 line-clamp-1">
                     Matched based on your {targetUni} relocation from {originCity}.
                   </p>
                   <div className="text-[10px] text-emerald-600 font-medium">
@@ -222,14 +222,14 @@ export default function RelocationModal() {
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="w-1/3 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors"
+                  className="w-1/3 py-2.5 rounded-xl border border-gray-300 text-gray-700 text-xs font-semibold hover:bg-gray-50 transition-colors"
                 >
                   Back
                 </button>
                 <button
                   type="button"
                   onClick={handleFinishAndMatch}
-                  className="w-2/3 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold shadow-md transition-all flex items-center justify-center gap-1.5"
+                  className="w-2/3 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition-all flex items-center justify-center gap-1.5"
                 >
                   <UserCheck className="w-4 h-4" />
                   <span>Connect with Matching Agents</span>

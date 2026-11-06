@@ -153,7 +153,7 @@ export default function MapInner({
           <Popup>
             <div className="p-1 text-xs">
               <span className="font-bold text-blue-700 block">🎓 {gate.name}</span>
-              <span className="text-slate-600 text-[11px]">{gate.desc}</span>
+              <span className="text-gray-600 text-[11px]">{gate.desc}</span>
             </div>
           </Popup>
         </Marker>
@@ -188,19 +188,19 @@ export default function MapInner({
                   alt={item.title}
                   className="w-full h-28 object-cover rounded-md mb-2"
                 />
-                <div className="font-bold text-slate-900 text-xs line-clamp-1">
+                <div className="font-bold text-gray-900 text-xs line-clamp-1">
                   {item.title}
                 </div>
-                <div className="text-emerald-700 font-extrabold text-sm my-0.5">
-                  ₦{item.price.toLocaleString()} <span className="text-[10px] font-normal text-slate-500">/yr</span>
+                <div className="text-emerald-700 font-semibold text-sm my-0.5">
+                  ₦{item.price.toLocaleString()} <span className="text-[10px] font-normal text-gray-500">/yr</span>
                 </div>
                 {item.distanceDescription && (
                   <div className="text-[11px] text-blue-600 font-medium my-1 flex items-center gap-1">
                     <MapPin className="w-3 h-3" /> {item.distanceDescription}
                   </div>
                 )}
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-between mt-2">
-                  <span className="text-[10px] text-slate-500">
+                <div className="pt-2 border-t border-gray-100 flex items-center justify-between mt-2">
+                  <span className="text-[10px] text-gray-500">
                     Agent: {item.agent?.name}
                   </span>
                   <Link

@@ -1,18 +1,8 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import Link from "next/link";
-import {
-  ShieldCheck,
-  Video,
-  MapPin,
-  MessageCircle,
-  Phone,
-  ArrowRight,
-  ChevronLeft,
-  ChevronRight,
-  Sparkles,
-} from "lucide-react";
+import { ShieldCheck, Video, MapPin, MessageCircle, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface ListingCardProps {
   listing: any;
@@ -22,121 +12,88 @@ interface ListingCardProps {
 export default function ListingCard({ listing }: ListingCardProps) {
   const [photoIndex, setPhotoIndex] = useState(0);
 
-  // Parse photos safely (handles both Array and JSON string)
   let photos: string[] = [];
   try {
-    if (Array.isArray(listing.photos)) {
-      photos = listing.photos;
-    } else if (typeof listing.photos === "string") {
-      photos = JSON.parse(listing.photos);
-    }
+    photos = Array.isArray(listing.photos) ? listing.photos : JSON.parse(listing.photos || "[]");
   } catch {
     photos = [];
   }
-  if (!photos || photos.length === 0) {
-    photos = [
-      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop&q=80",
-    ];
+  if (!photos.length) {
+    photos = ["https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop&q=80"];
   }
 
-  // Parse amenities safely
   let amenities: string[] = [];
   try {
-    if (Array.isArray(listing.amenities)) {
-      amenities = listing.amenities;
-    } else if (typeof listing.amenities === "string") {
-      amenities = JSON.parse(listing.amenities);
-    }
+    amenities = Array.isArray(listing.amenities) ? listing.amenities : JSON.parse(listing.amenities || "[]");
   } catch {
     amenities = [];
   }
 
-  // Resolve agent info
   const agentName = listing.agentName || listing.agent?.name || "Verified Agent";
-  const agentPhone = listing.agentPhone || listing.agent?.phone || "+234 803 445 2299";
-  const rawWhatsapp = listing.agentWhatsapp || listing.agent?.whatsapp || agentPhone;
+  const rawWhatsapp = listing.agentWhatsapp || listing.agent?.whatsapp || listing.agentPhone || "";
   const whatsappNumber = rawWhatsapp.replace(/\D/g, "");
 
-  const propertyTypeLabel = (type: string) => {
-    switch (type) {
-      case "SELF_CONTAIN":
-        return "Self-Contain";
-      case "ONE_BED":
-        return "1-Bedroom Flat";
-      case "TWO_BED":
-        return "2-Bedroom Flat";
-      case "STUDIO":
-        return "Serviced Studio";
-      default:
-        return "Apartment";
-    }
+  const typeLabel: Record<string, string> = {
+    SELF_CONTAIN: "Self-Contain",
+    ONE_BED: "1-Bedroom",
+    TWO_BED: "2-Bedroom",
+    STUDIO: "Studio",
   };
 
   const formattedPrice = `₦${(listing.price || 0).toLocaleString()}`;
-  const whatsappMessage = encodeURIComponent(
-    `Hello! I saw your listing on CribConnect: "${listing.title}" (${formattedPrice}/yr). Is it still available for physical inspection?`
-  );
-  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
+  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
+    `Hi! I saw your listing on CribConnect: "${listing.title}" (${formattedPrice}/yr). Is it still available?`
+  )}`;
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-200 flex flex-col group">
-      {/* Image Gallery Header */}
-      <div className="relative aspect-[16/10] bg-slate-100 overflow-hidden">
+    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col hover:border-gray-300 hover:shadow-sm transition-all duration-200">
+
+      {/* Image */}
+      <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden group">
         <img
           src={photos[photoIndex]}
           alt={listing.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          className="w-full h-full object-cover"
           loading="lazy"
         />
 
-        {/* Overlay Tags */}
-        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-          <span className="px-2.5 py-1 rounded-full bg-slate-900/80 backdrop-blur-md text-white text-[11px] font-bold">
-            {propertyTypeLabel(listing.propertyType)}
+        {/* Type badge */}
+        <div className="absolute top-2.5 left-2.5">
+          <span className="px-2 py-0.5 rounded-md bg-white/90 text-gray-700 text-xs font-medium border border-gray-200/60">
+            {typeLabel[listing.propertyType] || "Apartment"}
           </span>
-          {listing.isFeatured && (
-            <span className="px-2.5 py-1 rounded-full bg-amber-500 text-slate-950 text-[11px] font-black flex items-center gap-1 shadow-md">
-              <Sparkles className="w-3 h-3" /> Featured
-            </span>
-          )}
         </div>
 
+        {/* Video badge */}
         {listing.videoTourUrl && (
-          <div className="absolute top-3 right-3">
-            <span className="px-2 py-1 rounded-full bg-emerald-600/90 backdrop-blur text-white text-[10px] font-bold flex items-center gap-1 shadow">
-              <Video className="w-3 h-3" /> Video Tour
+          <div className="absolute top-2.5 right-2.5">
+            <span className="px-2 py-0.5 rounded-md bg-emerald-600 text-white text-xs font-medium flex items-center gap-1">
+              <Video className="w-3 h-3" /> Video
             </span>
           </div>
         )}
 
-        {/* Photo Navigation dots */}
+        {/* Photo nav — show on hover */}
         {photos.length > 1 && (
           <>
             <button
-              onClick={(e) => {
-                e.preventDefault();
-                setPhotoIndex((prev) => (prev > 0 ? prev - 1 : photos.length - 1));
-              }}
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={(e) => { e.preventDefault(); setPhotoIndex((p) => (p > 0 ? p - 1 : photos.length - 1)); }}
+              className="absolute left-2 top-1/2 -trangray-y-1/2 w-6 h-6 rounded-full bg-white/80 text-gray-700 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-3.5 h-3.5" />
             </button>
             <button
-              onClick={(e) => {
-                e.preventDefault();
-                setPhotoIndex((prev) => (prev < photos.length - 1 ? prev + 1 : 0));
-              }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={(e) => { e.preventDefault(); setPhotoIndex((p) => (p < photos.length - 1 ? p + 1 : 0)); }}
+              className="absolute right-2 top-1/2 -trangray-y-1/2 w-6 h-6 rounded-full bg-white/80 text-gray-700 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-3.5 h-3.5" />
             </button>
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-black/30 backdrop-blur px-2 py-0.5 rounded-full">
+            {/* Dot indicators */}
+            <div className="absolute bottom-2 left-1/2 -trangray-x-1/2 flex gap-1">
               {photos.map((_, i) => (
                 <div
                   key={i}
-                  className={`w-1.5 h-1.5 rounded-full transition-all ${
-                    i === photoIndex ? "bg-white w-3" : "bg-white/50"
-                  }`}
+                  className={`h-1 rounded-full transition-all ${i === photoIndex ? "w-4 bg-white" : "w-1.5 bg-white/60"}`}
                 />
               ))}
             </div>
@@ -144,94 +101,78 @@ export default function ListingCard({ listing }: ListingCardProps) {
         )}
       </div>
 
-      {/* Card Content */}
-      <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
-        <div>
-          {/* Price & Campus Distance */}
-          <div className="flex items-baseline justify-between gap-2 mb-1.5">
-            <div>
-              <span className="text-xl font-black text-slate-900 tracking-tight">
-                {formattedPrice}
-              </span>
-              <span className="text-xs text-slate-500 font-medium ml-1">
-                /{listing.period || "yr"}
-              </span>
-            </div>
-            <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md">
-              🚶 {listing.distanceDescription || `${listing.distanceToCampusMinutes || 5}m to Gate`}
-            </span>
+      {/* Content */}
+      <div className="p-4 flex flex-col flex-1 gap-3">
+
+        {/* Price + distance */}
+        <div className="flex items-baseline justify-between gap-2">
+          <div>
+            <span className="text-lg font-bold text-gray-900">{formattedPrice}</span>
+            <span className="text-xs text-gray-400 ml-1">/{listing.period || "yr"}</span>
           </div>
+          <span className="text-xs text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100 shrink-0">
+            {listing.distanceDescription || `${listing.distanceToCampusMinutes || 5}m to gate`}
+          </span>
+        </div>
 
-          {/* Title */}
-          <Link href={`/listings/${listing.id}`} className="block group-hover:text-emerald-600 transition-colors">
-            <h3 className="font-bold text-sm text-slate-900 line-clamp-1">
-              {listing.title}
-            </h3>
-          </Link>
+        {/* Title */}
+        <Link href={`/listings/${listing.id}`} className="block">
+          <h3 className="text-sm font-semibold text-gray-900 leading-snug hover:text-emerald-700 transition-colors line-clamp-2">
+            {listing.title}
+          </h3>
+        </Link>
 
-          {/* Location */}
-          <p className="text-xs text-slate-500 flex items-center gap-1 mt-1">
-            <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-            <span className="line-clamp-1">{listing.address || listing.neighborhood}</span>
-          </p>
+        {/* Location */}
+        <p className="text-xs text-gray-500 flex items-center gap-1">
+          <MapPin className="w-3.5 h-3.5 shrink-0 text-gray-400" />
+          <span className="line-clamp-1">{listing.address || listing.neighborhood}</span>
+        </p>
 
-          {/* Amenities Pills */}
-          <div className="flex flex-wrap gap-1.5 mt-2.5">
-            {amenities.slice(0, 3).map((item, idx) => (
-              <span
-                key={idx}
-                className="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md"
-              >
-                {item}
+        {/* Amenities */}
+        {amenities.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {amenities.slice(0, 3).map((a, i) => (
+              <span key={i} className="text-xs text-gray-500 bg-gray-50 border border-gray-100 px-2 py-0.5 rounded">
+                {a}
               </span>
             ))}
             {amenities.length > 3 && (
-              <span className="text-[10px] text-slate-400 font-medium py-0.5">
-                +{amenities.length - 3} more
-              </span>
+              <span className="text-xs text-gray-400">+{amenities.length - 3}</span>
             )}
           </div>
-        </div>
+        )}
 
-        {/* Agent Info & CTAs */}
-        <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-          {/* Agent Avatar & Name */}
+        {/* Agent + actions */}
+        <div className="mt-auto pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <img
-              src={listing.agentAvatar || listing.agent?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"}
+              src={listing.agentAvatar || listing.agent?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80"}
               alt={agentName}
-              className="w-7 h-7 rounded-full object-cover border border-slate-200"
+              className="w-6 h-6 rounded-full object-cover shrink-0"
             />
             <div className="min-w-0">
-              <span className="text-xs font-semibold text-slate-800 truncate block">
-                {agentName}
-              </span>
-              <span className="text-[10px] text-emerald-700 flex items-center gap-0.5 font-medium">
-                <ShieldCheck className="w-3 h-3 text-emerald-600" /> Verified Agent
-              </span>
+              <p className="text-xs font-medium text-gray-800 truncate">{agentName}</p>
+              <p className="text-[10px] text-emerald-600 flex items-center gap-0.5">
+                <ShieldCheck className="w-3 h-3" /> Verified
+              </p>
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex items-center gap-1.5 shrink-0">
-            {/* WhatsApp Direct */}
             <a
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white transition-all border border-emerald-200"
-              title="Chat directly on WhatsApp"
+              className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:border-emerald-300 hover:text-emerald-600 transition-colors"
+              title="WhatsApp"
             >
               <MessageCircle className="w-4 h-4" />
             </a>
-
-            {/* View Details */}
             <Link
               href={`/listings/${listing.id}`}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-emerald-600 text-white text-xs font-bold transition-colors"
+              className="px-3 py-1.5 rounded-lg bg-gray-900 hover:bg-emerald-700 text-white text-xs font-medium transition-colors flex items-center gap-1"
             >
-              <span>View</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              View <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>

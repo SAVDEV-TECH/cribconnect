@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 import { useApp } from "@/context/AppContext";
@@ -10,10 +10,10 @@ export default function VideoTourModal() {
   if (!videoTourUrl) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl text-white">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/80 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-gray-900 border border-gray-700 rounded-xl max-w-3xl w-full overflow-hidden shadow-2xl text-white">
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950/60">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800 bg-gray-950/60">
           <div className="flex items-center gap-2">
             <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400">
               <Video className="w-5 h-5" />
@@ -25,14 +25,14 @@ export default function VideoTourModal() {
                   <ShieldCheck className="w-3 h-3" /> Agent Verified
                 </span>
               </h3>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-gray-400">
                 Inspect layout, water flow, bathroom finish, and compound security before visiting
               </p>
             </div>
           </div>
           <button
             onClick={closeVideoTour}
-            className="p-2 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+            className="p-2 rounded-full hover:bg-gray-800 text-gray-400 hover:text-white transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -50,14 +50,14 @@ export default function VideoTourModal() {
         </div>
 
         {/* Modal Footer / Verification Callout */}
-        <div className="px-6 py-4 bg-slate-950/90 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-300">
+        <div className="px-6 py-4 bg-gray-950/90 border-t border-gray-800 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-300">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
             <span>Recorded & authenticated by CribConnect accredited agent on-site.</span>
           </div>
           <button
             onClick={closeVideoTour}
-            className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-medium transition-colors"
+            className="px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-white font-medium transition-colors"
           >
             Close Walkthrough
           </button>
