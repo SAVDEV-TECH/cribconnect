@@ -1,4 +1,5 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { AppProvider } from "@/context/AppContext";
 import Navbar from "@/components/Navbar";
@@ -57,7 +58,7 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "CribConnect — UNIPORT Student Housing Platform",
+        alt: "CribConnect - UNIPORT Student Housing Platform",
       },
     ],
   },
@@ -92,11 +93,12 @@ export default function RootLayout({
           <Navbar />
           <main className="flex-1">{children}</main>
           <Footer />
-          {/* Global Modals */}
+          {/* Global Modals & Scripts */}
           <VideoTourModal />
           <RelocationModal />
           <ProUpgradeModal />
           <GoogleOneTap />
+          <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
         </AppProvider>
       </body>
     </html>

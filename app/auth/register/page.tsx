@@ -4,20 +4,14 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ShieldCheck,
   UserPlus,
   Mail,
   Lock,
-  Phone,
   ArrowRight,
   AlertCircle,
   CheckCircle2,
 } from "lucide-react";
-import SocialAuthModal, {
-  GoogleLogo,
-  FacebookLogo,
-  AppleLogo,
-} from "@/components/SocialAuthModal";
+import GoogleSignInButton from "@/components/GoogleSignInButton";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -33,14 +27,6 @@ export default function RegisterPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const [socialModalOpen, setSocialModalOpen] = useState(false);
-  const [socialProvider, setSocialProvider] = useState<"google" | "facebook" | "apple">("google");
-
-  const openSocialAuth = (provider: "google" | "facebook" | "apple") => {
-    setSocialProvider(provider);
-    setSocialModalOpen(true);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,37 +115,20 @@ export default function RegisterPage() {
           </div>
         )}
 
-        {/* Social sign-up */}
-        <div className="space-y-2">
-          <span className="text-xs font-medium text-gray-400 block text-center uppercase tracking-wider">
-            Quick registration
-          </span>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => openSocialAuth("google")}
-              className="py-2.5 px-4 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-800 font-medium text-sm flex items-center justify-center gap-2.5 transition-colors"
-            >
-              <GoogleLogo className="w-4 h-4 shrink-0" />
-              <span>Continue with Google</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => openSocialAuth("facebook")}
-              className="py-2.5 px-4 rounded-xl bg-[#1877F2] hover:bg-[#166fe5] text-white font-medium text-sm flex items-center justify-center gap-2.5 transition-colors"
-            >
-              <FacebookLogo className="w-4 h-4 shrink-0 fill-white" />
-              <span>Continue with Facebook</span>
-            </button>
-          </div>
+        {/* 1-Click Google Sign-In */}
+        <div>
+          <GoogleSignInButton
+            role={role}
+            redirectUrl="/list-property"
+            text="signup_with"
+          />
         </div>
 
         {/* Divider */}
         <div className="relative flex py-1 items-center">
           <div className="flex-grow border-t border-gray-100"></div>
           <span className="flex-shrink mx-3 text-xs font-medium uppercase tracking-wider text-gray-400">
-            Or use email
+            Or register with email &amp; password
           </span>
           <div className="flex-grow border-t border-gray-100"></div>
         </div>
@@ -186,7 +155,7 @@ export default function RegisterPage() {
                 <input
                   type="email"
                   required
-                  placeholder="agent@realty.ng"
+                  placeholder="yourname@gmail.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
@@ -269,7 +238,7 @@ export default function RegisterPage() {
             <ul className="space-y-1.5">
               <li className="flex items-start gap-2 text-xs text-emerald-800">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
-                <span><strong>Instantly:</strong> Right after signing up, publish houses and upload photos & video tours.</span>
+                <span><strong>Instantly:</strong> Right after signing up, publish houses and upload photos &amp; video tours.</span>
               </li>
               <li className="flex items-start gap-2 text-xs text-emerald-800">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
@@ -295,18 +264,10 @@ export default function RegisterPage() {
         <div className="text-center text-sm text-gray-500">
           Already registered?{" "}
           <Link href="/auth/login" className="font-semibold text-emerald-700 hover:underline">
-            Sign In
+            Sign In with Email or Google
           </Link>
         </div>
       </div>
-
-      <SocialAuthModal
-        isOpen={socialModalOpen}
-        onClose={() => setSocialModalOpen(false)}
-        defaultProvider={socialProvider}
-        initialRole={role}
-        redirectUrl="/list-property"
-      />
     </div>
   );
 }

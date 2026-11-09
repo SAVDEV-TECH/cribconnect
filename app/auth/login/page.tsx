@@ -10,11 +10,7 @@ import {
   AlertCircle,
   HelpCircle,
 } from "lucide-react";
-import SocialAuthModal, {
-  GoogleLogo,
-  FacebookLogo,
-  AppleLogo,
-} from "@/components/SocialAuthModal";
+import GoogleSignInButton from "@/components/GoogleSignInButton";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -22,15 +18,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Social Auth Modal State
-  const [socialModalOpen, setSocialModalOpen] = useState(false);
-  const [socialProvider, setSocialProvider] = useState<"google" | "facebook" | "apple">("google");
-
-  const openSocialAuth = (provider: "google" | "facebook" | "apple") => {
-    setSocialProvider(provider);
-    setSocialModalOpen(true);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,14 +55,14 @@ export default function LoginPage() {
             <Lock className="w-5 h-5" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900">
-            Agent & Landlord Sign In
+            Sign In to CribConnect
           </h1>
           <p className="text-sm text-gray-500">
-            Sign in to manage your listings and access student leads.
+            Sign in to manage your rentals or list properties near UNIPORT.
           </p>
         </div>
 
-        {/* Error */}
+        {/* Error Notice */}
         {error && (
           <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
@@ -83,46 +70,25 @@ export default function LoginPage() {
           </div>
         )}
 
-        {/* 1-Click Social Sign-In */}
-        <div className="space-y-2">
-          <button
-            type="button"
-            onClick={() => openSocialAuth("google")}
-            className="w-full py-2.5 px-4 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-800 font-medium text-sm flex items-center justify-center gap-3 transition-colors"
-          >
-            <GoogleLogo className="w-4 h-4 shrink-0" />
-            <span>Continue with Google</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => openSocialAuth("facebook")}
-            className="w-full py-2.5 px-4 rounded-xl bg-[#1877F2] hover:bg-[#166fe5] text-white font-medium text-sm flex items-center justify-center gap-3 transition-colors"
-          >
-            <FacebookLogo className="w-4 h-4 shrink-0 fill-white" />
-            <span>Continue with Facebook</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => openSocialAuth("apple")}
-            className="w-full py-2.5 px-4 rounded-xl bg-gray-900 hover:bg-black text-white font-medium text-sm flex items-center justify-center gap-3 transition-colors"
-          >
-            <AppleLogo className="w-4 h-4 shrink-0" />
-            <span>Continue with Apple</span>
-          </button>
+        {/* 1-Click Google Sign-In (Zero typing required) */}
+        <div>
+          <GoogleSignInButton
+            role="AGENT"
+            redirectUrl="/list-property"
+            text="signin_with"
+          />
         </div>
 
         {/* Divider */}
         <div className="relative flex py-1 items-center">
           <div className="flex-grow border-t border-gray-100"></div>
           <span className="flex-shrink mx-3 text-xs font-medium uppercase tracking-wider text-gray-400">
-            Or use email & password
+            Or sign in with email &amp; password
           </span>
           <div className="flex-grow border-t border-gray-100"></div>
         </div>
 
-        {/* Email & Password form */}
+        {/* Standard Email & Password Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -166,38 +132,30 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
           >
-            <span>{loading ? "Signing in..." : "Sign In"}</span>
+            <span>{loading ? "Signing in..." : "Sign In with Email"}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
 
-        {/* How to become an Agent/Landlord */}
+        {/* Explanation Note on Becoming Agent/Landlord */}
         <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-100 space-y-1">
           <div className="flex items-center gap-1.5 text-sm font-semibold text-gray-800">
             <HelpCircle className="w-3.5 h-3.5 text-emerald-600" />
             <span>How do you become an Agent or Landlord?</span>
           </div>
           <p className="text-xs text-gray-500 leading-relaxed">
-            Create an account with your real email or Gmail, select your role (Agent vs Landlord), and you can instantly publish properties. Add your NIN or License in Profile to receive the green <strong>Verified</strong> badge.
+            Sign in with Google in 1 click or create an account with email. You can instantly publish properties, manage tenant inquiries, and add your NIN or License in Profile to receive the green <strong>Verified</strong> trust badge.
           </p>
         </div>
 
         {/* Register link */}
         <div className="text-center text-sm text-gray-500">
-          Don&apos;t have an account?{" "}
+          Don&apos;t have an account yet?{" "}
           <Link href="/auth/register" className="font-semibold text-emerald-700 hover:underline">
-            Register as Agent or Landlord
+            Register with Email
           </Link>
         </div>
       </div>
-
-      <SocialAuthModal
-        isOpen={socialModalOpen}
-        onClose={() => setSocialModalOpen(false)}
-        defaultProvider={socialProvider}
-        initialRole="AGENT"
-        redirectUrl="/list-property"
-      />
     </div>
   );
 }
