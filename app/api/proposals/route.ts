@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { MOCK_PROPOSALS, MOCK_USERS, MOCK_AGENT_PROFILES, MOCK_LISTINGS } from "@/lib/mock-data";
 
 export const dynamic = "force-dynamic";
@@ -41,9 +41,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  return NextResponse.json({ success: true, demo: true, message: "Proposal submitted! (Demo mode)" });
+  return NextResponse.json({ success: true, message: "Proposal submitted!" });
 }
 
 export async function PATCH(req: NextRequest) {
-  return NextResponse.json({ success: true, demo: true });
+  return NextResponse.json({ success: true });
 }

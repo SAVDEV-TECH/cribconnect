@@ -4,11 +4,9 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ShieldCheck,
   Lock,
   Mail,
   ArrowRight,
-  Building2,
   AlertCircle,
   HelpCircle,
 } from "lucide-react";
@@ -60,11 +58,6 @@ export default function LoginPage() {
     }
   };
 
-  const setDemoCredentials = (demoEmail: string) => {
-    setEmail(demoEmail);
-    setPassword("password123");
-  };
-
   return (
     <div className="min-h-[85vh] flex items-center justify-center px-4 py-12">
       <div className="max-w-md w-full bg-white rounded-2xl border border-gray-200 p-6 sm:p-8 space-y-6">
@@ -90,7 +83,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        {/* Social Sign-In */}
+        {/* 1-Click Social Sign-In */}
         <div className="space-y-2">
           <button
             type="button"
@@ -124,16 +117,16 @@ export default function LoginPage() {
         <div className="relative flex py-1 items-center">
           <div className="flex-grow border-t border-gray-100"></div>
           <span className="flex-shrink mx-3 text-xs font-medium uppercase tracking-wider text-gray-400">
-            Or use email
+            Or use email & password
           </span>
           <div className="flex-grow border-t border-gray-100"></div>
         </div>
 
-        {/* Email form */}
+        {/* Email & Password form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Work Email Address
+              Email Address
             </label>
             <div className="relative">
               <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
@@ -142,7 +135,7 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="agent@realty.ng"
+                placeholder="yourname@gmail.com"
                 className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
             </div>
@@ -178,32 +171,6 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Demo credentials */}
-        <div className="pt-2 border-t border-gray-100 space-y-2">
-          <span className="text-xs font-medium text-gray-400 block text-center uppercase tracking-wider">
-            Quick test login
-          </span>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => setDemoCredentials("emeka@chukwudirealty.ng")}
-              className="p-2.5 rounded-xl bg-gray-50 hover:bg-emerald-50 border border-gray-200 hover:border-emerald-200 text-left text-xs transition-colors"
-            >
-              <span className="font-semibold text-gray-800 block">Emeka (Agent)</span>
-              <span className="text-gray-400 text-[11px]">UNIPORT Specialist</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setDemoCredentials("nkem@duruproperties.com")}
-              className="p-2.5 rounded-xl bg-gray-50 hover:bg-emerald-50 border border-gray-200 hover:border-emerald-200 text-left text-xs transition-colors"
-            >
-              <span className="font-semibold text-gray-800 block">Chief Nkem</span>
-              <span className="text-gray-400 text-[11px]">Property Owner</span>
-            </button>
-          </div>
-        </div>
-
         {/* How to become an Agent/Landlord */}
         <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-100 space-y-1">
           <div className="flex items-center gap-1.5 text-sm font-semibold text-gray-800">
@@ -211,7 +178,7 @@ export default function LoginPage() {
             <span>How do you become an Agent or Landlord?</span>
           </div>
           <p className="text-xs text-gray-500 leading-relaxed">
-            Create an account or sign in with Google/Facebook, select your role (Agent vs Landlord), and you can instantly publish properties. Add your NIN or License in Profile to get the green <strong>Verified</strong> badge.
+            Create an account with your real email or Gmail, select your role (Agent vs Landlord), and you can instantly publish properties. Add your NIN or License in Profile to receive the green <strong>Verified</strong> badge.
           </p>
         </div>
 

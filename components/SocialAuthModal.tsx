@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -9,9 +9,7 @@ import {
   AlertCircle,
   ArrowRight,
   User,
-  Sparkles,
   Building2,
-  Check,
 } from "lucide-react";
 
 export interface SocialAuthModalProps {
@@ -73,48 +71,26 @@ export default function SocialAuthModal({
   const router = useRouter();
   const [provider, setProvider] = useState<"google" | "facebook" | "apple">(defaultProvider);
   const [role, setRole] = useState<"AGENT" | "LANDLORD">(initialRole);
-  const [useCustomAccount, setUseCustomAccount] = useState(false);
-  const [customName, setCustomName] = useState("");
-  const [customEmail, setCustomEmail] = useState("");
-  const [customPhone, setCustomPhone] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
   if (!isOpen) return null;
 
-  // Preset quick social profiles
-  const presetProfiles = [
-    {
-      name: "Saviour Adeyemi",
-      email: provider === "google" ? "saviour.tech@gmail.com" : provider === "facebook" ? "saviour.realty@facebook.com" : "saviour@icloud.com",
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
-      tag: "Primary Connected Profile",
-    },
-    {
-      name: "Emeka Chukwudi",
-      email: provider === "google" ? "kolawole.adebayo@gmail.com" : "kolawole.agent@facebook.com",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
-      tag: "UNIPORT Verified Realtor",
-    },
-    {
-      name: "Chief Tunde Alabi",
-      email: provider === "google" ? "tunde.alabi@gmail.com" : "tunde.alabi@facebook.com",
-      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80",
-      tag: "Yaba Property Owner",
-    },
-  ];
+  const hasGoogleClientId = Boolean(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
 
-  const handleGoogleOAuthPopup = () => {
+  const handleNativeGoogleOAuth = () => {
     setLoading(true);
     setError(null);
 
-    if (typeof window !== "undefined" && window.google?.accounts?.oauth2) {
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    if (typeof window !== "undefined" && window.google?.accounts?.oauth2 && clientId) {
       try {
         const tokenClient = window.google.accounts.oauth2.initTokenClient({
-          client_id:
-            process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
-            "928374928374-cribconnect-google-oauth.apps.googleusercontent.com",
+          client_id: clientId,
           scope: "email profile openid",
           callback: async (tokenResponse: any) => {
             if (tokenResponse?.access_token) {
@@ -126,49 +102,40 @@ export default function SocialAuthModal({
                   role,
                 }),
               });
+
               const data = await res.json();
-              if (data.success) {
-                setSuccess(true);
-                if (onSuccess) onSuccess();
-                setTimeout(() => {
-                  onClose();
-                  router.push(redirectUrl);
-                  router.refresh();
-                }, 700);
-                return;
-              } else {
-                setError(data.error || "Google authentication failed");
-              }
+              if (!res.ok) throw new Error(data.error || "Google authentication failed");
+
+              setSuccess(true);
+              setTimeout(() => {
+                onSuccess?.();
+                onClose();
+                router.push(redirectUrl);
+                router.refresh();
+              }, 700);
             }
-            setLoading(false);
           },
         });
         tokenClient.requestAccessToken();
-        return;
-      } catch (e) {
-        console.warn("OAuth popup launch notice:", e);
+      } catch (err: any) {
+        setError(err.message || "Failed to initialize Google OAuth");
+        setLoading(false);
       }
+    } else {
+      setError("Google OAuth Client ID is not configured yet. Please enter your Gmail below to continue.");
+      setLoading(false);
     }
-
-    // Fallback if popup cannot be opened
-    handleAuthenticate({
-      name: "Saviour Adeyemi",
-      email: "saviour.tech@gmail.com",
-    });
   };
 
-  const handleAuthenticate = async (selectedProfile?: { name: string; email: string; avatar?: string }) => {
-    setLoading(true);
-    setError(null);
-
-    const name = selectedProfile ? selectedProfile.name : customName.trim();
-    const email = selectedProfile ? selectedProfile.email : customEmail.trim();
-
-    if (!name || !email) {
-      setError("Please provide a valid name and email address.");
-      setLoading(false);
+  const handleDirectRealAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim() || !name.trim()) {
+      setError("Please provide your name and email address.");
       return;
     }
+
+    setLoading(true);
+    setError(null);
 
     try {
       const endpoint = provider === "google" ? "/api/auth/google" : "/api/auth/social";
@@ -177,349 +144,188 @@ export default function SocialAuthModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           provider,
-          name,
-          email,
-          phone: customPhone.trim() || "+234 803 000 0000",
+          name: name.trim(),
+          email: email.trim().toLowerCase(),
+          phone: phone.trim(),
           role,
-          avatar: selectedProfile?.avatar || `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(name)}`,
         }),
       });
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Failed to sign in via social provider.");
+        throw new Error(data.error || "Authentication failed");
       }
 
       setSuccess(true);
-      if (onSuccess) onSuccess();
-
       setTimeout(() => {
+        onSuccess?.();
         onClose();
         router.push(redirectUrl);
         router.refresh();
       }, 700);
     } catch (err: any) {
-      setError(err.message || "Failed to sign in. Please try again.");
+      setError(err.message || "Unable to complete sign in. Please try again.");
+    } finally {
       setLoading(false);
     }
   };
 
-  const getProviderInfo = () => {
-    switch (provider) {
-      case "facebook":
-        return {
-          title: "Sign in with Facebook",
-          subtitle: "Connect your Facebook account to CribConnect instantly",
-          icon: FacebookLogo,
-          headerColor: "bg-[#1877F2] text-white",
-          btnBg: "bg-[#1877F2] hover:bg-[#166fe5] text-white",
-        };
-      case "apple":
-        return {
-          title: "Sign in with Apple",
-          subtitle: "Use your Apple ID for fast and private authentication",
-          icon: AppleLogo,
-          headerColor: "bg-gray-900 text-white",
-          btnBg: "bg-gray-900 hover:bg-black text-white",
-        };
-      case "google":
-      default:
-        return {
-          title: "Sign in with Google",
-          subtitle: "Choose an account to continue to CribConnect",
-          icon: GoogleLogo,
-          headerColor: "bg-white text-gray-900 border-b border-gray-100",
-          btnBg: "bg-emerald-600 hover:bg-emerald-700 text-white",
-        };
-    }
-  };
-
-  const currentInfo = getProviderInfo();
-  const IconComponent = currentInfo.icon;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white rounded-xl border border-gray-200 shadow-2xl max-w-md w-full overflow-hidden">
-        {/* Top Header */}
-        <div className={`p-5 flex items-center justify-between ${currentInfo.headerColor}`}>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white shadow-xs flex items-center justify-center shrink-0 border border-gray-100">
-              <IconComponent className="w-5 h-5" />
-            </div>
+    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl max-w-md w-full p-6 sm:p-7 space-y-5 border border-gray-200 shadow-lg">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+          <div className="flex items-center gap-2.5">
+            {provider === "google" && <GoogleLogo className="w-5 h-5" />}
+            {provider === "facebook" && <FacebookLogo className="w-5 h-5" />}
+            {provider === "apple" && <AppleLogo className="w-5 h-5" />}
             <div>
-              <h2 className="text-base font-semibold tracking-tight">
-                {currentInfo.title}
+              <h2 className="text-base font-bold text-gray-900">
+                Sign in with {provider === "google" ? "Google" : provider === "facebook" ? "Facebook" : "Apple"}
               </h2>
-              <p className="text-[11px] opacity-80 font-medium">
-                {currentInfo.subtitle}
+              <p className="text-xs text-gray-500">
+                Connect your real account to manage properties
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-black/10 transition-colors"
+            className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Modal Body */}
-        <div className="p-6 space-y-5">
-          {error && (
-            <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{error}</span>
+        {error && (
+          <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        {success ? (
+          <div className="py-8 text-center space-y-3">
+            <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-100">
+              <CheckCircle2 className="w-6 h-6" />
             </div>
-          )}
-
-          {success ? (
-            <div className="py-8 text-center space-y-3">
-              <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto animate-bounce">
-                <Check className="w-6 h-6 stroke-[3]" />
+            <h3 className="font-bold text-sm text-gray-900">Successfully Signed In</h3>
+            <p className="text-xs text-gray-500">Redirecting to your portal...</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {/* Account Type Selector */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                Account Type:
+              </label>
+              <div className="grid grid-cols-2 p-1 bg-gray-100 rounded-xl gap-1">
+                <button
+                  type="button"
+                  onClick={() => setRole("AGENT")}
+                  className={`py-2 text-xs font-medium rounded-lg transition-colors ${
+                    role === "AGENT"
+                      ? "bg-white text-emerald-700 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  Real Estate Agent
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRole("LANDLORD")}
+                  className={`py-2 text-xs font-medium rounded-lg transition-colors ${
+                    role === "LANDLORD"
+                      ? "bg-white text-emerald-700 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  Property Owner
+                </button>
               </div>
-              <h3 className="text-base font-semibold text-gray-900">
-                Connected Successfully!
-              </h3>
-              <p className="text-xs text-gray-500">
-                Redirecting you to CribConnect portal...
-              </p>
             </div>
-          ) : (
-            <>
-              {/* Role Selection: Agent vs Landlord */}
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                  I am signing in / registering as:
-                </label>
-                <div className="grid grid-cols-2 p-1 bg-gray-100 rounded-xl gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setRole("AGENT")}
-                    className={`py-2 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-                      role === "AGENT"
-                        ? "bg-white text-emerald-700 shadow-xs"
-                        : "text-gray-600 hover:text-gray-900"
-                    }`}
-                  >
-                    <span>Real Estate Agent</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setRole("LANDLORD")}
-                    className={`py-2 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-                      role === "LANDLORD"
-                        ? "bg-white text-emerald-700 shadow-xs"
-                        : "text-gray-600 hover:text-gray-900"
-                    }`}
-                  >
-                    <span>Property Owner</span>
-                  </button>
-                </div>
-                <p className="text-[10px] text-gray-500 mt-1">
-                  {role === "AGENT"
-                    ? "✓ You can list multiple student accommodations & earn agency commissions."
-                    : "✓ Direct landlord / caretaker listing with 0% middleman fees."}
-                </p>
-              </div>
 
-              {/* Provider Quick Switcher */}
-              <div className="flex items-center justify-center gap-2 pt-1 border-t border-gray-100">
-                <span className="text-[11px] font-semibold text-gray-400">Switch platform:</span>
+            {/* If Google Client ID is configured, show 1-click Google OAuth button */}
+            {provider === "google" && hasGoogleClientId && (
+              <div className="space-y-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    setProvider("google");
-                    setError(null);
-                  }}
-                  className={`p-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                    provider === "google"
-                      ? "border-emerald-500 bg-emerald-50/50 text-emerald-800"
-                      : "border-gray-200 hover:bg-gray-50 text-gray-600"
-                  }`}
+                  disabled={loading}
+                  onClick={handleNativeGoogleOAuth}
+                  className="w-full py-2.5 px-4 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-800 font-semibold text-xs flex items-center justify-center gap-2.5 transition-colors shadow-sm disabled:opacity-50"
                 >
-                  <GoogleLogo className="w-3.5 h-3.5" />
-                  <span>Google</span>
+                  <GoogleLogo className="w-4 h-4" />
+                  <span>Choose Google Account</span>
                 </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setProvider("facebook");
-                    setError(null);
-                  }}
-                  className={`p-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                    provider === "facebook"
-                      ? "border-[#1877F2] bg-blue-50/50 text-[#1877F2]"
-                      : "border-gray-200 hover:bg-gray-50 text-gray-600"
-                  }`}
-                >
-                  <FacebookLogo className="w-3.5 h-3.5" />
-                  <span>Facebook</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setProvider("apple");
-                    setError(null);
-                  }}
-                  className={`p-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                    provider === "apple"
-                      ? "border-gray-900 bg-gray-100 text-gray-900"
-                      : "border-gray-200 hover:bg-gray-50 text-gray-600"
-                  }`}
-                >
-                  <AppleLogo className="w-3.5 h-3.5" />
-                  <span>Apple</span>
-                </button>
-              </div>
-
-              {!useCustomAccount ? (
-                /* Preset Accounts */
-                <div className="space-y-2">
-                  {provider === "google" && (
-                    <div className="space-y-2 pb-1">
-                      <button
-                        type="button"
-                        disabled={loading}
-                        onClick={handleGoogleOAuthPopup}
-                        className="w-full py-2.5 px-4 rounded-xl border border-gray-300 bg-white hover:bg-gray-50 text-gray-900 font-semibold text-xs flex items-center justify-center gap-2.5 shadow-2xs hover:border-gray-400 transition-all"
-                      >
-                        <GoogleLogo className="w-4 h-4 shrink-0" />
-                        <span>Launch Official Google OAuth Popup</span>
-                      </button>
-                      <div className="relative flex py-1 items-center">
-                        <div className="flex-grow border-t border-gray-200"></div>
-                        <span className="flex-shrink mx-2 text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                          Or select account below
-                        </span>
-                        <div className="flex-grow border-t border-gray-200"></div>
-                      </div>
-                    </div>
-                  )}
-
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400 block">
-                    Select a Verified Profile
+                <div className="relative flex py-1 items-center">
+                  <div className="flex-grow border-t border-gray-100"></div>
+                  <span className="flex-shrink mx-2 text-[10px] uppercase tracking-wider text-gray-400">
+                    Or enter your Gmail
                   </span>
-                  <div className="space-y-2">
-                    {presetProfiles.map((p, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        disabled={loading}
-                        onClick={() => handleAuthenticate(p)}
-                        className="w-full p-2.5 rounded-xl border border-gray-200 hover:border-emerald-400 hover:bg-emerald-50/40 text-left flex items-center gap-3 transition-all group"
-                      >
-                        <img
-                          src={p.avatar}
-                          alt={p.name}
-                          className="w-10 h-10 rounded-full object-cover border border-gray-200"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-gray-900 group-hover:text-emerald-700 truncate">
-                              {p.name}
-                            </span>
-                            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 font-semibold shrink-0">
-                              {p.tag}
-                            </span>
-                          </div>
-                          <span className="text-[11px] text-gray-500 block truncate">
-                            {p.email}
-                          </span>
-                        </div>
-                        <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-emerald-600 shrink-0 group-hover:trangray-x-0.5 transition-transform" />
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="pt-2 text-center">
-                    <button
-                      type="button"
-                      onClick={() => setUseCustomAccount(true)}
-                      className="text-xs font-bold text-emerald-700 hover:underline"
-                    >
-                      + Use another {provider.toUpperCase()} account / custom email
-                    </button>
-                  </div>
+                  <div className="flex-grow border-t border-gray-100"></div>
                 </div>
-              ) : (
-                /* Custom Email Form */
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                      Enter Account Details
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setUseCustomAccount(false)}
-                      className="text-[11px] font-bold text-gray-500 hover:underline"
-                    >
-                      ← Back to saved profiles
-                    </button>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">
-                      Full Name *
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Chinedu Eze"
-                      value={customName}
-                      onChange={(e) => setCustomName(e.target.value)}
-                      className="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">
-                      {provider.toUpperCase()} Email Address *
-                    </label>
-                    <input
-                      type="email"
-                      placeholder={`e.g. chinedu@${provider === "google" ? "gmail.com" : provider === "apple" ? "icloud.com" : "realty.ng"}`}
-                      value={customEmail}
-                      onChange={(e) => setCustomEmail(e.target.value)}
-                      className="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">
-                      Phone Number (Optional)
-                    </label>
-                    <input
-                      type="tel"
-                      placeholder="08012345678"
-                      value={customPhone}
-                      onChange={(e) => setCustomPhone(e.target.value)}
-                      className="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                    />
-                  </div>
-
-                  <button
-                    type="button"
-                    disabled={loading || !customName || !customEmail}
-                    onClick={() => handleAuthenticate()}
-                    className={`w-full py-2.5 px-4 rounded-xl font-semibold text-xs shadow-sm transition-all flex items-center justify-center gap-2 ${currentInfo.btnBg} disabled:opacity-50`}
-                  >
-                    <span>{loading ? "Connecting..." : `Continue as ${customName || "User"}`}</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
-
-              {/* Security Badge */}
-              <div className="p-3 rounded-xl bg-gray-50 border border-gray-100 flex items-center gap-2 text-[10px] text-gray-500">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>
-                  Protected by HMAC-SHA256 encrypted sessions and OWASP rate limiting.
-                </span>
               </div>
-            </>
-          )}
-        </div>
+            )}
+
+            {/* Direct Real Account Form */}
+            <form onSubmit={handleDirectRealAuth} className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Full Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Chinedu Eze"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  {provider === "google" ? "Gmail Address *" : `${provider.toUpperCase()} Email Address *`}
+                </label>
+                <input
+                  type="email"
+                  required
+                  placeholder={provider === "google" ? "yourname@gmail.com" : `yourname@${provider}.com`}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Phone / WhatsApp (Optional)
+                </label>
+                <input
+                  type="tel"
+                  placeholder="08034452299"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+              >
+                <span>{loading ? "Authenticating..." : `Continue with ${provider === "google" ? "Gmail" : provider}`}</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </form>
+
+            <div className="p-2.5 rounded-xl bg-gray-50 border border-gray-100 flex items-center gap-2 text-[10px] text-gray-500">
+              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Session encrypted with tamper-proof HMAC tokens.</span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
-

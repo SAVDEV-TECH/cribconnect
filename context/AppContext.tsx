@@ -1,7 +1,7 @@
-﻿"use client";
+"use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { Currency, formatMoney as formatMoneyUtil, DEMO_PERSONAS, DemoPersona } from "@/lib/types";
+import { Currency, formatMoney as formatMoneyUtil } from "@/lib/types";
 
 interface User {
   id: string;
@@ -29,8 +29,6 @@ interface User {
 
 interface AppContextType {
   currentUser: User | null;
-  currentPersona: DemoPersona | null;
-  switchPersona: (personaId: string) => Promise<void>;
   currency: Currency;
   setCurrency: (c: Currency) => void;
   formatMoney: (amountInNgn: number) => string;
@@ -74,36 +72,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     fetchSession();
   }, []);
 
-  const switchPersona = async (personaId: string) => {
-    try {
-      const res = await fetch("/api/auth/session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: personaId }),
-      });
-      const data = await res.json();
-      if (data.user) {
-        setCurrentUser(data.user);
-        window.location.reload();
-      }
-    } catch (err) {
-      console.error("Failed to switch persona", err);
-    }
-  };
-
-  const currentPersona =
-    DEMO_PERSONAS.find((p) => p.id === currentUser?.id) ||
-    DEMO_PERSONAS.find((p) => p.role === currentUser?.role) ||
-    null;
-
   const formatMoney = (amountInNgn: number) => formatMoneyUtil(amountInNgn, currency);
 
   return (
     <AppContext.Provider
       value={{
         currentUser,
-        currentPersona,
-        switchPersona,
         currency,
         setCurrency,
         formatMoney,

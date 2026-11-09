@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { MOCK_MESSAGES, MOCK_USERS } from "@/lib/mock-data";
 
 export const dynamic = "force-dynamic";
@@ -32,5 +32,5 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  return NextResponse.json({ success: true, demo: true, message: "Message sent! (Demo mode)" });
+  return NextResponse.json({ success: true, message: "Message sent!" });
 }

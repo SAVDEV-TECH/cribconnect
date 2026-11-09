@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { useApp } from "@/context/AppContext";
 import {
   ShieldCheck,
@@ -17,7 +18,7 @@ import {
 } from "lucide-react";
 
 export default function AdminPage() {
-  const { currentUser, switchPersona } = useApp();
+  const { currentUser } = useApp();
 
   const [agents, setAgents] = useState<any[]>([]);
   const [reports, setReports] = useState<any[]>([]);
@@ -110,14 +111,9 @@ export default function AdminPage() {
         </h2>
         <p className="text-xs text-gray-600 leading-relaxed max-w-md mx-auto">
           You are currently signed in as <strong>{currentUser?.name}</strong> ({currentUser?.role}).
-          To test agent document approval, listing moderation, and dispute screening, click the button below to switch to the Platform Admin persona.
+          This management portal is restricted to authorized platform administrators.
         </p>
-        <button
-          onClick={() => switchPersona("admin-tola")}
-          className="px-5 py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
-        >
-          Switch to Tola Balogun (Trust & Safety Admin)
-        </button>
+        <Link href="/auth/login" className="inline-block px-5 py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-white font-semibold text-xs shadow-sm transition-all">Return to Sign In</Link>
       </div>
     );
   }

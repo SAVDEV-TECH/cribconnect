@@ -1,6 +1,5 @@
 import { cookies } from "next/headers";
 import { prisma } from "./prisma";
-import { DEMO_PERSONAS } from "./types";
 
 export const DEFAULT_USER_ID = "student-chidi";
 
@@ -16,7 +15,6 @@ export async function getCurrentUser() {
   });
 
   if (!user) {
-    // Fallback to default persona if user not found in DB
     return await prisma.user.findUnique({
       where: { id: DEFAULT_USER_ID },
       include: {

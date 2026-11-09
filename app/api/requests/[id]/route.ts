@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { MOCK_HOUSING_REQUESTS, MOCK_USERS, MOCK_PROPOSALS, MOCK_AGENT_PROFILES, MOCK_LISTINGS, getRequestWithDetails } from "@/lib/mock-data";
 
 export const dynamic = "force-dynamic";
@@ -34,5 +34,5 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  return NextResponse.json({ success: true, demo: true });
+  return NextResponse.json({ success: true });
 }
