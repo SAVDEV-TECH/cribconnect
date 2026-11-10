@@ -1,10 +1,12 @@
 ﻿"use client";
 
 import React, { useState, useEffect } from "react";
+import EscrowModal from "@/components/EscrowModal";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
   ShieldCheck,
+  Lock,
   Video,
   MapPin,
   CheckCircle2,
@@ -29,6 +31,7 @@ export default function ListingDetailPage() {
 
   // Inspection Booking form state
   const [showInspectionModal, setShowInspectionModal] = useState(false);
+  const [showEscrowModal, setShowEscrowModal] = useState(false);
   const [tenantName, setTenantName] = useState("");
   const [tenantPhone, setTenantPhone] = useState("");
   const [inspectionDate, setInspectionDate] = useState("");
@@ -325,6 +328,30 @@ export default function ListingDetailPage() {
               </div>
             </div>
 
+                        {/* Escrow Reservation Card */}
+            <div className="bg-emerald-50/70 border border-emerald-200 rounded-xl p-4 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-bold">
+                  <ShieldCheck className="w-3 h-3" /> Escrow Protected
+                </span>
+                <span className="text-[11px] font-semibold text-emerald-800">48-Hour Lock</span>
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900 text-sm">Lock Room &amp; Hold for Inspection</h3>
+                <p className="text-[11px] text-gray-600 mt-0.5 leading-relaxed">
+                  Pay a ₦10,000 holding deposit into CribConnect Escrow. The agent cannot show this room to anyone else for 48 hours. 100% refunded if you inspect and reject.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowEscrowModal(true)}
+                className="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                <span>Reserve with ₦10k Escrow</span>
+              </button>
+            </div>
+
             {/* Direct Action Buttons */}
             <div className="space-y-2.5">
               {/* WhatsApp (Primary) */}
@@ -426,6 +453,13 @@ export default function ListingDetailPage() {
           </div>
         </div>
       </div>
+      {listing && (
+        <EscrowModal
+          isOpen={showEscrowModal}
+          onClose={() => setShowEscrowModal(false)}
+          listing={listing}
+        />
+      )}
     </div>
   );
 }

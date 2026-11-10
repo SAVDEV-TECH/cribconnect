@@ -1,4 +1,4 @@
-// lib/data-store.ts
+﻿// lib/data-store.ts
 // Real in-memory and API data store with complete Nigerian student & relocation housing data.
 // Supports dynamic creation, filtering, and real-time updates for listings, requests, and inquiries.
 
@@ -84,6 +84,31 @@ export interface StoredUser {
   createdAt: string;
 }
 
+export interface EscrowDeposit {
+  id: string;
+  listingId: string;
+  listingTitle: string;
+  neighborhood: string;
+  agentId?: string;
+  agentName: string;
+  agentPhone?: string;
+  agentWhatsapp?: string;
+  studentName: string;
+  studentEmail: string;
+  studentPhone: string;
+  amount: number;
+  platformFee: number;
+  agentPayout: number;
+  releasePin: string;
+  paystackReference: string;
+  status: "HELD_IN_ESCROW" | "RELEASED_TO_AGENT" | "REFUNDED_TO_STUDENT" | "DISPUTED";
+  holdDurationHours: number;
+  inspectionDate: string;
+  inspectionTime?: string;
+  expiresAt: string;
+  createdAt: string;
+  disputeReason?: string;
+}
 export interface InspectionBooking {
   id: string;
   listingId: string;
@@ -403,6 +428,35 @@ export const INITIAL_BOOKINGS: InspectionBooking[] = [
 let activeListings: Listing[] = [...INITIAL_LISTINGS];
 let activeRequests: HousingRequest[] = [...INITIAL_REQUESTS];
 let activeBookings: InspectionBooking[] = [...INITIAL_BOOKINGS];
+export const INITIAL_ESCROWS: EscrowDeposit[] = [
+  {
+    id: "escrow-1",
+    listingId: "crib-1",
+    listingTitle: "Clean Self-Contain | 5 Mins Walk to UNIPORT Choba Main Gate",
+    neighborhood: "Choba",
+    agentId: "agent-emeka",
+    agentName: "Emeka Chukwudi",
+    agentPhone: "+234 806 334 5521",
+    agentWhatsapp: "2348063345521",
+    studentName: "Kelechi Obi",
+    studentEmail: "kelechi.obi@uniport.edu.ng",
+    studentPhone: "08063345599",
+    amount: 10000,
+    platformFee: 1000,
+    agentPayout: 9000,
+    releasePin: "7821",
+    paystackReference: "CRIB_ESCROW_179093821",
+    status: "HELD_IN_ESCROW",
+    holdDurationHours: 48,
+    inspectionDate: "2026-11-12",
+    inspectionTime: "11:00 AM - 1:00 PM",
+    expiresAt: new Date(Date.now() + 48 * 3600 * 1000).toISOString(),
+    createdAt: new Date().toISOString(),
+  },
+];
+
+let activeEscrows: EscrowDeposit[] = [...INITIAL_ESCROWS];
+
 
 export function getListingsStore(): Listing[] {
   return activeListings;
@@ -473,6 +527,70 @@ export function updateBookingStatus(id: string, status: "PENDING" | "CONFIRMED" 
   booking.status = status;
   return booking;
 }
+
+export function getEscrowDepositsStore(): EscrowDeposit[] {
+  return activeEscrows;
+}
+
+export function getEscrowById(id: string): EscrowDeposit | undefined {
+  return activeEscrows.find((e) => e.id === id);
+}
+
+export function getEscrowsByListingId(listingId: string): EscrowDeposit[] {
+  return activeEscrows.filter((e) => e.listingId === listingId);
+}
+
+export function getEscrowsByAgent(agentId: string, agentName?: string): EscrowDeposit[] {
+  return activeEscrows.filter((e) => {
+    if (e.agentId && e.agentId === agentId) return true;
+    if (agentName && e.agentName.toLowerCase() === agentName.toLowerCase()) return true;
+    return false;
+  });
+}
+
+export function addEscrowDepositStore(deposit: Omit<EscrowDeposit, "id" | "createdAt" | "status" | "releasePin" | "expiresAt">): EscrowDeposit {
+  // Generate random 4-digit release PIN
+  const releasePin = Math.floor(1000 + Math.random() * 9000).toString();
+  const holdHours = deposit.holdDurationHours || 48;
+  const expiresAt = new Date(Date.now() + holdHours * 3600 * 1000).toISOString();
+
+  const newEscrow: EscrowDeposit = {
+    ...deposit,
+    id: "escrow-" + Date.now(),
+    releasePin,
+    status: "HELD_IN_ESCROW",
+    expiresAt,
+    createdAt: new Date().toISOString(),
+  };
+
+  activeEscrows = [newEscrow, ...activeEscrows];
+  return newEscrow;
+}
+
+export function updateEscrowStatus(
+  id: string,
+  status: "HELD_IN_ESCROW" | "RELEASED_TO_AGENT" | "REFUNDED_TO_STUDENT" | "DISPUTED",
+  pin?: string,
+  reason?: string
+): { success: boolean; error?: string; escrow?: EscrowDeposit } {
+  const escrow = activeEscrows.find((e) => e.id === id);
+  if (!escrow) {
+    return { success: false, error: "Escrow record not found." };
+  }
+
+  // If releasing to agent, verify PIN if provided
+  if (status === "RELEASED_TO_AGENT" && pin) {
+    if (pin.trim() !== escrow.releasePin) {
+      return { success: false, error: "Invalid Inspection Release PIN. Please ask the tenant for their 4-digit code." };
+    }
+  }
+
+  escrow.status = status;
+  if (reason) escrow.disputeReason = reason;
+
+  return { success: true, escrow };
+}
+
 
 // --- User Authentication Store ---
 

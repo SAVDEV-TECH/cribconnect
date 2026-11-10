@@ -13,6 +13,8 @@ import {
   MessageCircle,
   Phone,
   ShieldCheck,
+  Lock,
+  KeyRound,
   TrendingUp,
   Clock,
   Sparkles,
@@ -34,6 +36,11 @@ export default function AgentDashboardPage() {
   const [listings, setListings] = useState<any[]>([]);
   const [rentalsHistory, setRentalsHistory] = useState<any[]>([]);
   const [tenantsHousedCount, setTenantsHousedCount] = useState(0);
+
+  // Escrow Reservations state
+  const [escrows, setEscrows] = useState<any[]>([]);
+  const [claimPin, setClaimPin] = useState<{ [id: string]: string }>({});
+  const [claimingEscrowId, setClaimingEscrowId] = useState<string | null>(null);
 
   // Inspection Bookings state
   const [bookings, setBookings] = useState<any[]>([]);
@@ -64,6 +71,13 @@ export default function AgentDashboardPage() {
         setTenantsHousedCount(data.profile.tenantsHousedCount || 0);
       }
 
+      // Fetch escrow deposits
+      const eRes = await fetch("/api/escrow");
+      if (eRes.ok) {
+        const eData = await eRes.json();
+        setEscrows(eData.escrows || []);
+      }
+
       // Fetch inspections
       const bRes = await fetch("/api/bookings");
       if (bRes.ok) {
@@ -74,6 +88,34 @@ export default function AgentDashboardPage() {
       console.error(e);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleClaimEscrow = async (escrowId: string) => {
+    const pin = claimPin[escrowId];
+    if (!pin) {
+      alert("Please enter the 4-digit Inspection Release PIN given to you by the tenant.");
+      return;
+    }
+    setClaimingEscrowId(escrowId);
+    try {
+      const res = await fetch("/api/escrow/action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: escrowId, action: "RELEASE", pin }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setEscrows((prev) => prev.map((e) => (e.id === escrowId ? data.escrow : e)));
+        setSuccessMessage(data.message || "Escrow funds successfully released!");
+        setTimeout(() => setSuccessMessage(null), 4000);
+      } else {
+        alert(data.error || "Failed to release escrow");
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setClaimingEscrowId(null);
     }
   };
 
@@ -343,6 +385,121 @@ export default function AgentDashboardPage() {
           <UserCheck className="w-4 h-4" />
           <span>+ Log Housed Tenant</span>
         </button>
+      </div>
+
+            {/* SECTION: Escrow Room Reservations & Holding Deposits */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8 shadow-sm space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-5">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <h2 className="text-lg font-bold text-gray-900 tracking-tight">
+                Escrow Reservations &amp; Holding Deposits ({escrows.length})
+              </h2>
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase tracking-wider">
+                100% Protected
+              </span>
+            </div>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Tenants who paid ₦10,000 to reserve your apartment for 48h physical inspection.
+            </p>
+          </div>
+        </div>
+
+        {escrows.length === 0 ? (
+          <div className="text-center py-8 bg-gray-50 rounded-xl border border-gray-100 p-6 space-y-2">
+            <Lock className="w-8 h-8 text-gray-400 mx-auto" />
+            <h4 className="text-xs font-bold text-gray-800">No active escrow reservations yet</h4>
+            <p className="text-[11px] text-gray-500 max-w-sm mx-auto">
+              When students lock your accommodation online with a ₦10,000 holding deposit, they appear here.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {escrows.map((escrow) => {
+              const isHeld = escrow.status === "HELD_IN_ESCROW";
+              const isReleased = escrow.status === "RELEASED_TO_AGENT";
+
+              return (
+                <div
+                  key={escrow.id}
+                  className="p-5 rounded-xl border border-gray-200 bg-white hover:border-gray-300 transition-all space-y-3.5 flex flex-col justify-between"
+                >
+                  <div className="space-y-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <span className="text-[10px] font-semibold uppercase text-emerald-700 block">
+                          Locked Property
+                        </span>
+                        <h4 className="font-bold text-sm text-gray-900 truncate">
+                          {escrow.listingTitle}
+                        </h4>
+                      </div>
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase shrink-0 ${
+                          isHeld
+                            ? "bg-amber-100 text-amber-800"
+                            : isReleased
+                            ? "bg-emerald-100 text-emerald-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {isHeld ? "Held in Escrow" : isReleased ? "Released to You" : "Refunded"}
+                      </span>
+                    </div>
+
+                    <div className="p-3 bg-gray-50 rounded-lg border border-gray-100 text-xs space-y-1">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Tenant:</span>
+                        <span className="font-semibold text-gray-800">{escrow.studentName}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Inspection Time:</span>
+                        <span className="font-semibold text-gray-800">{escrow.inspectionDate} ({escrow.inspectionTime})</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Your Payout upon Approval:</span>
+                        <span className="font-bold text-emerald-700">₦{(escrow.agentPayout || 9000).toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {isHeld && (
+                    <div className="pt-2 border-t border-gray-100 space-y-2">
+                      <span className="text-[11px] text-gray-500 block">
+                        Ask tenant for their <strong>4-digit Inspection Release PIN</strong> after they approve the room:
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          maxLength={4}
+                          placeholder="4-digit PIN"
+                          value={claimPin[escrow.id] || ""}
+                          onChange={(e) => setClaimPin({ ...claimPin, [escrow.id]: e.target.value })}
+                          className="w-28 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-mono text-center tracking-widest focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          disabled={claimingEscrowId === escrow.id || !claimPin[escrow.id]}
+                          onClick={() => handleClaimEscrow(escrow.id)}
+                          className="flex-1 py-1.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors disabled:opacity-50"
+                        >
+                          {claimingEscrowId === escrow.id ? "Verifying..." : "Claim ₦9,000"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {isReleased && (
+                    <div className="p-2 rounded-lg bg-emerald-50 text-emerald-800 text-[11px] font-semibold flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Funds Released &bull; Credited to tenant's annual rent.</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* SECTION: Physical Inspection Inquiries & Walkthroughs */}
