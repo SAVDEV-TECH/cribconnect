@@ -155,34 +155,152 @@ export const INITIAL_BOOKINGS: InspectionBooking[] = [];
 export const INITIAL_ESCROWS: EscrowDeposit[] = [];
 export const INITIAL_USERS: StoredUser[] = [];
 
-// Local memory cache synced with PostgreSQL AppState
+// Local memory cache synced with indexed PostgreSQL StoreRecord + MediaAsset tables
 let activeListings: Listing[] = [];
 let activeRequests: HousingRequest[] = [];
 let activeBookings: InspectionBooking[] = [];
 let activeEscrows: EscrowDeposit[] = [];
 let activeUsers: StoredUser[] = [];
 
-async function loadFromDb<T>(key: string, memoryFallback: T[]): Promise<T[]> {
+async function offloadDataUrlToMediaAsset(url?: string | null): Promise<string> {
+  if (!url || typeof url !== "string") return "";
+  if (!url.startsWith("data:")) return url;
+
+  const match = url.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,(.+)$/);
+  if (!match) return url;
+
+  const mimeType = match[1].toLowerCase();
+  const base64Payload = match[2];
+  const prefix = mimeType.startsWith("video/") ? "vid" : "img";
+  const id = `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const sizeBytes = Math.round((base64Payload.length * 3) / 4);
+
   try {
-    const row = await prisma.appState.findUnique({ where: { key } });
-    if (row && Array.isArray(row.data)) {
-      return row.data as unknown as T[];
+    await (prisma as any).mediaAsset.create({
+      data: {
+        id,
+        mimeType,
+        data: base64Payload,
+        sizeBytes,
+      },
+    });
+    return `/api/media/${id}`;
+  } catch (err) {
+    console.warn("[data-store] MediaAsset offload fallback:", err);
+    return url;
+  }
+}
+
+async function normalizeListingMedia<T extends Partial<Listing>>(listing: T): Promise<T> {
+  const photos = Array.isArray(listing.photos) ? listing.photos : [];
+  const hasInlinePhotos = photos.some((p) => typeof p === "string" && p.startsWith("data:"));
+  const hasInlineVideo =
+    typeof listing.videoTourUrl === "string" && listing.videoTourUrl.startsWith("data:");
+
+  if (!hasInlinePhotos && !hasInlineVideo) {
+    return listing;
+  }
+
+  const normalizedPhotos = await Promise.all(
+    photos.map((p) => offloadDataUrlToMediaAsset(p))
+  );
+  const normalizedVideo = hasInlineVideo
+    ? await offloadDataUrlToMediaAsset(listing.videoTourUrl)
+    : listing.videoTourUrl;
+
+  return {
+    ...listing,
+    photos: normalizedPhotos.filter(Boolean),
+    videoTourUrl: normalizedVideo,
+  };
+}
+
+async function upsertRecordInDb<T extends { id: string }>(
+  collection: string,
+  item: T
+): Promise<void> {
+  try {
+    await (prisma as any).storeRecord.upsert({
+      where: {
+        collection_id: {
+          collection,
+          id: item.id,
+        },
+      },
+      update: {
+        data: item as any,
+      },
+      create: {
+        collection,
+        id: item.id,
+        data: item as any,
+      },
+    });
+  } catch (err) {
+    console.error(`[data-store] Failed to upsert record "${item.id}" in "${collection}":`, err);
+  }
+}
+
+async function deleteRecordFromDb(collection: string, id: string): Promise<void> {
+  try {
+    await (prisma as any).storeRecord.deleteMany({
+      where: { collection, id },
+    });
+  } catch (err) {
+    console.error(`[data-store] Failed to delete record "${id}" in "${collection}":`, err);
+  }
+}
+
+async function loadFromDb<T extends { id: string }>(
+  key: string,
+  memoryFallback: T[]
+): Promise<T[]> {
+  try {
+    // 1. Read from dedicated indexed StoreRecord rows (scales to 50,000+ rows)
+    const rows = await (prisma as any).storeRecord.findMany({
+      where: { collection: key },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (Array.isArray(rows) && rows.length > 0) {
+      return rows.map((r: any) => r.data as T);
+    }
+
+    // 2. Automatic one-time migration from legacy AppState JSON array if present
+    const legacyRow = await prisma.appState.findUnique({ where: { key } });
+    if (legacyRow && Array.isArray(legacyRow.data) && legacyRow.data.length > 0) {
+      const legacyItems = legacyRow.data as unknown as T[];
+      const migratedItems: T[] = [];
+
+      for (const rawItem of legacyItems) {
+        if (!rawItem || !rawItem.id) continue;
+        const item =
+          key === "listings"
+            ? ((await normalizeListingMedia(rawItem as any)) as unknown as T)
+            : rawItem;
+        migratedItems.push(item);
+        await upsertRecordInDb(key, item);
+      }
+
+      // Clear heavy legacy blob from AppState after migrating to indexed StoreRecord rows
+      await prisma.appState.update({
+        where: { key },
+        data: { data: [] as any },
+      });
+
+      return migratedItems;
     }
   } catch (err) {
-    console.error(`[data-store] Failed to load key "${key}" from Postgres:`, err);
+    console.error(`[data-store] Failed to load collection "${key}" from Postgres:`, err);
   }
   return memoryFallback;
 }
 
-async function saveToDb<T>(key: string, data: T[]): Promise<void> {
+async function saveToDb<T extends { id: string }>(key: string, data: T[]): Promise<void> {
   try {
-    await prisma.appState.upsert({
-      where: { key },
-      update: { data: data as any },
-      create: { key, data: data as any },
-    });
+    await Promise.all(data.map((item) => upsertRecordInDb(key, item)));
   } catch (err) {
-    console.error(`[data-store] Failed to save key "${key}" to Postgres:`, err);
+    console.error(`[data-store] Failed to save collection "${key}" to Postgres:`, err);
   }
 }
 
@@ -197,19 +315,30 @@ export async function addListingStore(
   listing: Omit<Listing, "id" | "createdAt" | "viewsCount" | "isAvailable">
 ): Promise<Listing> {
   const current = await getListingsStore();
+  const cleanListing = await normalizeListingMedia(listing);
   const newListing: Listing = {
-    ...listing,
+    ...cleanListing,
     id: "crib-" + Date.now(),
     createdAt: new Date().toISOString().split("T")[0],
     viewsCount: 1,
     isAvailable: true,
   };
   activeListings = [newListing, ...current];
-  await saveToDb("listings", activeListings);
+  await upsertRecordInDb("listings", newListing);
   return newListing;
 }
 
 export async function getListingById(id: string): Promise<Listing | undefined> {
+  try {
+    const row = await (prisma as any).storeRecord.findUnique({
+      where: { collection_id: { collection: "listings", id } },
+    });
+    if (row && row.data) {
+      return row.data as Listing;
+    }
+  } catch {
+    // Fallback to list lookup
+  }
   const current = await getListingsStore();
   return current.find((l) => l.id === id);
 }
@@ -221,18 +350,18 @@ export async function updateListingStore(
   const current = await getListingsStore();
   const index = current.findIndex((l) => l.id === id);
   if (index === -1) return undefined;
-  current[index] = { ...current[index], ...updates };
+  const cleanUpdates = await normalizeListingMedia(updates);
+  current[index] = { ...current[index], ...cleanUpdates };
   activeListings = [...current];
-  await saveToDb("listings", activeListings);
+  await upsertRecordInDb("listings", activeListings[index]);
   return activeListings[index];
 }
 
 export async function deleteListingById(id: string): Promise<boolean> {
   const current = await getListingsStore();
   const filtered = current.filter((l) => l.id !== id);
-  if (filtered.length === current.length) return false;
   activeListings = filtered;
-  await saveToDb("listings", activeListings);
+  await deleteRecordFromDb("listings", id);
   return true;
 }
 
@@ -249,7 +378,7 @@ export async function incrementListingMetric(
     item.whatsappClicksCount = (item.whatsappClicksCount || 0) + 1;
   }
   activeListings = [...current];
-  await saveToDb("listings", activeListings);
+  await upsertRecordInDb("listings", item);
   return item;
 }
 
@@ -277,7 +406,7 @@ export async function addRequestStore(
     responsesCount: 0,
   };
   activeRequests = [newRequest, ...current];
-  await saveToDb("requests", activeRequests);
+  await upsertRecordInDb("requests", newRequest);
   return newRequest;
 }
 
@@ -299,7 +428,7 @@ export async function addBookingStore(
     status: "PENDING",
   };
   activeBookings = [newBooking, ...current];
-  await saveToDb("bookings", activeBookings);
+  await upsertRecordInDb("bookings", newBooking);
   return newBooking;
 }
 
@@ -332,7 +461,7 @@ export async function updateBookingStatus(
   if (!booking) return undefined;
   booking.status = status;
   activeBookings = [...current];
-  await saveToDb("bookings", activeBookings);
+  await upsertRecordInDb("bookings", booking);
   return booking;
 }
 
@@ -344,6 +473,16 @@ export async function getEscrowDepositsStore(): Promise<EscrowDeposit[]> {
 }
 
 export async function getEscrowById(id: string): Promise<EscrowDeposit | undefined> {
+  try {
+    const row = await (prisma as any).storeRecord.findUnique({
+      where: { collection_id: { collection: "escrows", id } },
+    });
+    if (row && row.data) {
+      return row.data as EscrowDeposit;
+    }
+  } catch {
+    // Fallback to list lookup
+  }
   const current = await getEscrowDepositsStore();
   return current.find((e) => e.id === id);
 }
@@ -390,7 +529,7 @@ export async function addEscrowDepositStore(
   };
 
   activeEscrows = [newEscrow, ...current];
-  await saveToDb("escrows", activeEscrows);
+  await upsertRecordInDb("escrows", newEscrow);
   return newEscrow;
 }
 
@@ -403,7 +542,7 @@ export async function confirmEscrowPayment(id: string): Promise<EscrowDeposit | 
     escrow.status = "HELD_IN_ESCROW";
   }
   activeEscrows = [...current];
-  await saveToDb("escrows", activeEscrows);
+  await upsertRecordInDb("escrows", escrow);
   return escrow;
 }
 
@@ -449,7 +588,7 @@ export async function updateEscrowStatus(
   if (reason) escrow.disputeReason = reason;
 
   activeEscrows = [...current];
-  await saveToDb("escrows", activeEscrows);
+  await upsertRecordInDb("escrows", escrow);
   return { success: true, escrow };
 }
 
@@ -460,7 +599,7 @@ export async function markEscrowDisbursed(id: string): Promise<EscrowDeposit | u
   escrow.payoutStatus = "PAID_TO_BANK";
   escrow.paidOutAt = new Date().toISOString();
   activeEscrows = [...current];
-  await saveToDb("escrows", activeEscrows);
+  await upsertRecordInDb("escrows", escrow);
   return escrow;
 }
 
@@ -478,6 +617,16 @@ export async function getUserByEmail(email: string): Promise<StoredUser | undefi
 }
 
 export async function getUserById(id: string): Promise<StoredUser | undefined> {
+  try {
+    const row = await (prisma as any).storeRecord.findUnique({
+      where: { collection_id: { collection: "users", id } },
+    });
+    if (row && row.data) {
+      return row.data as StoredUser;
+    }
+  } catch {
+    // Fallback to list lookup
+  }
   const current = await getUsersStore();
   return current.find((u) => u.id === id);
 }
@@ -496,7 +645,7 @@ export async function createUser(
     createdAt: new Date().toISOString(),
   };
   activeUsers = [newUser, ...current.filter((u) => u.id !== newUser.id)];
-  await saveToDb("users", activeUsers);
+  await upsertRecordInDb("users", newUser);
   return newUser;
 }
 
@@ -510,7 +659,7 @@ export async function updateUser(
 
   Object.assign(user, updates);
   activeUsers = [...current];
-  await saveToDb("users", activeUsers);
+  await upsertRecordInDb("users", user);
   return user;
 }
 
@@ -538,7 +687,7 @@ export async function recordRentalSuccess(
   user.tenantsHousedCount = (user.tenantsHousedCount || 0) + 1;
   user.rentalsHistory = [newRecord, ...(user.rentalsHistory || [])];
   activeUsers = [...current];
-  await saveToDb("users", activeUsers);
+  await upsertRecordInDb("users", user);
   return user;
 }
 
@@ -553,6 +702,6 @@ export async function markRentalDisbursed(
   if (!item) return false;
   item.payoutStatus = "PAID_TO_BANK";
   activeUsers = [...current];
-  await saveToDb("users", activeUsers);
+  await upsertRecordInDb("users", user);
   return true;
 }

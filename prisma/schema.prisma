@@ -174,3 +174,22 @@ model AppState {
   data      Json
   updatedAt DateTime @updatedAt
 }
+
+model StoreRecord {
+  collection String
+  id         String
+  data       Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@id([collection, id])
+  @@index([collection, createdAt(sort: Desc)])
+}
+
+model MediaAsset {
+  id        String   @id
+  mimeType  String
+  data      String
+  sizeBytes Int      @default(0)
+  createdAt DateTime @default(now())
+}

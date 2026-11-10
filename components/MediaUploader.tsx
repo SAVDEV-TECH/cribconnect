@@ -86,6 +86,24 @@ export default function MediaUploader({
         }
 
         const compressedUrl = await compressImageFile(file);
+
+        // Upload compressed photo to MediaAsset / CDN endpoint to return a fast cached URL (/api/media/img-...)
+        try {
+          const uploadRes = await fetch("/api/upload", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ dataUrl: compressedUrl, type: "image" }),
+          });
+          if (uploadRes.ok) {
+            const uploadData = await uploadRes.json();
+            if (uploadData.url) {
+              newUrls.push(uploadData.url);
+              continue;
+            }
+          }
+        } catch {
+          // Fallback to compressed dataUrl if offline
+        }
         newUrls.push(compressedUrl);
       }
 
