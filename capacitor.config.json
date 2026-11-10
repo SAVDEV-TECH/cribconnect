@@ -1,0 +1,20 @@
+{
+  "appId": "com.cribconnect.uniport",
+  "appName": "CribConnect",
+  "webDir": "out",
+  "server": {
+    "url": "https://cribconnect-gold.vercel.app",
+    "cleartext": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1200,
+      "backgroundColor": "#059669",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "LIGHT",
+      "backgroundColor": "#059669"
+    }
+  }
+}
