@@ -30,7 +30,9 @@ export default function GoogleSignInButton({
   const [showConfigModal, setShowConfigModal] = useState(false);
   const nativeButtonRef = useRef<HTMLDivElement>(null);
 
-  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+  const clientId =
+    process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
+    "30670641547-a07vus133ok31mnjmscrjfnfil72f96j.apps.googleusercontent.com";
 
   // Process verified token returned from Google (zero typing needed)
   const handleGoogleResponse = async (payload: { credential?: string; accessToken?: string }) => {
@@ -90,8 +92,11 @@ export default function GoogleSignInButton({
               setLoading(false);
             }
           },
+          error_callback: () => {
+            setLoading(false);
+          },
         });
-        tokenClient.requestAccessToken();
+        tokenClient.requestAccessToken({ prompt: "select_account" });
       } else if (window.google.accounts?.id) {
         // Fallback to Google ID prompt
         window.google.accounts.id.prompt((notification: any) => {

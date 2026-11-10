@@ -80,13 +80,15 @@ export default function SocialAuthModal({
 
   if (!isOpen) return null;
 
-  const hasGoogleClientId = Boolean(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
+  const clientId =
+    process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
+    "30670641547-a07vus133ok31mnjmscrjfnfil72f96j.apps.googleusercontent.com";
+  const hasGoogleClientId = Boolean(clientId);
 
   const handleNativeGoogleOAuth = () => {
     setLoading(true);
     setError(null);
 
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
     if (typeof window !== "undefined" && window.google?.accounts?.oauth2 && clientId) {
       try {
         const tokenClient = window.google.accounts.oauth2.initTokenClient({
@@ -113,10 +115,15 @@ export default function SocialAuthModal({
                 router.push(redirectUrl);
                 router.refresh();
               }, 700);
+            } else {
+              setLoading(false);
             }
           },
+          error_callback: () => {
+            setLoading(false);
+          },
         });
-        tokenClient.requestAccessToken();
+        tokenClient.requestAccessToken({ prompt: "select_account" });
       } catch (err: any) {
         setError(err.message || "Failed to initialize Google OAuth");
         setLoading(false);

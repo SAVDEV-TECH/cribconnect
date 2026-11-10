@@ -11,7 +11,9 @@ declare global {
   }
 }
 
-const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_ID =
+  process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
+  "30670641547-a07vus133ok31mnjmscrjfnfil72f96j.apps.googleusercontent.com";
 
 export default function GoogleOneTap() {
   const router = useRouter();
