@@ -99,6 +99,25 @@ export default function AdminPage() {
     }
   };
 
+  const handleConfirmEscrowPayment = async (escrowId: string, studentName: string) => {
+    setActionLoading(escrowId);
+    try {
+      const res = await fetch("/api/admin/overview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "CONFIRM_ESCROW_PAYMENT", escrowId }),
+      });
+      if (res.ok) {
+        showNotice(
+          `Confirmed ₦10,000 bank receipt from ${studentName}! Their 4-digit Release PIN is now unlocked.`
+        );
+        await fetchOverview();
+      }
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const handleToggleVerify = async (userId: string, currentStatus: boolean) => {
     setActionLoading(userId);
     try {
@@ -568,9 +587,14 @@ export default function AdminPage() {
                           <div className="text-[11px] text-gray-500">
                             Student: {e.studentName} ({e.studentPhone})
                           </div>
-                          <div className="text-[10px] text-gray-400">
+                          <div className="text-[10px] font-mono text-gray-500">
                             Ref: {e.paystackReference}
                           </div>
+                          {e.senderBankName && (
+                            <div className="text-[10px] text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded mt-1 inline-block">
+                              Sent from: <strong>{e.senderBankName}</strong> ({e.senderAccountName})
+                            </div>
+                          )}
                         </td>
 
                         <td className="py-4 px-4 font-semibold text-gray-900">
@@ -608,6 +632,8 @@ export default function AdminPage() {
                                 ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
                                 : e.status === "REFUNDED_TO_STUDENT"
                                 ? "bg-red-50 text-red-700 border border-red-200"
+                                : e.status === "AWAITING_PAYMENT_CONFIRMATION"
+                                ? "bg-blue-50 text-blue-800 border border-blue-200"
                                 : "bg-amber-50 text-amber-800 border border-amber-200"
                             }`}
                           >
@@ -615,12 +641,22 @@ export default function AdminPage() {
                               ? "PIN VERIFIED · RELEASED"
                               : e.status === "REFUNDED_TO_STUDENT"
                               ? "REFUNDED TO STUDENT"
-                              : "LOCKED IN ESCROW (48H)"}
+                              : e.status === "AWAITING_PAYMENT_CONFIRMATION"
+                              ? "AWAITING BANK RECEIPT VERIFICATION"
+                              : `LOCKED IN ESCROW (PIN: ${e.releasePin})`}
                           </span>
                         </td>
 
                         <td className="py-4 px-4 text-right">
-                          {e.status === "RELEASED_TO_AGENT" ? (
+                          {e.status === "AWAITING_PAYMENT_CONFIRMATION" ? (
+                            <button
+                              disabled={actionLoading === e.id}
+                              onClick={() => handleConfirmEscrowPayment(e.id, e.studentName)}
+                              className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors"
+                            >
+                              Confirm ₦{(e.amount || 10000).toLocaleString()} Bank Receipt
+                            </button>
+                          ) : e.status === "RELEASED_TO_AGENT" ? (
                             e.payoutStatus === "PAID_TO_BANK" ? (
                               <span className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-emerald-50 text-emerald-700 font-bold text-[11px]">
                                 <CheckCircle2 className="w-3.5 h-3.5" /> Paid to Bank

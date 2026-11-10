@@ -5,6 +5,7 @@ import {
   getBookingsStore,
   getEscrowDepositsStore,
   getRequestsStore,
+  confirmEscrowPayment,
   markEscrowDisbursed,
   markRentalDisbursed,
   updateUser,
@@ -234,6 +235,14 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { action } = body;
+
+    if (action === "CONFIRM_ESCROW_PAYMENT") {
+      const updated = await confirmEscrowPayment(body.escrowId);
+      if (!updated) {
+        return NextResponse.json({ error: "Escrow not found" }, { status: 404 });
+      }
+      return NextResponse.json({ success: true, escrow: updated });
+    }
 
     if (action === "DISBURSE_ESCROW") {
       const updated = await markEscrowDisbursed(body.escrowId);

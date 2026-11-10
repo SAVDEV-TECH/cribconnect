@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
 import { AppProvider } from "@/context/AppContext";
@@ -8,8 +8,16 @@ import VideoTourModal from "@/components/VideoTourModal";
 import RelocationModal from "@/components/RelocationModal";
 import ProUpgradeModal from "@/components/ProUpgradeModal";
 import GoogleOneTap from "@/components/GoogleOneTap";
+import PwaInstaller from "@/components/PwaInstaller";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://cribconnect.vercel.app";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://cribconnect-gold.vercel.app";
+
+export const viewport: Viewport = {
+  themeColor: "#059669",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -34,6 +42,15 @@ export const metadata: Metadata = {
   authors: [{ name: "CribConnect Team" }],
   creator: "CribConnect",
   publisher: "CribConnect",
+  applicationName: "CribConnect",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "CribConnect",
+  },
+  formatDetection: {
+    telephone: true,
+  },
   robots: {
     index: true,
     follow: true,
@@ -71,11 +88,11 @@ export const metadata: Metadata = {
     creator: "@cribconnect",
   },
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon-16x16.png",
-    apple: "/apple-touch-icon.png",
+    icon: "/icon-192.svg",
+    shortcut: "/icon-192.svg",
+    apple: "/icon-192.svg",
   },
-  manifest: "/site.webmanifest",
+  manifest: "/manifest.json",
   alternates: {
     canonical: siteUrl,
   },
@@ -88,17 +105,19 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen flex flex-col bg-white text-gray-900 antialiased">
+      <body className="min-h-screen flex flex-col bg-white text-gray-900 antialiased pb-14 md:pb-0">
         <AppProvider>
           <Navbar />
           <main className="flex-1">{children}</main>
           <Footer />
-          {/* Global Modals & Scripts */}
+          {/* Global Modals, PWA & Scripts */}
           <VideoTourModal />
           <RelocationModal />
           <ProUpgradeModal />
           <GoogleOneTap />
-          <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />`r`n          <Script src="https://js.paystack.co/v1/inline.js" strategy="afterInteractive" />
+          <PwaInstaller />
+          <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
+          <Script src="https://js.paystack.co/v1/inline.js" strategy="afterInteractive" />
         </AppProvider>
       </body>
     </html>

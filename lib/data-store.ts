@@ -111,7 +111,17 @@ export interface EscrowDeposit {
   agentPayout: number;
   releasePin: string;
   paystackReference: string;
-  status: "HELD_IN_ESCROW" | "RELEASED_TO_AGENT" | "REFUNDED_TO_STUDENT" | "DISPUTED";
+  paymentMethod?: "PAYSTACK" | "BANK_TRANSFER";
+  paymentVerified?: boolean;
+  senderBankName?: string;
+  senderAccountName?: string;
+  transferSessionId?: string;
+  status:
+    | "AWAITING_PAYMENT_CONFIRMATION"
+    | "HELD_IN_ESCROW"
+    | "RELEASED_TO_AGENT"
+    | "REFUNDED_TO_STUDENT"
+    | "DISPUTED";
   payoutStatus?: "LOCKED" | "APPROVED_FOR_PAYOUT" | "PAID_TO_BANK" | "REFUNDED";
   paidOutAt?: string;
   holdDurationHours: number;
@@ -356,18 +366,24 @@ export async function getEscrowsByAgent(
 }
 
 export async function addEscrowDepositStore(
-  deposit: Omit<EscrowDeposit, "id" | "createdAt" | "status" | "releasePin" | "expiresAt">
+  deposit: Omit<EscrowDeposit, "id" | "createdAt" | "status" | "releasePin" | "expiresAt"> & {
+    initialStatus?: "AWAITING_PAYMENT_CONFIRMATION" | "HELD_IN_ESCROW";
+  }
 ): Promise<EscrowDeposit> {
   const current = await getEscrowDepositsStore();
   const releasePin = Math.floor(1000 + Math.random() * 9000).toString();
   const holdHours = deposit.holdDurationHours || 48;
   const expiresAt = new Date(Date.now() + holdHours * 3600 * 1000).toISOString();
 
+  const initialStatus =
+    deposit.initialStatus ||
+    (deposit.paymentVerified === false ? "AWAITING_PAYMENT_CONFIRMATION" : "HELD_IN_ESCROW");
+
   const newEscrow: EscrowDeposit = {
     ...deposit,
     id: "escrow-" + Date.now(),
     releasePin,
-    status: "HELD_IN_ESCROW",
+    status: initialStatus,
     payoutStatus: "LOCKED",
     expiresAt,
     createdAt: new Date().toISOString(),
@@ -378,9 +394,27 @@ export async function addEscrowDepositStore(
   return newEscrow;
 }
 
+export async function confirmEscrowPayment(id: string): Promise<EscrowDeposit | undefined> {
+  const current = await getEscrowDepositsStore();
+  const escrow = current.find((e) => e.id === id);
+  if (!escrow) return undefined;
+  escrow.paymentVerified = true;
+  if (escrow.status === "AWAITING_PAYMENT_CONFIRMATION") {
+    escrow.status = "HELD_IN_ESCROW";
+  }
+  activeEscrows = [...current];
+  await saveToDb("escrows", activeEscrows);
+  return escrow;
+}
+
 export async function updateEscrowStatus(
   id: string,
-  status: "HELD_IN_ESCROW" | "RELEASED_TO_AGENT" | "REFUNDED_TO_STUDENT" | "DISPUTED",
+  status:
+    | "AWAITING_PAYMENT_CONFIRMATION"
+    | "HELD_IN_ESCROW"
+    | "RELEASED_TO_AGENT"
+    | "REFUNDED_TO_STUDENT"
+    | "DISPUTED",
   pin?: string,
   reason?: string
 ): Promise<{ success: boolean; error?: string; escrow?: EscrowDeposit }> {
@@ -390,11 +424,18 @@ export async function updateEscrowStatus(
     return { success: false, error: "Escrow record not found." };
   }
 
-  if (status === "RELEASED_TO_AGENT" && pin) {
-    if (pin.trim() !== escrow.releasePin) {
+  if (status === "RELEASED_TO_AGENT") {
+    if (escrow.status === "AWAITING_PAYMENT_CONFIRMATION" || escrow.paymentVerified === false) {
       return {
         success: false,
-        error: "Invalid Inspection Release PIN. Please ask the tenant for their 4-digit code.",
+        error:
+          "Cannot release funds yet: bank transfer payment is still awaiting CribConnect Escrow Vault confirmation.",
+      };
+    }
+    if (!pin || pin.trim() !== escrow.releasePin) {
+      return {
+        success: false,
+        error: "Invalid Inspection Release PIN. Please enter the exact 4-digit Release PIN.",
       };
     }
   }
