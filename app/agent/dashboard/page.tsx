@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -116,6 +116,21 @@ export default function AgentDashboardPage() {
       console.error(err);
     } finally {
       setClaimingEscrowId(null);
+    }
+  };
+
+  const handleDeleteListing = async (listingId: string) => {
+    try {
+      const res = await fetch(`/api/listings/${listingId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setListings((prev) => prev.filter((item) => item.id !== listingId));
+        setSuccessMessage("Property listing removed.");
+        setTimeout(() => setSuccessMessage(null), 4000);
+      }
+    } catch (err) {
+      console.error("Failed to delete listing:", err);
     }
   };
 
@@ -794,6 +809,13 @@ export default function AgentDashboardPage() {
                     >
                       <Eye className="w-4 h-4" />
                     </Link>
+                    <button
+                      onClick={() => handleDeleteListing(l.id)}
+                      className="p-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 transition-colors"
+                      title="Remove listing"
+                    >
+                      <XCircle className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               ))}

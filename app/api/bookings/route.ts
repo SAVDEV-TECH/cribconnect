@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import {
   addBookingStore,
@@ -25,19 +25,19 @@ export async function GET(req: NextRequest) {
     if (token) {
       const payload = verifySessionToken(token);
       if (payload) {
-        sessionUser = getUserById(payload.userId);
+        sessionUser = (await getUserById(payload.userId)) || payload;
       }
     }
 
-    const targetAgentId = queryAgentId || sessionUser?.id;
+    const targetAgentId = queryAgentId || sessionUser?.id || sessionUser?.userId;
     const targetAgentName = sessionUser?.name;
 
     if (targetAgentId || targetAgentName) {
-      const agentBookings = getBookingsByAgent(targetAgentId || "", targetAgentName);
+      const agentBookings = await getBookingsByAgent(targetAgentId || "", targetAgentName);
       return NextResponse.json({ bookings: agentBookings });
     }
 
-    const bookings = getBookingsStore();
+    const bookings = await getBookingsStore();
     return NextResponse.json({ bookings });
   } catch (error) {
     console.error("GET bookings error:", error);
@@ -65,12 +65,12 @@ export async function POST(req: NextRequest) {
     }
 
     // Lookup listing to attach agent
-    const listing = getListingById(listingId);
+    const listing = await getListingById(listingId);
     const listingTitle = listing?.title || sanitizeText(body.listingTitle) || "Rental Property";
     const agentId = listing?.agentId || body.agentId || "";
     const agentName = listing?.agentName || body.agentName || "";
 
-    const booking = addBookingStore({
+    const booking = await addBookingStore({
       listingId,
       listingTitle,
       agentId,
@@ -103,7 +103,7 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    const updated = updateBookingStatus(id, status);
+    const updated = await updateBookingStatus(id, status);
     if (!updated) {
       return NextResponse.json({ error: "Booking not found." }, { status: 404 });
     }
@@ -114,4 +114,3 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Failed to update booking status." }, { status: 500 });
   }
 }
-

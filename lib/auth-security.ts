@@ -38,10 +38,20 @@ export function verifyPassword(password: string, salt: string, storedHash: strin
 
 // --- 2. Tamper-Proof Signed Session Tokens ---
 
-export function createSessionToken(userId: string, role: string): string {
+export interface SessionTokenMeta {
+  name?: string;
+  email?: string;
+  phone?: string;
+  whatsapp?: string;
+  avatar?: string;
+  agencyName?: string;
+}
+
+export function createSessionToken(userId: string, role: string, meta?: SessionTokenMeta): string {
   const payload = {
     userId,
     role,
+    ...(meta || {}),
     issuedAt: Date.now(),
     expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000, // 30 days
   };
@@ -54,7 +64,9 @@ export function createSessionToken(userId: string, role: string): string {
   return `${payloadBase64}.${signature}`;
 }
 
-export function verifySessionToken(token: string): { userId: string; role: string } | null {
+export function verifySessionToken(
+  token: string
+): ({ userId: string; role: string } & SessionTokenMeta) | null {
   try {
     const parts = token.split(".");
     if (parts.length !== 2) return null;
@@ -74,7 +86,16 @@ export function verifySessionToken(token: string): { userId: string; role: strin
     const payload = JSON.parse(Buffer.from(payloadBase64, "base64url").toString());
     if (Date.now() > payload.expiresAt) return null;
 
-    return { userId: payload.userId, role: payload.role };
+    return {
+      userId: payload.userId,
+      role: payload.role,
+      name: payload.name,
+      email: payload.email,
+      phone: payload.phone,
+      whatsapp: payload.whatsapp,
+      avatar: payload.avatar,
+      agencyName: payload.agencyName,
+    };
   } catch {
     return null;
   }

@@ -1,33 +1,28 @@
-﻿import { NextRequest, NextResponse } from "next/server";
-import { MOCK_HOUSING_REQUESTS, MOCK_USERS, MOCK_PROPOSALS, MOCK_AGENT_PROFILES, MOCK_LISTINGS, getRequestWithDetails } from "@/lib/mock-data";
+import { NextRequest, NextResponse } from "next/server";
+import { getRequestById } from "@/lib/data-store";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id } = params;
-    try {
-      const { prisma } = await import("@/lib/prisma");
-      const request = await prisma.housingRequest.findUnique({
-        where: { id },
-        include: {
-          student: { select: { id: true, name: true, avatar: true, city: true, currentSchool: true } },
-          proposals: {
-            include: {
-              agent: { select: { id: true, name: true, avatar: true, phone: true, whatsapp: true, agentProfile: true } },
-              listing: true,
-            },
-            orderBy: { createdAt: "desc" },
-          },
-        },
-      });
-      if (!request) return NextResponse.json({ error: "Request not found" }, { status: 404 });
-      return NextResponse.json({ request });
-    } catch {
-      const mockRequest = MOCK_HOUSING_REQUESTS.find(r => r.id === id);
-      if (!mockRequest) return NextResponse.json({ error: "Request not found" }, { status: 404 });
-      return NextResponse.json({ request: getRequestWithDetails(mockRequest) });
+    const request = await getRequestById(id);
+    if (!request) {
+      return NextResponse.json({ error: "Request not found" }, { status: 404 });
     }
+    return NextResponse.json({
+      request: {
+        ...request,
+        student: {
+          id: "student-" + request.id,
+          name: request.tenantName,
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(request.tenantName)}`,
+          city: "Port Harcourt",
+          currentSchool: request.tenantSchool || "UNIPORT",
+        },
+        proposals: [],
+      },
+    });
   } catch (error) {
     return NextResponse.json({ error: "Failed to fetch request" }, { status: 500 });
   }

@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import {
   createSessionToken,
@@ -43,12 +43,12 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if user already exists
-    let user = getUserByEmail(email);
+    let user = await getUserByEmail(email);
 
     if (user) {
       // User exists - update avatar if currently default and provider gave a specific one
       if (body.avatar && (!user.avatar || user.avatar.includes("dicebear"))) {
-        updateUser(user.id, { avatar: body.avatar });
+        await updateUser(user.id, { avatar: body.avatar });
       }
     } else {
       // Create new Agent or Landlord account immediately
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
 
       const { salt, hash } = hashPassword(Math.random().toString(36).substring(2) + "Crib2026!");
 
-      user = createUser({
+      user = await createUser({
         name,
         email,
         phone: body.phone ? sanitizeText(body.phone) : "+234 800 000 0000",
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
           chosenRole === "LANDLORD"
             ? "Verified property owner renting clean student accommodations with zero agent markups."
             : "Licensed Port Harcourt realtor helping students and relocators find verified cribs near campus.",
-        specializations: "UNIPORT, Choba, Rumuola, Onike, Bariga",
+        specializations: "UNIPORT, Choba, Rumuola, Aluu, Ozuoba",
         passwordSalt: salt,
         passwordHash: hash,
         isVerified: Boolean(body.isVerified),
@@ -81,7 +81,14 @@ export async function POST(req: NextRequest) {
     }
 
     // Issue tamper-proof signed session token
-    const token = createSessionToken(user.id, user.role);
+    const token = createSessionToken(user.id, user.role, {
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      whatsapp: user.whatsapp,
+      avatar: user.avatar,
+      agencyName: user.agencyName,
+    });
 
     // Set secure HTTP-only cookie
     const cookieStore = cookies();

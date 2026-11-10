@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const listing = getListingById(listingId);
+    const listing = await getListingById(listingId);
     if (!listing) {
       return NextResponse.json({ error: "Listing not found." }, { status: 404 });
     }
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     const reference =
       paystackReference || "CRIB_ESCROW_" + Date.now().toString(36).toUpperCase();
 
-    const escrow = addEscrowDepositStore({
+    const escrow = await addEscrowDepositStore({
       listingId: listing.id,
       listingTitle: listing.title,
       neighborhood: listing.neighborhood,

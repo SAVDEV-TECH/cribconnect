@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useRef } from "react";
 import {
@@ -32,6 +32,44 @@ export default function MediaUploader({
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
+  const compressImageFile = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const MAX_DIM = 1280;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height && width > MAX_DIM) {
+            height = Math.round((height * MAX_DIM) / width);
+            width = MAX_DIM;
+          } else if (height > MAX_DIM) {
+            width = Math.round((width * MAX_DIM) / height);
+            height = MAX_DIM;
+          }
+
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            resolve(event.target?.result as string);
+            return;
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.82);
+          resolve(compressedDataUrl);
+        };
+        img.onerror = () => reject(new Error(`Failed to process image "${file.name}"`));
+        img.src = event.target?.result as string;
+      };
+      reader.onerror = () => reject(new Error(`Failed to read file "${file.name}"`));
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleImageFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     setUploadError(null);
@@ -43,27 +81,12 @@ export default function MediaUploader({
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
 
-        // Client-side file size check (5MB)
-        if (file.size > 5 * 1024 * 1024) {
-          throw new Error(`"${file.name}" is larger than 5MB. Please choose a smaller photo.`);
+        if (file.size > 15 * 1024 * 1024) {
+          throw new Error(`"${file.name}" is larger than 15MB. Please choose a smaller photo.`);
         }
 
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const res = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        });
-
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error || "Failed to upload photo");
-        }
-
-        if (data.url) {
-          newUrls.push(data.url);
-        }
+        const compressedUrl = await compressImageFile(file);
+        newUrls.push(compressedUrl);
       }
 
       onPhotosChange([...photos, ...newUrls]);

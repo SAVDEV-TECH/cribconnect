@@ -1,11 +1,11 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getRequestsStore, addRequestStore } from "@/lib/data-store";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
-    const requests = getRequestsStore();
+    const requests = await getRequestsStore();
     return NextResponse.json({ requests });
   } catch (error) {
     console.error("Failed to fetch requests:", error);
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const newRequest = addRequestStore({
+    const newRequest = await addRequestStore({
       tenantName: body.tenantName,
       tenantPhone: body.tenantPhone || "+234 800 000 0000",
       tenantWhatsapp: body.tenantWhatsapp?.replace(/\D/g, "") || body.tenantPhone?.replace(/\D/g, "") || "2348000000000",

@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect, useMemo, Suspense } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 import ListingCard from "@/components/ListingCard";
@@ -16,6 +17,7 @@ import {
   Columns,
   CheckCircle2,
   Building2,
+  PlusCircle,
 } from "lucide-react";
 
 function ListingsContent() {
@@ -32,7 +34,7 @@ function ListingsContent() {
   const [neighborhood, setNeighborhood] = useState(searchParams.get("neighborhood") || "ALL");
   const [propertyType, setPropertyType] = useState(searchParams.get("propertyType") || "ALL");
   const [maxPrice, setMaxPrice] = useState<number>(
-    searchParams.get("maxPrice") ? Number(searchParams.get("maxPrice")) : 1200000
+    searchParams.get("maxPrice") ? Number(searchParams.get("maxPrice")) : 5000000
   );
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
@@ -43,7 +45,7 @@ function ListingsContent() {
   const fetchListings = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/listings");
+      const res = await fetch("/api/listings", { cache: "no-store" });
       const data = await res.json();
       if (data.listings) {
         setListings(data.listings);
@@ -73,10 +75,10 @@ function ListingsContent() {
       if (propertyType !== "ALL" && item.propertyType !== propertyType) {
         return false;
       }
-      if (item.price > maxPrice) {
+      if (maxPrice < 5000000 && item.price > maxPrice) {
         return false;
       }
-      if (verifiedOnly && item.agent?.agentProfile?.verificationStatus !== "VERIFIED") {
+      if (verifiedOnly && !item.agentVerified && item.agent?.agentProfile?.verificationStatus !== "VERIFIED") {
         return false;
       }
       if (searchQuery.trim()) {
@@ -211,14 +213,14 @@ function ListingsContent() {
           <div className="col-span-2">
             <div className="flex justify-between items-center mb-1">
               <label className="text-[10px] font-bold text-gray-500 uppercase">
-                Max Budget: {formatMoney(maxPrice)}
+                Max Budget: {maxPrice >= 5000000 ? "Any Budget" : formatMoney(maxPrice)}
               </label>
             </div>
             <input
               type="range"
-              min="250000"
-              max="1500000"
-              step="25000"
+              min="100000"
+              max="5000000"
+              step="50000"
               value={maxPrice}
               onChange={(e) => setMaxPrice(Number(e.target.value))}
               className="w-full accent-emerald-600 cursor-pointer"
@@ -281,12 +283,25 @@ function ListingsContent() {
                 Loading verified student cribs...
               </div>
             ) : filteredListings.length === 0 ? (
-              <div className="text-center py-16 bg-white rounded-xl border border-gray-200 p-8 space-y-3">
-                <Building2 className="w-10 h-10 text-gray-400 mx-auto" />
-                <h3 className="font-bold text-gray-900 text-sm">No cribs matched your filters</h3>
-                <p className="text-xs text-gray-500">
-                  Try adjusting your budget or clearing amenity constraints, or post a housing request to let agents find one for you.
-                </p>
+              <div className="text-center py-16 bg-white rounded-xl border border-gray-200 p-8 space-y-4">
+                <Building2 className="w-10 h-10 text-emerald-600 mx-auto" />
+                <div className="space-y-1 max-w-sm mx-auto">
+                  <h3 className="font-bold text-gray-900 text-sm">
+                    {listings.length === 0 ? "No properties uploaded yet" : "No cribs matched your filters"}
+                  </h3>
+                  <p className="text-xs text-gray-500">
+                    {listings.length === 0
+                      ? "Upload your real properties and they will appear here immediately in Browse & Connect."
+                      : "Try adjusting your budget or clearing amenity constraints."}
+                  </p>
+                </div>
+                <Link
+                  href="/list-property"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors"
+                >
+                  <PlusCircle className="w-4 h-4" />
+                  <span>Upload New Property</span>
+                </Link>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

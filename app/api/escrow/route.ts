@@ -13,12 +13,12 @@ export async function GET(req: NextRequest) {
     const listingId = searchParams.get("listingId");
     const agentId = searchParams.get("agentId");
 
-    let escrows = getEscrowDepositsStore();
+    let escrows = await getEscrowDepositsStore();
 
     if (listingId) {
-      escrows = getEscrowsByListingId(listingId);
+      escrows = await getEscrowsByListingId(listingId);
     } else if (agentId) {
-      escrows = getEscrowsByAgent(agentId);
+      escrows = await getEscrowsByAgent(agentId);
     }
 
     return NextResponse.json({

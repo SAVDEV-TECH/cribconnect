@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const user = getUserByEmail(email);
+    const user = await getUserByEmail(email);
     if (!user) {
       return NextResponse.json(
         { error: `Invalid email or password. (${remaining} attempts remaining)` },
@@ -54,7 +54,14 @@ export async function POST(req: NextRequest) {
     }
 
     // Issue tamper-proof HMAC session token
-    const token = createSessionToken(user.id, user.role);
+    const token = createSessionToken(user.id, user.role, {
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      whatsapp: user.whatsapp,
+      avatar: user.avatar,
+      agencyName: user.agencyName,
+    });
 
     // Set secure HTTP-only cookie
     const cookieStore = cookies();

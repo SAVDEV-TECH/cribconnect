@@ -4,7 +4,7 @@ import { getListingsStore } from "@/lib/data-store";
 
 export const dynamic = "force-dynamic";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://cribconnect-gold.vercel.app";
 
   // Static pages
@@ -42,7 +42,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   ];
 
   // Dynamic listing pages from store
-  const listings = getListingsStore();
+  const listings = await getListingsStore();
   const listingRoutes: MetadataRoute.Sitemap = listings.map((l) => ({
     url: `${baseUrl}/listings/${l.id}`,
     lastModified: new Date(),

@@ -2,14 +2,18 @@ import React from "react";
 import Link from "next/link";
 import { getListingsStore, getRequestsStore } from "@/lib/data-store";
 import ListingCard from "@/components/ListingCard";
-import { Search, ShieldCheck, Video, CheckCircle2, ArrowRight, MessageSquare } from "lucide-react";
+import { Search, ShieldCheck, Video, CheckCircle2, ArrowRight, MessageSquare, Building2, PlusCircle } from "lucide-react";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-export default function HomePage() {
-  const allListings = getListingsStore();
+export default async function HomePage() {
+  const [allListings, allRequests] = await Promise.all([
+    getListingsStore(),
+    getRequestsStore(),
+  ]);
   const featuredListings = allListings.slice(0, 6);
-  const activeRequests = getRequestsStore().slice(0, 2);
+  const activeRequests = allRequests.slice(0, 2);
 
   return (
     <div className="bg-white">
@@ -98,11 +102,30 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {featuredListings.map((listing) => (
-            <ListingCard key={listing.id} listing={listing} />
-          ))}
-        </div>
+        {featuredListings.length === 0 ? (
+          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-10 text-center space-y-4">
+            <Building2 className="w-10 h-10 text-emerald-600 mx-auto" />
+            <div className="space-y-1 max-w-md mx-auto">
+              <h3 className="text-base font-bold text-gray-900">No properties uploaded yet</h3>
+              <p className="text-xs text-gray-500">
+                Upload your first student apartment or lodge near UNIPORT and it will appear here immediately for students to browse and connect.
+              </p>
+            </div>
+            <Link
+              href="/list-property"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors"
+            >
+              <PlusCircle className="w-4 h-4" />
+              <span>Upload New Property</span>
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {featuredListings.map((listing) => (
+              <ListingCard key={listing.id} listing={listing} />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Divider */}

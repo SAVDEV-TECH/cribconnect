@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -122,9 +122,11 @@ export default function ListPropertyPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
+          agentId: currentUser?.id || undefined,
+          agentAvatar: currentUser?.avatar || undefined,
           photos: finalPhotos,
           videoTourUrl: videoTourUrl || null,
-          distanceDescription: `${formData.distanceToCampusMinutes} mins to Campus Gate`,
+          distanceDescription: `${formData.distanceToCampusMinutes} mins to UNIPORT Gate`,
         }),
       });
 
@@ -133,7 +135,8 @@ export default function ListPropertyPage() {
         throw new Error(data.error || "Failed to publish listing");
       }
 
-      // Redirect immediately to the published listing
+      // Refresh router cache and redirect immediately to the published listing
+      router.refresh();
       router.push(`/listings/${data.listing.id}`);
     } catch (err: any) {
       setError(err.message || "Something went wrong");

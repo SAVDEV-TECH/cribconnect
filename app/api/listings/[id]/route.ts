@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getListingById } from "@/lib/data-store";
+import { getListingById, deleteListingById } from "@/lib/data-store";
 
 export const dynamic = "force-dynamic";
 
@@ -9,7 +9,7 @@ export async function GET(
 ) {
   try {
     const { id } = params;
-    const listing = getListingById(id);
+    const listing = await getListingById(id);
 
     if (!listing) {
       return NextResponse.json({ error: "Listing not found" }, { status: 404 });
@@ -19,5 +19,22 @@ export async function GET(
   } catch (error) {
     console.error("Failed to fetch listing:", error);
     return NextResponse.json({ error: "Failed to fetch listing" }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { id } = params;
+    const deleted = await deleteListingById(id);
+    if (!deleted) {
+      return NextResponse.json({ error: "Listing not found" }, { status: 404 });
+    }
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Failed to delete listing:", error);
+    return NextResponse.json({ error: "Failed to delete listing" }, { status: 500 });
   }
 }

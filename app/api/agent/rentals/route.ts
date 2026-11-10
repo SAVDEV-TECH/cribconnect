@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifySessionToken, sanitizeText } from "@/lib/auth-security";
-import { recordRentalSuccess, getListingsStore } from "@/lib/data-store";
+import { recordRentalSuccess, updateListingStore } from "@/lib/data-store";
 
 export const dynamic = "force-dynamic";
 
@@ -22,11 +22,11 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const tenantName = sanitizeText(body.tenantName || "Student Tenant");
     const propertyTitle = sanitizeText(body.propertyTitle || "Student Accommodation");
-    const neighborhood = sanitizeText(body.neighborhood || "Akoka");
-    const amount = parseFloat(body.amount) || 450000;
+    const neighborhood = sanitizeText(body.neighborhood || "Choba");
+    const amount = parseFloat(body.amount) || 220000;
     const date = body.date || new Date().toISOString().split("T")[0];
 
-    const updatedUser = recordRentalSuccess(payload.userId, {
+    const updatedUser = await recordRentalSuccess(payload.userId, {
       tenantName,
       propertyTitle,
       neighborhood,
@@ -40,11 +40,7 @@ export async function POST(req: NextRequest) {
 
     // If listingId was passed, mark that listing as not available / rented
     if (body.listingId) {
-      const allListings = getListingsStore();
-      const listing = allListings.find((l) => l.id === body.listingId);
-      if (listing) {
-        listing.isAvailable = false;
-      }
+      await updateListingStore(body.listingId, { isAvailable: false });
     }
 
     return NextResponse.json({

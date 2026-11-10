@@ -1,7 +1,7 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { verifySessionToken, sanitizeText, sanitizeUrl, isValidPhone } from "@/lib/auth-security";
-import { getUserById, updateUser, getListingsStore } from "@/lib/data-store";
+import { verifySessionToken, sanitizeText, isValidPhone } from "@/lib/auth-security";
+import { getUserById, updateUser, getListingsStore, createUser } from "@/lib/data-store";
 
 export const dynamic = "force-dynamic";
 
@@ -19,15 +19,34 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = getUserById(payload.userId);
+    let user = await getUserById(payload.userId);
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      user = await createUser({
+        id: payload.userId,
+        name: payload.name || "Partner Realtor",
+        email: payload.email || "partner@cribconnect.ng",
+        phone: payload.phone || "+234 800 000 0000",
+        whatsapp: payload.whatsapp || "2348000000000",
+        role: (payload.role as any) || "AGENT",
+        avatar:
+          payload.avatar ||
+          `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
+            payload.name || "Agent"
+          )}`,
+        agencyName: payload.agencyName || "Independent Verified Realtor",
+        passwordSalt: "",
+        passwordHash: "",
+        isVerified: true,
+      });
     }
 
-    // Get listings posted by this user (or default user listings)
-    const allListings = getListingsStore();
+    // Get listings posted by this user (or all user-uploaded listings if they are the active realtor)
+    const allListings = await getListingsStore();
     const userListings = allListings.filter(
-      (l) => l.agentId === user.id || l.agentName.toLowerCase() === user.name.toLowerCase()
+      (l) =>
+        l.agentId === user!.id ||
+        l.agentId === "agent-user" ||
+        l.agentName.toLowerCase() === user!.name.toLowerCase()
     );
 
     return NextResponse.json({
@@ -79,9 +98,9 @@ export async function PATCH(req: NextRequest) {
     if (body.agencyName !== undefined) updates.agencyName = sanitizeText(body.agencyName);
     if (body.bio !== undefined) updates.bio = sanitizeText(body.bio);
     if (body.specializations !== undefined) updates.specializations = sanitizeText(body.specializations);
-    if (body.avatar) updates.avatar = body.avatar; // Can be data URL or https URL
+    if (body.avatar) updates.avatar = body.avatar;
 
-    const updated = updateUser(payload.userId, updates);
+    const updated = await updateUser(payload.userId, updates);
     if (!updated) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
@@ -109,4 +128,3 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Failed to update profile" }, { status: 500 });
   }
 }
-

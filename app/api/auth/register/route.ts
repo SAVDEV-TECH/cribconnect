@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Check duplicate email
-    const existing = getUserByEmail(email);
+    const existing = await getUserByEmail(email);
     if (existing) {
       return NextResponse.json(
         { error: "An account with this email already exists. Please sign in instead." },
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
 
     const defaultAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`;
 
-    const newUser = createUser({
+    const newUser = await createUser({
       name,
       email,
       phone,
@@ -86,7 +86,14 @@ export async function POST(req: NextRequest) {
     });
 
     // Create tamper-proof HMAC session token
-    const token = createSessionToken(newUser.id, newUser.role);
+    const token = createSessionToken(newUser.id, newUser.role, {
+      name: newUser.name,
+      email: newUser.email,
+      phone: newUser.phone,
+      whatsapp: newUser.whatsapp,
+      avatar: newUser.avatar,
+      agencyName: newUser.agencyName,
+    });
 
     // Set secure HTTP-only cookie
     const cookieStore = cookies();

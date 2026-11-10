@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import {
   createSessionToken,
@@ -134,18 +134,18 @@ export async function POST(req: NextRequest) {
     }
 
     // Lookup user in store
-    let user = getUserByEmail(email);
+    let user = await getUserByEmail(email);
 
     if (user) {
       // User already exists, update Google profile picture if available
       if (avatar && (!user.avatar || user.avatar.includes("dicebear"))) {
-        updateUser(user.id, { avatar });
+        await updateUser(user.id, { avatar });
       }
     } else {
       // Create new verified Agent or Landlord account
       const { salt, hash } = hashPassword(Math.random().toString(36).substring(2) + "Google2026!");
 
-      user = createUser({
+      user = await createUser({
         name,
         email,
         phone: body.phone ? sanitizeText(body.phone) : "+234 800 000 0000",
@@ -157,7 +157,7 @@ export async function POST(req: NextRequest) {
           chosenRole === "LANDLORD"
             ? "Verified property owner renting student accommodations with zero agency fees."
             : "Licensed Port Harcourt realtor helping students and relocators find verified cribs near campus.",
-        specializations: "UNIPORT, Choba, Rumuola, Onike, Bariga",
+        specializations: "UNIPORT, Choba, Rumuola, Aluu, Ozuoba",
         passwordSalt: salt,
         passwordHash: hash,
         isVerified: false,
@@ -166,7 +166,14 @@ export async function POST(req: NextRequest) {
     }
 
     // Issue tamper-proof signed session token
-    const token = createSessionToken(user.id, user.role);
+    const token = createSessionToken(user.id, user.role, {
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      whatsapp: user.whatsapp,
+      avatar: user.avatar,
+      agencyName: user.agencyName,
+    });
 
     // Set secure HTTP-only cookie
     const cookieStore = cookies();

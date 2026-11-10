@@ -15,13 +15,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const escrow = getEscrowById(id);
+    const escrow = await getEscrowById(id);
     if (!escrow) {
       return NextResponse.json({ error: "Escrow record not found." }, { status: 404 });
     }
 
     if (action === "RELEASE") {
-      const res = updateEscrowStatus(id, "RELEASED_TO_AGENT", pin);
+      const res = await updateEscrowStatus(id, "RELEASED_TO_AGENT", pin);
       if (!res.success) {
         return NextResponse.json({ error: res.error }, { status: 400 });
       }
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (action === "REFUND") {
-      const res = updateEscrowStatus(
+      const res = await updateEscrowStatus(
         id,
         "REFUNDED_TO_STUDENT",
         undefined,
