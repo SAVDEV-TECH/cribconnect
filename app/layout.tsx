@@ -9,6 +9,7 @@ import RelocationModal from "@/components/RelocationModal";
 import ProUpgradeModal from "@/components/ProUpgradeModal";
 import GoogleOneTap from "@/components/GoogleOneTap";
 import PwaInstaller from "@/components/PwaInstaller";
+import AiConciergeChat from "@/components/AiConciergeChat";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://cribconnect-gold.vercel.app";
 
@@ -115,6 +116,7 @@ export default function RootLayout({
           <RelocationModal />
           <ProUpgradeModal />
           <GoogleOneTap />
+          <AiConciergeChat />
           <PwaInstaller />
           <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
           <Script src="https://js.paystack.co/v1/inline.js" strategy="afterInteractive" />

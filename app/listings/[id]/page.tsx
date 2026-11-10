@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import EscrowModal from "@/components/EscrowModal";
@@ -302,6 +302,55 @@ export default function ListingDetailPage() {
               </div>
             </div>
           )}
+
+          {/* High-Resolution Satellite & Google Maps Location Section */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-lg text-gray-900 flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-emerald-600" />
+                <span>Satellite Location &amp; Campus Distance</span>
+              </h3>
+              <a
+                href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+                  `${listing.address || listing.neighborhood}, Port Harcourt, Rivers State, Nigeria`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-bold text-emerald-700 hover:underline"
+              >
+                Open Google Maps Directions →
+              </a>
+            </div>
+            <div className="h-72 w-full rounded-2xl overflow-hidden border border-gray-200 shadow-xs bg-gray-100">
+              <iframe
+                title="Property Satellite Map"
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(
+                  `${listing.address || listing.neighborhood}, University of Port Harcourt, Choba`
+                )}&t=h&z=16&ie=UTF8&iwloc=&output=embed`}
+                className="w-full h-full border-0"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+          </div>
+
+          {/* Verified Inspection & Escrow Reviews Section */}
+          <div className="p-5 rounded-2xl bg-gray-50 border border-gray-200 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-base text-gray-900 flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  <span>Verified Student Inspection Guarantee</span>
+                </h3>
+                <p className="text-xs text-gray-500">
+                  Every tenant who reserves via CribConnect Escrow is protected by our 4-digit physical inspection PIN.
+                </p>
+              </div>
+              <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">
+                100% Protected
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Right Column: Contact Agent Card (Sticky) */}

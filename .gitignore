@@ -45,3 +45,5 @@ coverage/
 next-env.d.ts
 
 .vercel
+android-native/build/
+*.jks

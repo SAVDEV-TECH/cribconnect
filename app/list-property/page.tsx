@@ -19,6 +19,9 @@ import {
   User,
   LogIn,
   HelpCircle,
+  Sparkles,
+  Mic,
+  MicOff,
 } from "lucide-react";
 
 export default function ListPropertyPage() {
@@ -26,6 +29,12 @@ export default function ListPropertyPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // AI Express Auto-Filler States
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiNotice, setAiNotice] = useState<string | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
 
   // Social Auth Modal State
   const [socialModalOpen, setSocialModalOpen] = useState(false);
@@ -105,6 +114,88 @@ export default function ListPropertyPage() {
     "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800",
     "https://images.unsplash.com/photo-1540518614846-7eded433c457?w=800",
   ];
+
+  const handleVoiceDictation = () => {
+    if (typeof window === "undefined") return;
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setError("Voice dictation is supported on Chrome/Android. Or type a 1-line note below.");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-NG";
+    recognition.interimResults = false;
+    setIsRecording(true);
+    setAiNotice("Listening... Speak your property details (e.g. 'Self contain at Choba 250k per year')");
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results?.[0]?.[0]?.transcript || "";
+      if (transcript) {
+        setAiPrompt((prev) => (prev ? `${prev} ${transcript}` : transcript));
+        setAiNotice("Voice captured! Click 'Auto-Fill with AI' to populate the listing.");
+      }
+      setIsRecording(false);
+    };
+
+    recognition.onerror = () => {
+      setIsRecording(false);
+    };
+
+    recognition.onend = () => {
+      setIsRecording(false);
+    };
+
+    recognition.start();
+  };
+
+  const handleAiAutoFill = async () => {
+    setAiLoading(true);
+    setError(null);
+    setAiNotice(null);
+
+    try {
+      const res = await fetch("/api/ai/parse-listing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: aiPrompt || "Executive Self-Contain at Choba near UNIPORT Gate, 250k per year, steady water and security",
+          photoUrl: photos[0] || undefined,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.listing) {
+        throw new Error(data.error || "Failed to auto-fill property");
+      }
+
+      const l = data.listing;
+      setFormData((prev) => ({
+        ...prev,
+        title: l.title || prev.title,
+        neighborhood: l.neighborhood || prev.neighborhood,
+        propertyType: l.propertyType || prev.propertyType,
+        price: l.price ? String(l.price) : prev.price,
+        cautionFee: l.cautionFee ? String(l.cautionFee) : prev.cautionFee,
+        agencyFee: l.agencyFee ? String(l.agencyFee) : prev.agencyFee,
+        distanceToCampusMinutes: l.distanceToCampusMinutes
+          ? String(l.distanceToCampusMinutes)
+          : prev.distanceToCampusMinutes,
+        address: l.address || prev.address,
+        description: l.description || prev.description,
+        amenities: Array.isArray(l.amenities) ? l.amenities : prev.amenities,
+      }));
+
+      setAiNotice(
+        "✨ AI Auto-Fill complete! All property details, fees, and description have been populated below. Just review and click Publish!"
+      );
+    } catch (err: any) {
+      setError(err.message || "Could not auto-fill property");
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -191,6 +282,67 @@ export default function ListPropertyPage() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* AI Express Auto-Uploader for Stress-Free Landlord & Agent Listing */}
+        <div className="p-5 rounded-2xl bg-emerald-50/70 border border-emerald-200 space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-gray-900">
+                  1-Click AI Property Assistant (No Typing Stress)
+                </h3>
+                <p className="text-[11px] text-gray-600">
+                  Paste a short WhatsApp note or tap Speak — AI fills the title, price, fees, area &amp; description automatically.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="text"
+              placeholder="e.g. Sharp selfcon at Aluu Omuoko, 250k per year, steady light, borehole, tiled..."
+              value={aiPrompt}
+              onChange={(e) => setAiPrompt(e.target.value)}
+              className="flex-1 px-3.5 py-2.5 rounded-xl bg-white border border-emerald-200 text-xs text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+            />
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={handleVoiceDictation}
+                className={`px-3 py-2.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-colors ${
+                  isRecording
+                    ? "bg-red-600 text-white border-red-600 animate-pulse"
+                    : "bg-white text-gray-800 border-gray-200 hover:bg-gray-50"
+                }`}
+                title="Speak property details"
+              >
+                {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4 text-emerald-600" />}
+                <span>{isRecording ? "Listening..." : "Speak"}</span>
+              </button>
+
+              <button
+                type="button"
+                disabled={aiLoading}
+                onClick={handleAiAutoFill}
+                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors disabled:opacity-50"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>{aiLoading ? "Generating..." : "Auto-Fill with AI"}</span>
+              </button>
+            </div>
+          </div>
+
+          {aiNotice && (
+            <div className="p-2.5 rounded-xl bg-white border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>{aiNotice}</span>
+            </div>
+          )}
         </div>
 
         {/* 3-Step Agent & Landlord Progression Guide */}

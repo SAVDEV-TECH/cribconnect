@@ -221,16 +221,26 @@ export default function PwaInstaller() {
               </button>
             </div>
 
-            {deferredPrompt ? (
+            {deferredPrompt && (
               <button
                 onClick={handleInstallClick}
                 className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm"
               >
                 <Download className="w-4 h-4" />
-                <span>Tap Here to Install CribConnect Now</span>
+                <span>Install Instant Web App (PWA)</span>
               </button>
-            ) : (
-              <div className="space-y-3 text-xs text-gray-700">
+            )}
+
+            <a
+              href="/CribConnect.apk"
+              download="CribConnect.apk"
+              className="w-full py-3 px-4 rounded-xl bg-gray-900 hover:bg-black text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-colors"
+            >
+              <Download className="w-4 h-4 text-emerald-400" />
+              <span>Download Native Android APK (CribConnect.apk)</span>
+            </a>
+
+            <div className="space-y-3 text-xs text-gray-700">
                 <div className="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200 space-y-1.5">
                   <div className="font-bold text-emerald-950 flex items-center gap-1.5">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600" />
@@ -255,7 +265,6 @@ export default function PwaInstaller() {
                   </ol>
                 </div>
               </div>
-            )}
 
             <div className="pt-2 border-t border-gray-100 flex items-center justify-between gap-2">
               <button
