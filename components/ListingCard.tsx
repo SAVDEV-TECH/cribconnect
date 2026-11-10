@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from "react";
 import Link from "next/link";
@@ -163,6 +163,9 @@ export default function ListingCard({ listing }: ListingCardProps) {
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => {
+                fetch(`/api/listings/${listing.id}`, { method: "POST" }).catch(() => {});
+              }}
               className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:border-emerald-300 hover:text-emerald-600 transition-colors"
               title="WhatsApp"
             >

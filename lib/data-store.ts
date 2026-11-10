@@ -33,6 +33,7 @@ export interface Listing {
   amenities: string[];
   isFeatured: boolean;
   viewsCount: number;
+  whatsappClicksCount?: number;
   isAvailable: boolean;
   createdAt: string;
   cautionFee: number;
@@ -64,6 +65,10 @@ export interface TenantRentalRecord {
   neighborhood: string;
   date: string;
   amount: number;
+  agencyFeeTotal?: number;
+  platformCommission?: number; // 20% of 10% Agency Fee
+  agentNetCommission?: number; // 80% of 10% Agency Fee
+  payoutStatus?: "APPROVED_FOR_PAYOUT" | "PAID_TO_BANK";
 }
 
 export interface StoredUser {
@@ -81,6 +86,9 @@ export interface StoredUser {
   passwordHash: string;
   isVerified: boolean;
   ninOrLicense?: string;
+  bankName?: string;
+  bankAccountNumber?: string;
+  bankAccountName?: string;
   tenantsHousedCount: number;
   rentalsHistory: TenantRentalRecord[];
   createdAt: string;
@@ -104,6 +112,8 @@ export interface EscrowDeposit {
   releasePin: string;
   paystackReference: string;
   status: "HELD_IN_ESCROW" | "RELEASED_TO_AGENT" | "REFUNDED_TO_STUDENT" | "DISPUTED";
+  payoutStatus?: "LOCKED" | "APPROVED_FOR_PAYOUT" | "PAID_TO_BANK" | "REFUNDED";
+  paidOutAt?: string;
   holdDurationHours: number;
   inspectionDate: string;
   inspectionTime?: string;
@@ -214,6 +224,23 @@ export async function deleteListingById(id: string): Promise<boolean> {
   activeListings = filtered;
   await saveToDb("listings", activeListings);
   return true;
+}
+
+export async function incrementListingMetric(
+  id: string,
+  metric: "views" | "whatsapp"
+): Promise<Listing | undefined> {
+  const current = await getListingsStore();
+  const item = current.find((l) => l.id === id);
+  if (!item) return undefined;
+  if (metric === "views") {
+    item.viewsCount = (item.viewsCount || 0) + 1;
+  } else if (metric === "whatsapp") {
+    item.whatsappClicksCount = (item.whatsappClicksCount || 0) + 1;
+  }
+  activeListings = [...current];
+  await saveToDb("listings", activeListings);
+  return item;
 }
 
 // --- Housing Requests Store ---
@@ -341,6 +368,7 @@ export async function addEscrowDepositStore(
     id: "escrow-" + Date.now(),
     releasePin,
     status: "HELD_IN_ESCROW",
+    payoutStatus: "LOCKED",
     expiresAt,
     createdAt: new Date().toISOString(),
   };
@@ -372,11 +400,27 @@ export async function updateEscrowStatus(
   }
 
   escrow.status = status;
+  if (status === "RELEASED_TO_AGENT") {
+    escrow.payoutStatus = "APPROVED_FOR_PAYOUT";
+  } else if (status === "REFUNDED_TO_STUDENT") {
+    escrow.payoutStatus = "REFUNDED";
+  }
   if (reason) escrow.disputeReason = reason;
 
   activeEscrows = [...current];
   await saveToDb("escrows", activeEscrows);
   return { success: true, escrow };
+}
+
+export async function markEscrowDisbursed(id: string): Promise<EscrowDeposit | undefined> {
+  const current = await getEscrowDepositsStore();
+  const escrow = current.find((e) => e.id === id);
+  if (!escrow) return undefined;
+  escrow.payoutStatus = "PAID_TO_BANK";
+  escrow.paidOutAt = new Date().toISOString();
+  activeEscrows = [...current];
+  await saveToDb("escrows", activeEscrows);
+  return escrow;
 }
 
 // --- User Authentication Store ---
@@ -437,9 +481,17 @@ export async function recordRentalSuccess(
   const user = current.find((u) => u.id === userId);
   if (!user) return undefined;
 
+  const agencyFeeTotal = Math.round((record.amount || 0) * 0.1);
+  const platformCommission = Math.round(agencyFeeTotal * 0.2); // 20% platform cut of 10% agency fee
+  const agentNetCommission = agencyFeeTotal - platformCommission; // 80% net commission to Agent/Owner
+
   const newRecord: TenantRentalRecord = {
     ...record,
     id: "rent-" + Date.now(),
+    agencyFeeTotal,
+    platformCommission,
+    agentNetCommission,
+    payoutStatus: "APPROVED_FOR_PAYOUT",
   };
 
   user.tenantsHousedCount = (user.tenantsHousedCount || 0) + 1;
@@ -447,4 +499,19 @@ export async function recordRentalSuccess(
   activeUsers = [...current];
   await saveToDb("users", activeUsers);
   return user;
+}
+
+export async function markRentalDisbursed(
+  userId: string,
+  rentalId: string
+): Promise<boolean> {
+  const current = await getUsersStore();
+  const user = current.find((u) => u.id === userId);
+  if (!user || !user.rentalsHistory) return false;
+  const item = user.rentalsHistory.find((r) => r.id === rentalId);
+  if (!item) return false;
+  item.payoutStatus = "PAID_TO_BANK";
+  activeUsers = [...current];
+  await saveToDb("users", activeUsers);
+  return true;
 }

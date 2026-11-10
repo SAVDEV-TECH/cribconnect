@@ -71,6 +71,12 @@ export default function Navbar() {
             {currentUser ? (
               <div className="flex items-center gap-2">
                 <Link
+                  href="/admin"
+                  className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 px-2.5 py-1.5 rounded-lg transition-colors"
+                >
+                  Founder Admin
+                </Link>
+                <Link
                   href="/agent/dashboard"
                   className="text-sm text-gray-600 hover:text-gray-900 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
                 >
@@ -145,6 +151,13 @@ export default function Navbar() {
           <div className="pt-2 border-t border-gray-100 space-y-1">
             {currentUser ? (
               <>
+                <Link
+                  href="/admin"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block px-3 py-2 rounded-lg text-sm font-semibold text-emerald-700 bg-emerald-50"
+                >
+                  Founder Admin Portal
+                </Link>
                 <Link
                   href="/agent/dashboard"
                   onClick={() => setIsMobileMenuOpen(false)}

@@ -63,6 +63,9 @@ export async function GET() {
         bio: user.bio || "",
         specializations: user.specializations || "",
         ninOrLicense: user.ninOrLicense || "",
+        bankName: user.bankName || "",
+        bankAccountNumber: user.bankAccountNumber || "",
+        bankAccountName: user.bankAccountName || "",
         isVerified: user.isVerified,
         tenantsHousedCount: user.tenantsHousedCount || 0,
         rentalsHistory: user.rentalsHistory || [],
@@ -98,6 +101,9 @@ export async function PATCH(req: NextRequest) {
     if (body.agencyName !== undefined) updates.agencyName = sanitizeText(body.agencyName);
     if (body.bio !== undefined) updates.bio = sanitizeText(body.bio);
     if (body.specializations !== undefined) updates.specializations = sanitizeText(body.specializations);
+    if (body.bankName !== undefined) updates.bankName = sanitizeText(body.bankName);
+    if (body.bankAccountNumber !== undefined) updates.bankAccountNumber = sanitizeText(body.bankAccountNumber).replace(/\D/g, "").slice(0, 10);
+    if (body.bankAccountName !== undefined) updates.bankAccountName = sanitizeText(body.bankAccountName);
     if (body.avatar) updates.avatar = body.avatar;
 
     const updated = await updateUser(payload.userId, updates);
@@ -118,6 +124,9 @@ export async function PATCH(req: NextRequest) {
         agencyName: updated.agencyName,
         bio: updated.bio,
         specializations: updated.specializations,
+        bankName: updated.bankName || "",
+        bankAccountNumber: updated.bankAccountNumber || "",
+        bankAccountName: updated.bankAccountName || "",
         isVerified: updated.isVerified,
         tenantsHousedCount: updated.tenantsHousedCount,
         rentalsHistory: updated.rentalsHistory,

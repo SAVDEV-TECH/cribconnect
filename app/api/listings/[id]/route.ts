@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getListingById, deleteListingById } from "@/lib/data-store";
+import { getListingById, deleteListingById, incrementListingMetric } from "@/lib/data-store";
 
 export const dynamic = "force-dynamic";
 
@@ -9,7 +9,7 @@ export async function GET(
 ) {
   try {
     const { id } = params;
-    const listing = await getListingById(id);
+    const listing = (await incrementListingMetric(id, "views")) || (await getListingById(id));
 
     if (!listing) {
       return NextResponse.json({ error: "Listing not found" }, { status: 404 });
@@ -19,6 +19,19 @@ export async function GET(
   } catch (error) {
     console.error("Failed to fetch listing:", error);
     return NextResponse.json({ error: "Failed to fetch listing" }, { status: 500 });
+  }
+}
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { id } = params;
+    const updated = await incrementListingMetric(id, "whatsapp");
+    return NextResponse.json({ success: true, listing: updated });
+  } catch (error) {
+    return NextResponse.json({ error: "Failed to track connect" }, { status: 500 });
   }
 }
 
