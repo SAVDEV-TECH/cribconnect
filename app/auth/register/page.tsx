@@ -12,6 +12,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import GoogleSignInButton from "@/components/GoogleSignInButton";
+import { saveMobileSession } from "@/lib/client-auth";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -43,6 +44,10 @@ export default function RegisterPage() {
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || "Failed to create account");
+      }
+
+      if (data.user) {
+        saveMobileSession(data.user, data.deviceToken);
       }
 
       router.push("/list-property");

@@ -90,19 +90,20 @@ export async function POST(req: NextRequest) {
       agencyName: user.agencyName,
     });
 
-    // Set secure HTTP-only cookie
+    // Set secure HTTP-only cookie (365 days for 1-time mobile sign-in)
     const cookieStore = cookies();
     cookieStore.set("cribconnect_session", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 30 * 24 * 60 * 60, // 30 days
+      maxAge: 365 * 24 * 60 * 60, // 365 days
     });
 
     return NextResponse.json({
       success: true,
       provider,
+      deviceToken: token,
       user: {
         id: user.id,
         name: user.name,

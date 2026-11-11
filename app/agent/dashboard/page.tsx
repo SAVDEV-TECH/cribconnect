@@ -64,7 +64,13 @@ export default function AgentDashboardPage() {
 
   const fetchDashboardData = async () => {
     try {
-      const res = await fetch("/api/agent/profile", { cache: "no-store" });
+      const { syncOrRestoreSession, getDeviceAuthHeaders } = await import("@/lib/client-auth");
+      await syncOrRestoreSession();
+
+      const res = await fetch("/api/agent/profile", {
+        cache: "no-store",
+        headers: getDeviceAuthHeaders(),
+      });
       if (res.status === 401) {
         router.push("/auth/login");
         return;
@@ -245,6 +251,39 @@ export default function AgentDashboardPage() {
           {[...Array(4)].map((_, i) => (
             <div key={i} className="h-32 bg-gray-200 rounded-xl" />
           ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="max-w-md mx-auto my-16 px-4">
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 text-center space-y-4 shadow-xs">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-100">
+            <Lock className="w-6 h-6" />
+          </div>
+          <h2 className="text-lg font-bold text-gray-900">
+            One-Time Mobile Sign-In Required
+          </h2>
+          <p className="text-xs text-gray-600 leading-relaxed">
+            Sign in once on your phone to unlock your Agent &amp; Landlord Dashboard, manage listings, and claim Escrow payouts.
+          </p>
+          <div className="flex flex-col gap-2 pt-1">
+            <Link
+              href="/auth/login"
+              className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-2 transition-colors"
+            >
+              <span>Complete One-Time Mobile Sign-In</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+            <Link
+              href="/list-property"
+              className="w-full py-2.5 px-4 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-semibold transition-colors"
+            >
+              Go Directly to List a Property
+            </Link>
+          </div>
         </div>
       </div>
     );

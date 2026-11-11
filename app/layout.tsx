@@ -118,7 +118,6 @@ export default function RootLayout({
           <GoogleOneTap />
           <AiConciergeChat />
           <PwaInstaller />
-          <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
           <Script src="https://js.paystack.co/v1/inline.js" strategy="afterInteractive" />
         </AppProvider>
       </body>

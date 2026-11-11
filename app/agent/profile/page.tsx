@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
@@ -44,36 +44,39 @@ export default function AgentProfilePage() {
   });
 
   useEffect(() => {
-    fetch("/api/agent/profile")
-      .then((res) => {
-        if (res.status === 401) {
-          router.push("/auth/login");
-          return null;
-        }
-        return res.json();
-      })
-      .then((data) => {
-        if (data && data.profile) {
-          setFormData({
-            name: data.profile.name || "",
-            email: data.profile.email || "",
-            phone: data.profile.phone || "",
-            whatsapp: data.profile.whatsapp || "",
-            agencyName: data.profile.agencyName || "",
-            bio: data.profile.bio || "",
-            specializations: data.profile.specializations || "",
-            avatar: data.profile.avatar || "",
-            isVerified: data.profile.isVerified || false,
-            ninOrLicense: data.profile.ninOrLicense || "",
-            tenantsHousedCount: data.profile.tenantsHousedCount || 0,
-            role: data.profile.role || "AGENT",
-          });
-        }
-      })
-      .catch(() => {
-        setStatusMessage({ type: "error", text: "Failed to load profile. Please try logging in again." });
-      })
-      .finally(() => setLoading(false));
+    import("@/lib/client-auth").then(async ({ syncOrRestoreSession, getDeviceAuthHeaders }) => {
+      await syncOrRestoreSession();
+      fetch("/api/agent/profile", { headers: getDeviceAuthHeaders() })
+        .then((res) => {
+          if (res.status === 401) {
+            router.push("/auth/login");
+            return null;
+          }
+          return res.json();
+        })
+        .then((data) => {
+          if (data && data.profile) {
+            setFormData({
+              name: data.profile.name || "",
+              email: data.profile.email || "",
+              phone: data.profile.phone || "",
+              whatsapp: data.profile.whatsapp || "",
+              agencyName: data.profile.agencyName || "",
+              bio: data.profile.bio || "",
+              specializations: data.profile.specializations || "",
+              avatar: data.profile.avatar || "",
+              isVerified: data.profile.isVerified || false,
+              ninOrLicense: data.profile.ninOrLicense || "",
+              tenantsHousedCount: data.profile.tenantsHousedCount || 0,
+              role: data.profile.role || "AGENT",
+            });
+          }
+        })
+        .catch(() => {
+          setStatusMessage({ type: "error", text: "Failed to load profile. Please try logging in again." });
+        })
+        .finally(() => setLoading(false));
+    });
   }, [router]);
 
   const handlePhotoUpload = async (files: FileList | null) => {
@@ -115,9 +118,10 @@ export default function AgentProfilePage() {
     setStatusMessage(null);
 
     try {
+      const { getDeviceAuthHeaders } = await import("@/lib/client-auth");
       const res = await fetch("/api/agent/profile", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: getDeviceAuthHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(formData),
       });
 

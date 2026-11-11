@@ -3,7 +3,12 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, X, LogOut, Smartphone } from "lucide-react";
+import { Menu, X, LogOut, Smartphone, UserCheck } from "lucide-react";
+import {
+  getSavedMobileUser,
+  syncOrRestoreSession,
+  clearMobileSession,
+} from "@/lib/client-auth";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -12,15 +17,25 @@ export default function Navbar() {
   const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
-    fetch("/api/auth/session")
-      .then((res) => res.json())
-      .then((data) => {
-        setCurrentUser(data.user || null);
+    const cached = getSavedMobileUser();
+    if (cached) {
+      setCurrentUser(cached);
+    }
+    syncOrRestoreSession()
+      .then((user) => {
+        setCurrentUser(user || null);
       })
       .catch(() => {});
+
+    const handleAuthChange = (e: any) => {
+      setCurrentUser(e?.detail?.user ?? getSavedMobileUser());
+    };
+    window.addEventListener("cribconnect:auth-changed", handleAuthChange);
+    return () => window.removeEventListener("cribconnect:auth-changed", handleAuthChange);
   }, [pathname]);
 
   const handleLogout = async () => {
+    clearMobileSession();
     await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
     setCurrentUser(null);
     router.refresh();
@@ -132,10 +147,26 @@ export default function Navbar() {
 
           {/* Mobile Right Actions */}
           <div className="flex md:hidden items-center gap-1.5">
+            {currentUser ? (
+              <Link
+                href="/agent/dashboard"
+                className="px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-xs font-bold flex items-center gap-1 max-w-[115px]"
+              >
+                <UserCheck className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">{currentUser.name?.split(" ")[0] || "Portal"}</span>
+              </Link>
+            ) : (
+              <Link
+                href="/auth/login"
+                className="px-2.5 py-1 rounded-lg bg-gray-900 text-white text-xs font-bold"
+              >
+                Sign In
+              </Link>
+            )}
             <button
               type="button"
               onClick={() => window.dispatchEvent(new CustomEvent("cribconnect:open-install"))}
-              className="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold flex items-center gap-1"
+              className="px-2 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold flex items-center gap-1"
             >
               <Smartphone className="w-3.5 h-3.5" />
               <span>App</span>

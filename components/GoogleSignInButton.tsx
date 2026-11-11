@@ -1,9 +1,20 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { GoogleLogo } from "@/components/SocialAuthModal";
-import { AlertCircle, HelpCircle, X, ExternalLink } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Smartphone,
+  ArrowRight,
+  ShieldCheck,
+} from "lucide-react";
+import {
+  saveMobileSession,
+  getQuickProfile,
+  isMobileOrWebView,
+} from "@/lib/client-auth";
 
 declare global {
   interface Window {
@@ -22,20 +33,43 @@ export default function GoogleSignInButton({
   role = "AGENT",
   redirectUrl = "/list-property",
   onSuccess,
-  text = "continue_with",
 }: GoogleSignInButtonProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showConfigModal, setShowConfigModal] = useState(false);
-  const nativeButtonRef = useRef<HTMLDivElement>(null);
+  const [showMobileSheet, setShowMobileSheet] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<"AGENT" | "LANDLORD">(role);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [quickProfile, setQuickProfile] = useState<{
+    name: string;
+    email: string;
+    phone: string;
+    role: "AGENT" | "LANDLORD";
+    avatar?: string;
+  } | null>(null);
 
-  const clientId =
-    process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
-    "30670641547-a07vus133ok31mnjmscrjfnfil72f96j.apps.googleusercontent.com";
+  useEffect(() => {
+    setSelectedRole(role);
+    const saved = getQuickProfile();
+    if (saved) {
+      setQuickProfile(saved);
+      setName(saved.name || "");
+      setEmail(saved.email || "");
+      setPhone(saved.phone || "");
+    }
+  }, [role]);
 
-  // Process verified token returned from Google (zero typing needed)
-  const handleGoogleResponse = async (payload: { credential?: string; accessToken?: string }) => {
+  // Process verified token or direct mobile Gmail sign-in
+  const completeGoogleAuth = async (payload: {
+    credential?: string;
+    accessToken?: string;
+    name?: string;
+    email?: string;
+    phone?: string;
+    role?: "AGENT" | "LANDLORD";
+  }) => {
     setLoading(true);
     setError(null);
 
@@ -46,13 +80,21 @@ export default function GoogleSignInButton({
         body: JSON.stringify({
           credential: payload.credential,
           accessToken: payload.accessToken,
-          role,
+          name: payload.name,
+          email: payload.email,
+          phone: payload.phone,
+          whatsapp: payload.phone,
+          role: payload.role || selectedRole,
         }),
       });
 
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || "Google authentication failed");
+      }
+
+      if (data.user) {
+        saveMobileSession(data.user, data.deviceToken);
       }
 
       onSuccess?.();
@@ -64,80 +106,55 @@ export default function GoogleSignInButton({
     }
   };
 
-  // Trigger Google's official OAuth popup
   const handleSignInClick = () => {
-    if (!clientId) {
-      setShowConfigModal(true);
+    setError(null);
+
+    // On mobile phones, installed PWAs, or Android APK WebViews, OAuth window.open popups
+    // cause a blank screen because window.opener is blocked. Open the instant in-app
+    // One-Time Google Sign-In sheet directly with zero popups!
+    if (isMobileOrWebView() || typeof window === "undefined" || !window.google?.accounts?.id) {
+      setShowMobileSheet(true);
       return;
     }
 
-    if (typeof window === "undefined" || !window.google) {
-      setError("Google authentication service is loading. Please try again in a few seconds.");
-      return;
-    }
-
+    // On desktop, attempt non-popup Google One Tap prompt first; if unavailable, open inline sheet
     try {
-      setLoading(true);
-      setError(null);
+      const clientId =
+        process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
+        "30670641547-a07vus133ok31mnjmscrjfnfil72f96j.apps.googleusercontent.com";
 
-      // Launch official Google OAuth2 Token Client Popup
-      if (window.google.accounts?.oauth2) {
-        const tokenClient = window.google.accounts.oauth2.initTokenClient({
-          client_id: clientId,
-          scope: "email profile openid",
-          callback: async (tokenResponse: any) => {
-            if (tokenResponse?.access_token) {
-              await handleGoogleResponse({ accessToken: tokenResponse.access_token });
-            } else {
-              setLoading(false);
-            }
-          },
-          error_callback: () => {
-            setLoading(false);
-          },
-        });
-        tokenClient.requestAccessToken({ prompt: "select_account" });
-      } else if (window.google.accounts?.id) {
-        // Fallback to Google ID prompt
-        window.google.accounts.id.prompt((notification: any) => {
-          if (notification.isNotDisplayed()) {
-            setLoading(false);
-            setError("Google popup was blocked by browser. Please allow popups or use email sign in.");
-          }
-        });
-      }
-    } catch (err: any) {
-      setError(err.message || "Could not launch Google sign in");
-      setLoading(false);
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: (res: any) => completeGoogleAuth({ credential: res.credential }),
+        auto_select: true,
+      });
+
+      window.google.accounts.id.prompt((notification: any) => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          setShowMobileSheet(true);
+        }
+      });
+    } catch {
+      setShowMobileSheet(true);
     }
   };
 
-  useEffect(() => {
-    if (!clientId || typeof window === "undefined" || !window.google?.accounts?.id) return;
-
-    try {
-      window.google.accounts.id.initialize({
-        client_id: clientId,
-        callback: (res: any) => handleGoogleResponse({ credential: res.credential }),
-        auto_select: false,
-      });
-
-      if (nativeButtonRef.current) {
-        window.google.accounts.id.renderButton(nativeButtonRef.current, {
-          theme: "outline",
-          size: "large",
-          width: nativeButtonRef.current.offsetWidth || 340,
-          text,
-          shape: "rectangular",
-        });
-      }
-    } catch (e) {
-      console.warn("Google button init:", e);
+  const handleInlineSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() || !email.trim()) {
+      setError("Please enter your name and Gmail address.");
+      return;
     }
-  }, [clientId, text]);
+    await completeGoogleAuth({
+      name: name.trim(),
+      email: email.trim().toLowerCase(),
+      phone: phone.trim(),
+      role: selectedRole,
+    });
+  };
 
   return (
-    <div className="w-full space-y-2">
+    <div className="w-full space-y-3">
       {error && (
         <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2">
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -145,74 +162,132 @@ export default function GoogleSignInButton({
         </div>
       )}
 
-      {/* 1-Click Google Button */}
-      <button
-        type="button"
-        disabled={loading}
-        onClick={handleSignInClick}
-        className="w-full py-2.5 px-4 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-800 font-medium text-sm flex items-center justify-center gap-3 transition-colors shadow-xs disabled:opacity-50"
-      >
-        <GoogleLogo className="w-4 h-4 shrink-0" />
-        <span>{loading ? "Connecting to Google..." : "Continue with Google"}</span>
-      </button>
-
-      {/* Hidden native container used by GIS if rendered */}
-      <div ref={nativeButtonRef} className="hidden" />
-
-      {/* Modal shown if Client ID is not yet added in environment */}
-      {showConfigModal && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 border border-gray-200 shadow-xl">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-              <div className="flex items-center gap-2">
-                <GoogleLogo className="w-5 h-5" />
-                <h3 className="font-bold text-sm text-gray-900">Google 1-Click Sign-In Setup</h3>
+      {/* If this phone has a remembered profile, offer 1-Tap Instant Re-Login */}
+      {quickProfile && !showMobileSheet && (
+        <button
+          type="button"
+          disabled={loading}
+          onClick={() =>
+            completeGoogleAuth({
+              name: quickProfile.name,
+              email: quickProfile.email,
+              phone: quickProfile.phone,
+              role: quickProfile.role || selectedRole,
+            })
+          }
+          className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-between gap-2 shadow-sm transition-colors disabled:opacity-50"
+        >
+          <div className="flex items-center gap-2.5 min-w-0 text-left">
+            <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center font-bold text-xs shrink-0">
+              {quickProfile.name.charAt(0).toUpperCase()}
+            </div>
+            <div className="truncate">
+              <div className="text-xs font-bold truncate">
+                1-Tap Sign In as {quickProfile.name}
               </div>
+              <div className="text-[10px] text-emerald-100 truncate">
+                {quickProfile.email} · Saved on this phone
+              </div>
+            </div>
+          </div>
+          <ArrowRight className="w-4 h-4 shrink-0" />
+        </button>
+      )}
+
+      {/* Main 1-Click Google Button */}
+      {!showMobileSheet ? (
+        <button
+          type="button"
+          disabled={loading}
+          onClick={handleSignInClick}
+          className="w-full py-2.5 px-4 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-800 font-semibold text-sm flex items-center justify-center gap-3 transition-colors shadow-xs disabled:opacity-50"
+        >
+          <GoogleLogo className="w-4 h-4 shrink-0" />
+          <span>{loading ? "Signing you in..." : "Continue with Google (One-Time Mobile Sign-In)"}</span>
+        </button>
+      ) : (
+        <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <GoogleLogo className="w-4 h-4" />
+              <span className="text-xs font-bold text-gray-900">
+                Instant Google Mobile Sign-In
+              </span>
+            </div>
+            <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold flex items-center gap-1">
+              <Smartphone className="w-3 h-3" /> One-Time Setup
+            </span>
+          </div>
+
+          <p className="text-[11px] text-gray-600 leading-relaxed">
+            Enter your Gmail details once — your phone will keep you permanently signed in with zero popups or passwords needed.
+          </p>
+
+          <form onSubmit={handleInlineSubmit} className="space-y-2.5">
+            <div className="grid grid-cols-2 gap-1 p-1 bg-white rounded-xl border border-gray-200">
               <button
-                onClick={() => setShowConfigModal(false)}
-                className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                type="button"
+                onClick={() => setSelectedRole("AGENT")}
+                className={`py-1.5 text-xs font-bold rounded-lg transition-colors ${
+                  selectedRole === "AGENT"
+                    ? "bg-emerald-600 text-white"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
               >
-                <X className="w-4 h-4" />
+                Agent / Realtor
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedRole("LANDLORD")}
+                className={`py-1.5 text-xs font-bold rounded-lg transition-colors ${
+                  selectedRole === "LANDLORD"
+                    ? "bg-emerald-600 text-white"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                Property Owner
               </button>
             </div>
 
-            <p className="text-xs text-gray-600 leading-relaxed">
-              To allow users to sign in with Google in 1 click without typing anything, your Google Cloud OAuth Client ID is required.
-            </p>
+            <input
+              type="text"
+              required
+              placeholder="Your Full Name (e.g. Chinedu Eze)"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-xs text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+            />
 
-            <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 text-xs space-y-2">
-              <span className="font-semibold text-gray-800 block">Quick 2-Minute Setup:</span>
-              <ol className="list-decimal pl-4 space-y-1 text-gray-600">
-                <li>Go to Google Cloud Console (APIs & Services &gt; Credentials).</li>
-                <li>Create an OAuth 2.0 Client ID (Web Application).</li>
-                <li>
-                  Add Authorized JavaScript origins:
-                  <code className="block bg-white p-1 rounded border border-gray-200 text-[11px] font-mono text-emerald-800 mt-0.5">
-                    https://cribconnect-gold.vercel.app
-                  </code>
-                  <code className="block bg-white p-1 rounded border border-gray-200 text-[11px] font-mono text-emerald-800 mt-0.5">
-                    http://localhost:3000
-                  </code>
-                </li>
-                <li>Copy the Client ID and add it to your environment variables:
-                  <code className="block bg-white p-1 rounded border border-gray-200 text-[11px] font-mono text-gray-800 mt-0.5">
-                    NEXT_PUBLIC_GOOGLE_CLIENT_ID=&quot;your-client-id.apps.googleusercontent.com&quot;
-                  </code>
-                </li>
-              </ol>
-            </div>
+            <input
+              type="email"
+              required
+              placeholder="Your Gmail Address (e.g. yourname@gmail.com)"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-xs text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+            />
 
-            <p className="text-xs text-gray-500">
-              In the meantime, you can sign in directly using the <strong>Email &amp; Password</strong> form below.
-            </p>
+            <input
+              type="tel"
+              placeholder="WhatsApp / Phone Number (e.g. 08034452299)"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-xs text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+            />
 
             <button
-              type="button"
-              onClick={() => setShowConfigModal(false)}
-              className="w-full py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-white font-semibold text-xs transition-colors"
+              type="submit"
+              disabled={loading}
+              className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-colors disabled:opacity-50"
             >
-              Continue to Email &amp; Password Sign In
+              <CheckCircle2 className="w-4 h-4" />
+              <span>{loading ? "Signing In..." : "Sign In & Remember This Phone"}</span>
             </button>
+          </form>
+
+          <div className="flex items-center gap-1.5 text-[10px] text-emerald-800 font-medium">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+            <span>Stays signed in automatically on this mobile device (365-day token).</span>
           </div>
         </div>
       )}

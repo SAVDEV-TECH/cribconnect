@@ -58,10 +58,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const fetchSession = async () => {
     try {
-      const res = await fetch("/api/auth/session");
-      const data = await res.json();
-      if (data.user) {
-        setCurrentUser(data.user);
+      const { getSavedMobileUser, syncOrRestoreSession } = await import("@/lib/client-auth");
+      const cached = getSavedMobileUser();
+      if (cached) {
+        setCurrentUser(cached as any);
+      }
+      const user = await syncOrRestoreSession();
+      if (user) {
+        setCurrentUser(user as any);
       }
     } catch (err) {
       console.error("Failed to load user session", err);

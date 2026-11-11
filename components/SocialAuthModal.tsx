@@ -86,27 +86,37 @@ export default function SocialAuthModal({
   const hasGoogleClientId = Boolean(clientId);
 
   const handleNativeGoogleOAuth = () => {
-    setLoading(true);
     setError(null);
+    // On mobile / WebView, avoid window.open OAuth popups that cause blank screens
+    if (typeof window !== "undefined" && /Android|iPhone|iPad|iPod|Mobile|CribConnectAndroid|wv/i.test(window.navigator.userAgent)) {
+      return;
+    }
+    setLoading(true);
 
-    if (typeof window !== "undefined" && window.google?.accounts?.oauth2 && clientId) {
+    if (typeof window !== "undefined" && window.google?.accounts?.id && clientId) {
       try {
-        const tokenClient = window.google.accounts.oauth2.initTokenClient({
+        window.google.accounts.id.initialize({
           client_id: clientId,
-          scope: "email profile openid",
-          callback: async (tokenResponse: any) => {
-            if (tokenResponse?.access_token) {
+          callback: async (response: any) => {
+            if (response?.credential) {
               const res = await fetch("/api/auth/google", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                  accessToken: tokenResponse.access_token,
+                  credential: response.credential,
                   role,
                 }),
               });
 
               const data = await res.json();
               if (!res.ok) throw new Error(data.error || "Google authentication failed");
+
+              if (data.user && typeof window !== "undefined") {
+                try {
+                  if (data.deviceToken) localStorage.setItem("cribconnect_device_token", data.deviceToken);
+                  localStorage.setItem("cribconnect_saved_user", JSON.stringify(data.user));
+                } catch {}
+              }
 
               setSuccess(true);
               setTimeout(() => {
@@ -119,17 +129,15 @@ export default function SocialAuthModal({
               setLoading(false);
             }
           },
-          error_callback: () => {
-            setLoading(false);
-          },
         });
-        tokenClient.requestAccessToken({ prompt: "select_account" });
+        window.google.accounts.id.prompt(() => {
+          setLoading(false);
+        });
       } catch (err: any) {
-        setError(err.message || "Failed to initialize Google OAuth");
+        setError(err.message || "Please enter your Gmail below to continue.");
         setLoading(false);
       }
     } else {
-      setError("Google OAuth Client ID is not configured yet. Please enter your Gmail below to continue.");
       setLoading(false);
     }
   };
@@ -154,6 +162,7 @@ export default function SocialAuthModal({
           name: name.trim(),
           email: email.trim().toLowerCase(),
           phone: phone.trim(),
+          whatsapp: phone.trim(),
           role,
         }),
       });
@@ -161,6 +170,24 @@ export default function SocialAuthModal({
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || "Authentication failed");
+      }
+
+      if (data.user && typeof window !== "undefined") {
+        try {
+          if (data.deviceToken) localStorage.setItem("cribconnect_device_token", data.deviceToken);
+          localStorage.setItem("cribconnect_saved_user", JSON.stringify(data.user));
+          localStorage.setItem(
+            "cribconnect_quick_profile",
+            JSON.stringify({
+              name: data.user.name,
+              email: data.user.email,
+              phone: data.user.phone || phone.trim(),
+              role: data.user.role || role,
+              avatar: data.user.avatar || "",
+            })
+          );
+          window.dispatchEvent(new CustomEvent("cribconnect:auth-changed", { detail: { user: data.user } }));
+        } catch {}
       }
 
       setSuccess(true);

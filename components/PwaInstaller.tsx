@@ -29,10 +29,13 @@ export default function PwaInstaller() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // 1. Register Service Worker for PWA installability & offline caching
+    // 1. Register Service Worker for PWA installability & force immediate update to v3
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
         .register("/sw.js")
+        .then((reg) => {
+          reg.update().catch(() => {});
+        })
         .catch((err) => console.warn("SW registration skipped:", err));
     }
 

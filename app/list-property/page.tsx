@@ -65,23 +65,28 @@ export default function ListPropertyPage() {
     amenities: ["Borehole Water", "Prepaid Meter", "24/7 Security", "Fenced Gate"],
   });
 
-  // Check if agent/landlord is currently logged in
+  // Check if agent/landlord is currently logged in (including saved 1-time mobile session)
   useEffect(() => {
-    fetch("/api/auth/session")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.user) {
-          setCurrentUser(data.user);
-          setFormData((prev) => ({
-            ...prev,
-            agentName: data.user.name || prev.agentName,
-            agentPhone: data.user.phone || prev.agentPhone,
-            agentWhatsapp: data.user.whatsapp || prev.agentWhatsapp,
-            agencyName: data.user.agencyName || prev.agencyName,
-          }));
-        }
-      })
-      .catch(() => {});
+    import("@/lib/client-auth").then(({ getSavedMobileUser, syncOrRestoreSession }) => {
+      const applyUser = (u: any) => {
+        if (!u) return;
+        setCurrentUser(u);
+        setFormData((prev) => ({
+          ...prev,
+          agentName: u.name || prev.agentName,
+          agentPhone: u.phone || prev.agentPhone,
+          agentWhatsapp: u.whatsapp || u.phone || prev.agentWhatsapp,
+          agencyName: u.agencyName || prev.agencyName,
+        }));
+      };
+      const cached = getSavedMobileUser();
+      if (cached) applyUser(cached);
+      syncOrRestoreSession()
+        .then((user) => {
+          if (user) applyUser(user);
+        })
+        .catch(() => {});
+    });
   }, []);
 
   const availableAmenities = [

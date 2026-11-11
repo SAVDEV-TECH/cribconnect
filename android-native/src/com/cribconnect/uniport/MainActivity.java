@@ -96,11 +96,11 @@ public class MainActivity extends Activity {
         settings.setSupportZoom(false);
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
-        settings.setJavaScriptCanOpenWindowsAutomatically(true);
+        settings.setJavaScriptCanOpenWindowsAutomatically(false);
         settings.setMediaPlaybackRequiresUserGesture(false);
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
 
-        // Append CribConnect Native App User-Agent token while keeping standard Chrome compatibility for Google Sign-In
+        // Append CribConnect Native App User-Agent token while keeping standard Chrome compatibility
         String defaultUa = settings.getUserAgentString();
         if (defaultUa != null) {
             settings.setUserAgentString(defaultUa.replace("; wv", "") + " CribConnectAndroid/1.0");
@@ -145,6 +145,12 @@ public class MainActivity extends Activity {
                 if (uri == null) return false;
                 String scheme = uri.getScheme();
                 String host = uri.getHost() != null ? uri.getHost().toLowerCase() : "";
+
+                // Prevent Google OAuth popup URLs from trapping the WebView on a blank page
+                if (host.contains("accounts.google.com")) {
+                    webView.loadUrl("https://cribconnect-gold.vercel.app/auth/login");
+                    return true;
+                }
 
                 // Open WhatsApp, phone calls, emails, and maps natively
                 if ("whatsapp".equalsIgnoreCase(scheme)

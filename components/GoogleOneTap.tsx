@@ -15,17 +15,18 @@ const GOOGLE_CLIENT_ID =
   process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
   "30670641547-a07vus133ok31mnjmscrjfnfil72f96j.apps.googleusercontent.com";
 
+import { syncOrRestoreSession, saveMobileSession, isMobileOrWebView } from "@/lib/client-auth";
+
 export default function GoogleOneTap() {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<any>(null);
 
-  // Check if user is already logged in
+  // Check if user is already logged in (including saved mobile device token)
   useEffect(() => {
-    fetch("/api/auth/session")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data && data.user) {
-          setCurrentUser(data.user);
+    syncOrRestoreSession()
+      .then((user) => {
+        if (user) {
+          setCurrentUser(user);
         }
       })
       .catch(() => {});
@@ -43,6 +44,11 @@ export default function GoogleOneTap() {
       });
 
       if (res.ok) {
+        const data = await res.json();
+        if (data?.user) {
+          saveMobileSession(data.user, data.deviceToken);
+          setCurrentUser(data.user);
+        }
         router.refresh();
       }
     } catch (err) {
@@ -51,8 +57,14 @@ export default function GoogleOneTap() {
   };
 
   const initGoogleIdentity = () => {
-    // Only initialize if a real client ID is configured and user is not logged in
-    if (!GOOGLE_CLIENT_ID || typeof window === "undefined" || !window.google?.accounts?.id || currentUser) {
+    // Only initialize if a real client ID is configured, not inside Android WebView, and user is not logged in
+    if (
+      !GOOGLE_CLIENT_ID ||
+      typeof window === "undefined" ||
+      !window.google?.accounts?.id ||
+      currentUser ||
+      isMobileOrWebView()
+    ) {
       return;
     }
 

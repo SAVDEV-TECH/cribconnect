@@ -1,14 +1,16 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { verifySessionToken } from "@/lib/auth-security";
+import { verifySessionToken, ONE_YEAR_SECONDS } from "@/lib/auth-security";
 import { getUserById, createUser } from "@/lib/data-store";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const cookieStore = cookies();
-    const token = cookieStore.get("cribconnect_session")?.value;
+    const cookieToken = cookieStore.get("cribconnect_session")?.value;
+    const headerToken = req.headers.get("x-device-token") || undefined;
+    const token = cookieToken || headerToken;
 
     if (!token) {
       return NextResponse.json({ user: null });
@@ -44,7 +46,19 @@ export async function GET() {
       return NextResponse.json({ user: null });
     }
 
+    // If session came from mobile device token after cookie expiry/reset, restore cookie automatically
+    if (!cookieToken && headerToken) {
+      cookieStore.set("cribconnect_session", headerToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: ONE_YEAR_SECONDS,
+      });
+    }
+
     return NextResponse.json({
+      deviceToken: token,
       user: {
         id: user.id,
         name: user.name,

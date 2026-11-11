@@ -5,10 +5,13 @@ import { getUserById, updateUser, getListingsStore, createUser } from "@/lib/dat
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const cookieStore = cookies();
-    const token = cookieStore.get("cribconnect_session")?.value;
+    const token =
+      cookieStore.get("cribconnect_session")?.value ||
+      req.headers.get("x-device-token") ||
+      undefined;
 
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -81,7 +84,10 @@ export async function GET() {
 export async function PATCH(req: NextRequest) {
   try {
     const cookieStore = cookies();
-    const token = cookieStore.get("cribconnect_session")?.value;
+    const token =
+      cookieStore.get("cribconnect_session")?.value ||
+      req.headers.get("x-device-token") ||
+      undefined;
 
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

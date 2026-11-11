@@ -47,13 +47,15 @@ export interface SessionTokenMeta {
   agencyName?: string;
 }
 
+export const ONE_YEAR_SECONDS = 365 * 24 * 60 * 60; // 365 days persistent mobile session
+
 export function createSessionToken(userId: string, role: string, meta?: SessionTokenMeta): string {
   const payload = {
     userId,
     role,
     ...(meta || {}),
     issuedAt: Date.now(),
-    expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000, // 30 days
+    expiresAt: Date.now() + ONE_YEAR_SECONDS * 1000, // 365 days
   };
   const payloadBase64 = Buffer.from(JSON.stringify(payload)).toString("base64url");
   const signature = crypto
