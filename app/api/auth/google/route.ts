@@ -130,7 +130,7 @@ export async function POST(req: NextRequest) {
 
     // Default clean Google avatar if missing
     if (!avatar) {
-      avatar = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=059669`;
+      avatar = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=63482E`;
     }
 
     // Lookup user in store

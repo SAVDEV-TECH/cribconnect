@@ -253,7 +253,6 @@ function ListingsContent() {
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 }`}
               >
-                {selectedAmenities.includes(a.id) ? "✓ " : "+ "}
                 {a.label}
               </button>
             ))}

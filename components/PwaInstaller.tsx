@@ -10,11 +10,11 @@ import {
   Building2,
   MessageSquarePlus,
   PlusCircle,
-  ShieldCheck,
   Smartphone,
   Share2,
   WifiOff,
   CheckCircle2,
+  UserCircle,
 } from "lucide-react";
 
 export default function PwaInstaller() {
@@ -145,9 +145,9 @@ export default function PwaInstaller() {
   const navItems = [
     { href: "/", label: "Home", icon: Home },
     { href: "/listings", label: "Browse", icon: Building2 },
-    { href: "/requests", label: "Connect", icon: MessageSquarePlus },
+    { href: "/requests", label: "Requests", icon: MessageSquarePlus },
     { href: "/agent/dashboard", label: "List Room", icon: PlusCircle },
-    { href: "/admin", label: "Admin", icon: ShieldCheck },
+    { href: "/agent/profile", label: "Profile", icon: UserCircle },
   ];
 
   return (

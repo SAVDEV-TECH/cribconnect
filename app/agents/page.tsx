@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -197,7 +197,7 @@ export default function AgentsPage() {
                         key={i}
                         className="text-[11px] bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full font-medium"
                       >
-                        ✓ {b}
+                        {b}
                       </span>
                     ))}
                   </div>

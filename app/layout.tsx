@@ -14,7 +14,7 @@ import AiConciergeChat from "@/components/AiConciergeChat";
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://cribconnect-gold.vercel.app";
 
 export const viewport: Viewport = {
-  themeColor: "#059669",
+  themeColor: "#22201D",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,

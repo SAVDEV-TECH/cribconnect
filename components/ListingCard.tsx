@@ -62,7 +62,7 @@ export default function ListingCard({ listing }: ListingCardProps) {
   const formattedPrice = `₦${(listing.price || 0).toLocaleString()}`;
   const trackingCode = `CC-${String(listing.id || "UNI").slice(-5).toUpperCase()}`;
   const whatsappUrl = `https://wa.me/${intlPhone}?text=${encodeURIComponent(
-    `[CribConnect Tracked Lead #${trackingCode}]\nHello ${agentName}, I am interested in inspecting "${listing.title}" (${formattedPrice}/yr at ${listing.neighborhood}) on CribConnect.\n\n⚠️ Note: I will reserve and release payment strictly through CribConnect 48-Hour Escrow Protection after physical inspection.`
+    `[CribConnect Tracked Lead #${trackingCode}]\nHello ${agentName}, I am interested in inspecting "${listing.title}" (${formattedPrice}/yr at ${listing.neighborhood}) on CribConnect.\n\nNote: I will reserve and release payment strictly through CribConnect 48-Hour Escrow Protection after physical inspection.`
   )}`;
 
   const handleTrackConnect = () => {

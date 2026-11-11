@@ -2,15 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import {
-  Sparkles,
-  X,
-  Send,
-  ShieldCheck,
-  Building2,
-  ArrowRight,
-  Lock,
-} from "lucide-react";
+import { MessageSquare, X, Send, ArrowRight } from "lucide-react";
 
 interface ChatMessage {
   role: "assistant" | "user";
@@ -25,7 +17,7 @@ export default function AiConciergeChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
-      text: "Hi! I’m your CribConnect UNIPORT AI Assistant. Tell me your budget and area (e.g. 'Self-contain in Choba under ₦300k' or 'How does Escrow work?') and I’ll match you instantly.",
+      text: "Type an area (Choba, Aluu, Ozuoba, Rumuola) or question about Escrow to find available rooms.",
     },
   ]);
 
@@ -46,7 +38,7 @@ export default function AiConciergeChat() {
           ...prev,
           {
             role: "assistant",
-            text: "CribConnect Escrow protects 100% of your money: when you pay the ₦10,000 holding deposit (via Bank Transfer or Paystack), the apartment is locked for you for 48 hours and you receive a secret 4-digit Release PIN. The agent only gets paid AFTER you physically inspect the house and enter your 4-digit PIN. If the house doesn't match, you click 1 button for a 100% refund.",
+            text: "When you reserve a room with the ₦10,000 holding deposit, the room is held for 48 hours and you receive a 4-digit Release PIN. The agent is only paid after you inspect the house and provide the PIN.",
           },
         ]);
         setLoading(false);
@@ -76,9 +68,9 @@ export default function AiConciergeChat() {
           ...prev,
           {
             role: "assistant",
-            text: `I found ${matches.length} verified UNIPORT ${
+            text: `Found ${matches.length} available ${
               matches.length === 1 ? "property" : "properties"
-            } matching your request. You can inspect or lock any of them for 48 hours with Escrow:`,
+            }:`,
             matches,
           },
         ]);
@@ -87,7 +79,7 @@ export default function AiConciergeChat() {
           ...prev,
           {
             role: "assistant",
-            text: "No exact match in that filter yet — you can post a custom Housing Request on our Connect board so verified UNIPORT landlords and agents pitch directly to you, or upload a property if you're an agent!",
+            text: "No exact match in that filter yet. You can post a housing request on the Connect board.",
           },
         ]);
       }
@@ -96,7 +88,7 @@ export default function AiConciergeChat() {
         ...prev,
         {
           role: "assistant",
-          text: "You can browse all verified UNIPORT apartments under Browse or lock any room with 48-hour Escrow protection.",
+          text: "Browse all listings under Browse.",
         },
       ]);
     } finally {
@@ -106,69 +98,55 @@ export default function AiConciergeChat() {
 
   return (
     <>
-      {/* Floating Launcher Button */}
       {!isOpen && (
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-20 md:bottom-6 left-4 z-40 px-3.5 py-2.5 rounded-full bg-gray-900 hover:bg-black text-white shadow-xl border border-gray-800 flex items-center gap-2 text-xs font-bold transition-transform hover:scale-105"
+          className="fixed bottom-20 md:bottom-6 left-4 z-40 px-3.5 py-2 rounded-lg bg-gray-900 hover:bg-emerald-700 text-white shadow-md border border-gray-800 flex items-center gap-2 text-xs font-medium transition-colors"
         >
-          <Sparkles className="w-4 h-4 text-emerald-400" />
-          <span>Ask AI Concierge</span>
+          <MessageSquare className="w-3.5 h-3.5" />
+          <span>Quick Find</span>
         </button>
       )}
 
-      {/* Chat Drawer */}
       {isOpen && (
-        <div className="fixed bottom-20 md:bottom-6 left-3 right-3 sm:right-auto sm:w-88 z-50 bg-white rounded-2xl border border-gray-200 shadow-2xl overflow-hidden flex flex-col max-h-[72vh]">
+        <div className="fixed bottom-20 md:bottom-6 left-3 right-3 sm:right-auto sm:w-80 z-50 bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden flex flex-col max-h-[68vh]">
           <div className="bg-gray-900 text-white px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <div className="text-xs font-bold">CribConnect AI Concierge</div>
-                <div className="text-[10px] text-emerald-400 flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3" /> Instant UNIPORT Matcher
-                </div>
-              </div>
-            </div>
+            <span className="text-xs font-semibold">Property Finder</span>
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="p-1 rounded-lg text-gray-400 hover:text-white"
+              className="p-1 rounded text-gray-400 hover:text-white"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Quick Prompt Chips */}
-          <div className="px-3 py-2 bg-gray-50 border-b border-gray-100 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+          <div className="px-3 py-2 bg-gray-50 border-b border-gray-100 flex items-center gap-1.5 overflow-x-auto">
             <button
               type="button"
               onClick={() => handleSend(undefined, "Show me apartments in Choba")}
-              className="px-2.5 py-1 rounded-full bg-white border border-gray-200 text-[10px] font-semibold text-gray-700 hover:border-emerald-400 shrink-0"
+              className="px-2.5 py-1 rounded-md bg-white border border-gray-200 text-[11px] font-medium text-gray-700 hover:border-gray-400 shrink-0"
             >
-              🏠 Choba Cribs
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSend(undefined, "How does Escrow work?")}
-              className="px-2.5 py-1 rounded-full bg-white border border-gray-200 text-[10px] font-semibold text-gray-700 hover:border-emerald-400 shrink-0"
-            >
-              🔒 How Escrow Works
+              Choba
             </button>
             <button
               type="button"
               onClick={() => handleSend(undefined, "Apartments in Aluu")}
-              className="px-2.5 py-1 rounded-full bg-white border border-gray-200 text-[10px] font-semibold text-gray-700 hover:border-emerald-400 shrink-0"
+              className="px-2.5 py-1 rounded-md bg-white border border-gray-200 text-[11px] font-medium text-gray-700 hover:border-gray-400 shrink-0"
             >
-              🎓 Aluu Back Gate
+              Aluu
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSend(undefined, "How does Escrow work?")}
+              className="px-2.5 py-1 rounded-md bg-white border border-gray-200 text-[11px] font-medium text-gray-700 hover:border-gray-400 shrink-0"
+            >
+              Escrow Info
             </button>
           </div>
 
-          {/* Messages */}
-          <div className="p-3.5 space-y-3 overflow-y-auto flex-1 text-xs">
+          <div className="p-3.5 space-y-2.5 overflow-y-auto flex-1 text-xs">
             {messages.map((m, idx) => (
               <div
                 key={idx}
@@ -177,10 +155,10 @@ export default function AiConciergeChat() {
                 }`}
               >
                 <div
-                  className={`px-3 py-2 rounded-2xl max-w-[88%] leading-relaxed ${
+                  className={`px-3 py-2 rounded-lg max-w-[88%] leading-relaxed ${
                     m.role === "user"
-                      ? "bg-emerald-600 text-white rounded-br-xs"
-                      : "bg-gray-100 text-gray-800 rounded-bl-xs"
+                      ? "bg-gray-900 text-white"
+                      : "bg-gray-100 text-gray-800"
                   }`}
                 >
                   {m.text}
@@ -193,20 +171,20 @@ export default function AiConciergeChat() {
                         key={item.id}
                         href={`/listings/${item.id}`}
                         onClick={() => setIsOpen(false)}
-                        className="block p-2.5 rounded-xl bg-white border border-gray-200 hover:border-emerald-500 transition-colors shadow-2xs"
+                        className="block p-2.5 rounded-lg bg-white border border-gray-200 hover:border-gray-400 transition-colors"
                       >
                         <div className="flex items-center justify-between gap-2">
-                          <span className="font-bold text-gray-900 truncate text-xs">
+                          <span className="font-semibold text-gray-900 truncate text-xs">
                             {item.title}
                           </span>
-                          <span className="text-emerald-700 font-bold shrink-0">
+                          <span className="text-emerald-700 font-semibold shrink-0">
                             ₦{(item.price || 0).toLocaleString()}
                           </span>
                         </div>
-                        <div className="flex items-center justify-between text-[10px] text-gray-500 mt-1">
+                        <div className="flex items-center justify-between text-[11px] text-gray-500 mt-1">
                           <span>{item.neighborhood}</span>
-                          <span className="text-emerald-600 font-semibold flex items-center gap-0.5">
-                            Inspect / Lock <ArrowRight className="w-3 h-3" />
+                          <span className="text-gray-800 font-medium flex items-center gap-0.5">
+                            View <ArrowRight className="w-3 h-3" />
                           </span>
                         </div>
                       </Link>
@@ -216,25 +194,24 @@ export default function AiConciergeChat() {
               </div>
             ))}
             {loading && (
-              <div className="text-[11px] text-gray-400 italic">Searching verified cribs...</div>
+              <div className="text-[11px] text-gray-400">Searching...</div>
             )}
           </div>
 
-          {/* Input */}
           <form
             onSubmit={(e) => handleSend(e)}
             className="p-2.5 border-t border-gray-100 bg-white flex items-center gap-2"
           >
             <input
               type="text"
-              placeholder="Ask about Choba, Aluu, budget, or Escrow..."
+              placeholder="Search area or budget..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-900 focus:border-gray-900 focus:outline-none"
             />
             <button
               type="submit"
-              className="p-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition-colors"
+              className="p-2 rounded-lg bg-gray-900 hover:bg-emerald-700 text-white transition-colors"
             >
               <Send className="w-3.5 h-3.5" />
             </button>

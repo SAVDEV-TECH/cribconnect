@@ -645,8 +645,8 @@ export default function EscrowModal({ isOpen, onClose, listing }: EscrowModalPro
               </div>
               <p className="text-[11px] text-gray-500 max-w-sm mx-auto">
                 {successEscrow.status === "AWAITING_PAYMENT_CONFIRMATION"
-                  ? "🔒 Your 4-digit PIN is protected and will appear here as soon as CribConnect confirms your ₦10,000 bank transfer."
-                  : "⚠️ Do NOT share this PIN until you physically inspect the apartment and are 100% satisfied."}
+                  ? "Your 4-digit PIN is protected and will appear here as soon as CribConnect confirms your ₦10,000 bank transfer."
+                  : "Do not share this PIN until you physically inspect the apartment and are 100% satisfied."}
               </p>
             </div>
 

@@ -198,15 +198,15 @@ export async function POST(req: NextRequest) {
 
     const whatsappMessage = encodeURIComponent(
       `Hello ${listing.agentName}! I have initiated a ₦${cleanAmount.toLocaleString()} Holding Escrow Reservation for "${listing.title}" on CribConnect (Ref: ${reference}).\n\n` +
-        `📅 Inspection Date: ${inspectionDate} (${inspectionTime || "11 AM"})\n` +
-        `👤 Tenant Name: ${studentName}\n` +
-        `📱 Phone: ${studentPhone}\n` +
-        `💳 Payment Channel: ${
+        `Inspection Date: ${inspectionDate} (${inspectionTime || "11 AM"})\n` +
+        `Tenant Name: ${studentName}\n` +
+        `Phone: ${studentPhone}\n` +
+        `Payment Channel: ${
           paymentMethod === "PAYSTACK"
             ? "Paystack Verified Gateway"
             : `Bank Transfer (${senderBankName} - Ref: ${transferSessionId})`
         }\n\n` +
-        `Please confirm my inspection schedule!`
+        `Please confirm my inspection schedule.`
     );
 
     const whatsappUrl = `https://wa.me/${intlPhone}?text=${whatsappMessage}`;

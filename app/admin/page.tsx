@@ -491,10 +491,10 @@ export default function AdminPage() {
                           {p.totalConnects} Total Connects
                         </div>
                         <div className="text-[11px] text-gray-500 flex flex-wrap gap-2 mt-0.5">
-                          <span>👁 {p.viewsCount} Views</span>
-                          <span>💬 {p.whatsappConnects} WhatsApp</span>
-                          <span>📅 {p.inspectionsCount} Inspections</span>
-                          <span>🔒 {p.escrowsCount} Escrows</span>
+                          <span>{p.viewsCount} Views</span>
+                          <span>· {p.whatsappConnects} WhatsApp</span>
+                          <span>· {p.inspectionsCount} Inspections</span>
+                          <span>· {p.escrowsCount} Escrows</span>
                         </div>
                       </td>
 
@@ -536,7 +536,7 @@ export default function AdminPage() {
                               : "bg-emerald-600 text-white hover:bg-emerald-700"
                           }`}
                         >
-                          {p.isVerified ? "Verified ✓" : "Approve Badge"}
+                          {p.isVerified ? "Verified" : "Approve Badge"}
                         </button>
                       </td>
                     </tr>
@@ -842,11 +842,11 @@ export default function AdminPage() {
                       </td>
                       <td className="py-4 px-4">
                         <span className="font-semibold text-gray-900">
-                          👁 {l.viewsCount || 1} Views
+                          {l.viewsCount || 1} Views
                         </span>
                         <span className="mx-2 text-gray-300">·</span>
                         <span className="font-semibold text-emerald-700">
-                          💬 {l.whatsappClicksCount || 0} WhatsApp Connects
+                          {l.whatsappClicksCount || 0} WhatsApp Connects
                         </span>
                       </td>
                       <td className="py-4 px-4">

@@ -41,12 +41,12 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Configure Emerald Status Bar (#059669)
+        // Configure Charcoal Status Bar (#22201D)
         Window window = getWindow();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            window.setStatusBarColor(Color.parseColor("#059669"));
+            window.setStatusBarColor(Color.parseColor("#22201D"));
             window.setNavigationBarColor(Color.parseColor("#FFFFFF"));
         }
 
@@ -231,7 +231,7 @@ public class MainActivity extends Activity {
         TextView title = new TextView(this);
         title.setText("CribConnect UNIPORT");
         title.setTextSize(20);
-        title.setTextColor(Color.parseColor("#059669"));
+        title.setTextColor(Color.parseColor("#63482E"));
         title.setGravity(Gravity.CENTER);
 
         TextView subtitle = new TextView(this);
@@ -242,7 +242,7 @@ public class MainActivity extends Activity {
 
         Button retryBtn = new Button(this);
         retryBtn.setText("Retry Connection");
-        retryBtn.setBackgroundColor(Color.parseColor("#059669"));
+        retryBtn.setBackgroundColor(Color.parseColor("#22201D"));
         retryBtn.setTextColor(Color.WHITE);
         retryBtn.setOnClickListener(new View.OnClickListener() {
             @Override

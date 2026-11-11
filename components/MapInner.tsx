@@ -88,7 +88,7 @@ export default function MapInner({
       className: "custom-property-pin",
       html: `
         <div style="
-          background: ${isActive ? "#059669" : "#111827"};
+          background: ${isActive ? "#63482E" : "#141311"};
           color: white;
           padding: 5px 10px;
           border-radius: 9999px;
@@ -114,7 +114,7 @@ export default function MapInner({
       className: "campus-pin",
       html: `
         <div style="
-          background: #059669;
+          background: #63482E;
           color: white;
           padding: 4px 9px;
           border-radius: 8px;
@@ -127,11 +127,11 @@ export default function MapInner({
           gap: 3px;
           white-space: nowrap;
         ">
-          🎓 UNIPORT
+          UNIPORT
         </div>
       `,
-      iconSize: [76, 24],
-      iconAnchor: [38, 12],
+      iconSize: [72, 24],
+      iconAnchor: [36, 12],
     });
   };
 
@@ -247,7 +247,7 @@ export default function MapInner({
             >
               <Popup>
                 <div className="p-1 text-xs space-y-1">
-                  <span className="font-bold text-emerald-700 block">🎓 {gate.name}</span>
+                  <span className="font-bold text-emerald-700 block">{gate.name}</span>
                   <span className="text-gray-600 text-[11px] block">{gate.desc}</span>
                   <a
                     href={`https://www.google.com/maps/dir/?api=1&destination=${gate.lat},${gate.lng}`}

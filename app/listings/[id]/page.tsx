@@ -13,7 +13,6 @@ import {
   Phone,
   MessageCircle,
   Calendar,
-  Sparkles,
   ArrowLeft,
   Share2,
   Clock,
@@ -163,7 +162,7 @@ export default function ListingDetailPage() {
           <span>Back to All Listings</span>
         </Link>
         <span className="text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md font-bold">
-          📍 {listing.neighborhood}, Lagos
+          {listing.neighborhood}, Port Harcourt
         </span>
       </div>
 
@@ -184,9 +183,9 @@ export default function ListingDetailPage() {
           <p className="text-xs text-gray-500 flex items-center gap-1.5 mt-1">
             <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>{listing.address || listing.neighborhood}</span>
-            <span>•</span>
+            <span>·</span>
             <span className="font-bold text-gray-700">
-              🚶 {listing.distanceDescription || `${listing.distanceToCampusMinutes || 5} mins walk to Campus Gate`}
+              {listing.distanceDescription || `${listing.distanceToCampusMinutes || 5} mins walk to Campus Gate`}
             </span>
           </p>
         </div>
@@ -233,12 +232,11 @@ export default function ListingDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Details & Transparency */}
         <div className="lg:col-span-2 space-y-8">
-          {/* Total Move-In Fee Breakdown (Transparent - Anti-Scam) */}
+          {/* Total Move-In Fee Breakdown */}
           <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-xl p-6 space-y-4">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-emerald-600" />
               <h3 className="font-bold text-base text-gray-900">
-                Transparent Fee Breakdown (Zero Hidden Charges)
+                Fee Breakdown
               </h3>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">

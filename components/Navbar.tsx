@@ -149,11 +149,11 @@ export default function Navbar() {
           <div className="flex md:hidden items-center gap-1.5">
             {currentUser ? (
               <Link
-                href="/agent/dashboard"
-                className="px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-xs font-bold flex items-center gap-1 max-w-[115px]"
+                href="/agent/profile"
+                className="px-2.5 py-1 rounded-lg bg-gray-900 text-white text-xs font-semibold flex items-center gap-1 max-w-[115px]"
               >
                 <UserCheck className="w-3.5 h-3.5 shrink-0" />
-                <span className="truncate">{currentUser.name?.split(" ")[0] || "Portal"}</span>
+                <span className="truncate">Profile</span>
               </Link>
             ) : (
               <Link

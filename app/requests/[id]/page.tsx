@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -248,8 +248,7 @@ export default function RequestDetailPage() {
                             )}
                           </div>
                           <span className="text-[11px] text-gray-500 block -mt-0.5">
-                            {agentProfile?.agencyName || "Accredited Agent"} • ★{" "}
-                            {agentProfile?.rating?.toFixed(1) || "5.0"}
+                            {agentProfile?.agencyName || "Accredited Agent"}
                           </span>
                         </div>
                       </div>

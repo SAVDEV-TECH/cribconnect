@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
@@ -190,7 +190,7 @@ export default function AgentProfilePage() {
               Coverage Territory
             </span>
             <div className="text-xs font-bold text-gray-800">
-              {coverage.join(", ") || "Akoka & Yaba Environs"}
+              {coverage.join(", ") || "Choba & UNIPORT Environs"}
             </div>
             <p className="text-[11px] text-gray-500">
               Specialized local knowledge of campus proximity and student hostels.
@@ -207,7 +207,7 @@ export default function AgentProfilePage() {
                   key={i}
                   className="text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded"
                 >
-                  ✓ {b}
+                  {b}
                 </span>
               ))}
             </div>

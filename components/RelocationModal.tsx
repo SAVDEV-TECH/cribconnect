@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from "react";
 import { useApp } from "@/context/AppContext";
@@ -213,7 +213,7 @@ export default function RelocationModal() {
                     Matched based on your {targetUni} relocation from {originCity}.
                   </p>
                   <div className="text-[10px] text-emerald-600 font-medium">
-                    ★ 4.95 (28 verified student reviews) • 0 Scam Guarantee
+                    Verified student housing specialist
                   </div>
                 </div>
               </div>
