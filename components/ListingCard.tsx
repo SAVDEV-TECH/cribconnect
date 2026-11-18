@@ -197,8 +197,8 @@ export default function ListingCard({ listing }: ListingCardProps) {
             />
             <div className="min-w-0">
               <p className="text-xs font-semibold text-gray-800 truncate">{agentName}</p>
-              <p className="text-[10px] text-emerald-600 font-medium flex items-center gap-0.5">
-                <ShieldCheck className="w-3 h-3" /> Verified Partner
+              <p className="text-[10px] text-green-700 font-semibold flex items-center gap-0.5">
+                <ShieldCheck className="w-3 h-3 text-green-600" /> Verified Partner
               </p>
             </div>
           </div>
@@ -207,14 +207,14 @@ export default function ListingCard({ listing }: ListingCardProps) {
             <button
               type="button"
               onClick={() => setShowConnectGate(true)}
-              className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:border-emerald-300 hover:text-emerald-600 transition-colors"
+              className="p-1.5 rounded-lg border border-gray-200 text-gray-600 hover:border-emerald-300 hover:text-emerald-600 transition-colors"
               title="Protected Connect"
             >
               <MessageCircle className="w-4 h-4" />
             </button>
             <Link
               href={`/listings/${listing.id}`}
-              className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors flex items-center gap-1 shadow-xs"
+              className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-gray-900 text-xs font-bold transition-colors flex items-center gap-1 shadow-xs"
             >
               <span>Inspect / Lock</span>
               <ArrowRight className="w-3.5 h-3.5" />

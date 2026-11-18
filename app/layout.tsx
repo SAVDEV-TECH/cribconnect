@@ -14,7 +14,7 @@ import AiConciergeChat from "@/components/AiConciergeChat";
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://cribconnect-gold.vercel.app";
 
 export const viewport: Viewport = {
-  themeColor: "#22201D",
+  themeColor: "#0F766E",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -106,7 +106,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen flex flex-col bg-white text-gray-900 antialiased pb-14 md:pb-0">
+      <body className="min-h-screen flex flex-col bg-[#FAF9F6] text-gray-900 antialiased pb-14 md:pb-0">
         <AppProvider>
           <Navbar />
           <main className="flex-1">{children}</main>

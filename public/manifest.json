@@ -9,7 +9,7 @@
   "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait-primary",
   "background_color": "#ffffff",
-  "theme_color": "#22201D",
+  "theme_color": "#0F766E",
   "prefer_related_applications": false,
   "launch_handler": {
     "client_mode": "navigate-existing"

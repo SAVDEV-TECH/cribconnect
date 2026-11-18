@@ -16,17 +16,18 @@ export default async function HomePage() {
   const activeRequests = allRequests.slice(0, 2);
 
   return (
-    <div className="bg-white">
+    <div className="bg-[#FAF9F6]">
 
       {/* Hero */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-16 pb-14 text-center">
-        <p className="text-sm font-medium text-emerald-600 mb-4">
+        <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-3 py-1 rounded-full mb-4">
+          <ShieldCheck className="w-3.5 h-3.5 text-green-600" />
           Verified student housing · Port Harcourt
         </p>
         <h1 className="text-3xl sm:text-5xl font-bold text-gray-900 leading-tight tracking-tight max-w-3xl mx-auto">
           Find a home near UNIPORT<br className="hidden sm:block" /> before you arrive.
         </h1>
-        <p className="mt-5 text-base text-gray-500 max-w-xl mx-auto leading-relaxed">
+        <p className="mt-5 text-base text-gray-600 max-w-xl mx-auto leading-relaxed">
           Connect directly with verified agents in Choba, Rumuola, Aluu and surrounding areas. No scams, no hidden fees.
         </p>
 
@@ -64,7 +65,7 @@ export default async function HomePage() {
 
           <button
             type="submit"
-            className="px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors flex items-center justify-center gap-2 shrink-0"
+            className="px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2 shrink-0"
           >
             <Search className="w-4 h-4" />
             Search
@@ -72,48 +73,48 @@ export default async function HomePage() {
         </form>
 
         {/* Quick links */}
-        <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-sm text-gray-500">
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-sm text-gray-600">
           <span>Popular:</span>
-          <Link href="/listings?neighborhood=Choba" className="text-emerald-600 hover:underline">Choba</Link>
+          <Link href="/listings?neighborhood=Choba" className="text-emerald-600 font-medium hover:underline">Choba</Link>
           <span>·</span>
-          <Link href="/listings?propertyType=SELF_CONTAIN" className="text-emerald-600 hover:underline">Self-Contain</Link>
+          <Link href="/listings?propertyType=SELF_CONTAIN" className="text-emerald-600 font-medium hover:underline">Self-Contain</Link>
           <span>·</span>
-          <Link href="/listings?maxPrice=250000" className="text-emerald-600 hover:underline">Under ₦250k</Link>
+          <Link href="/listings?maxPrice=250000" className="text-emerald-600 font-medium hover:underline">Under ₦250k</Link>
           <span>·</span>
-          <Link href="/listings?neighborhood=Aluu" className="text-emerald-600 hover:underline">Back Gate Area</Link>
+          <Link href="/listings?neighborhood=Aluu" className="text-emerald-600 font-medium hover:underline">Back Gate Area</Link>
         </div>
       </section>
 
       {/* Divider */}
-      <div className="border-t border-gray-100" />
+      <div className="border-t border-gray-200/70" />
 
       {/* Listings */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-14">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-xl font-bold text-gray-900">Available properties</h2>
-            <p className="text-sm text-gray-500 mt-0.5">{allListings.length} verified listings near UNIPORT</p>
+            <p className="text-sm text-gray-600 mt-0.5">{allListings.length} verified listings near UNIPORT</p>
           </div>
           <Link
             href="/listings"
-            className="text-sm text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1"
+            className="text-sm text-emerald-600 hover:text-emerald-700 font-semibold flex items-center gap-1"
           >
             View all <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
 
         {featuredListings.length === 0 ? (
-          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-10 text-center space-y-4">
+          <div className="bg-white border border-gray-200 rounded-2xl p-10 text-center space-y-4">
             <Building2 className="w-10 h-10 text-emerald-600 mx-auto" />
             <div className="space-y-1 max-w-md mx-auto">
               <h3 className="text-base font-bold text-gray-900">No properties uploaded yet</h3>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-600">
                 Upload your first student apartment or lodge near UNIPORT and it will appear here immediately for students to browse and connect.
               </p>
             </div>
             <Link
               href="/list-property"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-gray-900 text-xs font-bold transition-colors"
             >
               <PlusCircle className="w-4 h-4" />
               <span>Upload New Property</span>
@@ -129,19 +130,19 @@ export default async function HomePage() {
       </section>
 
       {/* Divider */}
-      <div className="border-t border-gray-100" />
+      <div className="border-t border-gray-200/70" />
 
       {/* Why CribConnect */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-14">
         <div className="text-center mb-10">
           <h2 className="text-xl font-bold text-gray-900">Why use CribConnect?</h2>
-          <p className="text-sm text-gray-500 mt-1">Built for UNIPORT students to find housing safely and easily.</p>
+          <p className="text-sm text-gray-600 mt-1">Built for UNIPORT students to find housing safely and easily.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
             {
-              icon: <ShieldCheck className="w-5 h-5 text-emerald-600" />,
+              icon: <ShieldCheck className="w-5 h-5 text-green-600" />,
               title: "Verified agents only",
               body: "Every agent has been identity-checked. No anonymous listings, no roadside touts.",
             },
@@ -151,42 +152,42 @@ export default async function HomePage() {
               body: "Watch a video tour of the room, compound, water supply and generator before you travel.",
             },
             {
-              icon: <CheckCircle2 className="w-5 h-5 text-emerald-600" />,
+              icon: <CheckCircle2 className="w-5 h-5 text-green-600" />,
               title: "Transparent fees",
               body: "See the full breakdown: rent + agency fee + caution deposit. No surprises on move-in day.",
             },
           ].map((item, i) => (
-            <div key={i} className="bg-gray-50 rounded-xl p-6 space-y-3">
-              <div className="w-9 h-9 rounded-lg bg-white border border-gray-200 flex items-center justify-center shadow-sm">
+            <div key={i} className="bg-white border border-gray-200/80 rounded-xl p-6 space-y-3 shadow-xs">
+              <div className="w-9 h-9 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center">
                 {item.icon}
               </div>
               <h3 className="font-semibold text-gray-900 text-sm">{item.title}</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">{item.body}</p>
+              <p className="text-sm text-gray-600 leading-relaxed">{item.body}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* Divider */}
-      <div className="border-t border-gray-100" />
+      <div className="border-t border-gray-200/70" />
 
       {/* Housing Requests CTA */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-14">
-        <div className="bg-gray-50 rounded-2xl p-8 sm:p-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div className="bg-white border border-gray-200 rounded-2xl p-8 sm:p-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-xs">
           <div className="max-w-md space-y-2">
-            <div className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">
+            <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
               <MessageSquare className="w-3.5 h-3.5" />
               Reverse marketplace
             </div>
             <h2 className="text-xl font-bold text-gray-900">Can't find what you need?</h2>
-            <p className="text-sm text-gray-500 leading-relaxed">
+            <p className="text-sm text-gray-600 leading-relaxed">
               Post your budget and preferred area. Verified agents will send matching properties directly to your WhatsApp.
             </p>
 
             {/* Live Requests Preview */}
             <div className="pt-4 space-y-2">
               {activeRequests.map((req) => (
-                <div key={req.id} className="bg-white border border-gray-200 rounded-lg px-3 py-2.5 flex items-center justify-between gap-3">
+                <div key={req.id} className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-xs font-medium text-gray-800 truncate">{req.tenantName} · {req.tenantSchool}</p>
                     <p className="text-xs text-gray-500 truncate">{req.title}</p>
@@ -200,13 +201,13 @@ export default async function HomePage() {
           <div className="flex flex-col gap-3 shrink-0">
             <Link
               href="/requests"
-              className="px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors text-center"
+              className="px-5 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-gray-900 text-sm font-bold transition-colors text-center shadow-xs"
             >
               Post your housing need
             </Link>
             <Link
               href="/requests"
-              className="px-5 py-2.5 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium transition-colors text-center"
+              className="px-5 py-2.5 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-semibold transition-colors text-center"
             >
               View all requests
             </Link>

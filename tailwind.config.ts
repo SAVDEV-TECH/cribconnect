@@ -1,31 +1,63 @@
 import type { Config } from "tailwindcss";
 
-const brownScale = {
-  50: "#F7F4F0",
-  100: "#EBE3D8",
-  200: "#D8C8B4",
-  300: "#BEA486",
-  400: "#9E7E5B",
-  500: "#7D5E3F",
-  600: "#63482E",
-  700: "#4D3722",
-  800: "#3B2A1A",
-  900: "#2B1E13",
-  950: "#1B120B",
+// Primary: Deep Teal (#0F766E at 600) for navigation, headers, and main buttons
+const deepTealScale = {
+  50: "#F0FDFA",
+  100: "#CCFBF1",
+  200: "#99F6E4",
+  300: "#5EEAD4",
+  400: "#2DD4BF",
+  500: "#14B8A6",
+  600: "#0F766E",
+  700: "#115E59",
+  800: "#134E4A",
+  900: "#0D3B38",
+  950: "#042F2E",
 };
 
-const warmGreyScale = {
-  50: "#F7F6F4",
-  100: "#EFECE8",
-  200: "#DFDBD4",
-  300: "#C7C2B8",
-  400: "#9C968B",
-  500: "#6F6A61",
-  600: "#524E47",
-  700: "#383530",
-  800: "#22201D",
-  900: "#141311",
-  950: "#0B0A09",
+// Success / Verified: Clear Green for verified listings and trust badges
+const verifiedGreenScale = {
+  50: "#F0FDF4",
+  100: "#DCFCE7",
+  200: "#BBF7D0",
+  300: "#86EFAC",
+  400: "#4ADE80",
+  500: "#22C55E",
+  600: "#16A34A",
+  700: "#15803D",
+  800: "#166534",
+  900: "#14532D",
+  950: "#052E16",
+};
+
+// Accent: Warm Amber / Soft Orange (#F59E0B at 500) for high-visibility calls to action
+const warmAmberScale = {
+  50: "#FFFBEB",
+  100: "#FEF3C7",
+  200: "#FDE68A",
+  300: "#FCD34D",
+  400: "#FBBF24",
+  500: "#F59E0B",
+  600: "#D97706",
+  700: "#B45309",
+  800: "#92400E",
+  900: "#78350F",
+  950: "#451A03",
+};
+
+// Text & Surfaces: Dark Slate (#1E293B at 900) and Off-White / Light Slate (#F8FAFC at 50)
+const slateTextScale = {
+  50: "#F8FAFC",
+  100: "#F1F5F9",
+  200: "#E2E8F0",
+  300: "#CBD5E1",
+  400: "#94A3B8",
+  500: "#64748B",
+  600: "#475569",
+  700: "#334155",
+  800: "#1E293B",
+  900: "#1E293B",
+  950: "#0F172A",
 };
 
 const config: Config = {
@@ -37,16 +69,17 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        emerald: brownScale,
-        green: brownScale,
-        teal: brownScale,
-        brand: brownScale,
-        gray: warmGreyScale,
-        slate: warmGreyScale,
+        emerald: deepTealScale,
+        teal: deepTealScale,
+        brand: deepTealScale,
+        green: verifiedGreenScale,
+        amber: warmAmberScale,
+        gray: slateTextScale,
+        slate: slateTextScale,
         navy: {
-          800: "#22201D",
-          900: "#141311",
-          950: "#0B0A09",
+          800: "#1E293B",
+          900: "#0F172A",
+          950: "#020617",
         },
       },
     },

@@ -173,8 +173,8 @@ export default function ListingDetailPage() {
             <span className="px-2.5 py-0.5 rounded-full bg-gray-900 text-white text-[11px] font-bold">
               {listing.propertyType || "Self-Contain"}
             </span>
-            <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Verified Listing
+            <span className="px-2.5 py-0.5 rounded-full bg-green-100 text-green-800 text-[11px] font-bold flex items-center gap-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-green-600" /> Verified Listing
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">
@@ -364,21 +364,21 @@ export default function ListingDetailPage() {
               <div>
                 <div className="flex items-center gap-1.5">
                   <span className="font-bold text-sm text-gray-900">{agentName}</span>
-                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  <ShieldCheck className="w-4 h-4 text-green-600" />
                 </div>
                 <span className="text-[11px] text-gray-500 font-medium block">
                   {listing.agencyName || "Verified Housing Specialist"}
                 </span>
-                <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-bold inline-block mt-0.5">
-                  NIN Verified Realtor
+                <span className="text-[10px] text-green-800 bg-green-50 border border-green-200 px-2 py-0.5 rounded font-bold inline-block mt-0.5">
+                  Verified Realtor
                 </span>
               </div>
             </div>
 
-                        {/* Escrow Reservation Card */}
+            {/* Escrow Reservation Card */}
             <div className="bg-emerald-50/70 border border-emerald-200 rounded-xl p-4 space-y-2.5">
               <div className="flex items-center justify-between">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-bold">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-green-700 text-white text-[10px] font-bold">
                   <ShieldCheck className="w-3 h-3" /> Escrow Protected
                 </span>
                 <span className="text-[11px] font-semibold text-emerald-800">48-Hour Lock</span>
@@ -401,15 +401,15 @@ export default function ListingDetailPage() {
 
             {/* Direct Action Buttons */}
             <div className="space-y-2.5">
-              {/* WhatsApp (Primary) */}
+              {/* Contact Agent CTA (Warm Amber) */}
               <a
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm shadow-emerald-600/30 transition-all hover:scale-[1.02]"
+                className="w-full py-3.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all"
               >
                 <MessageCircle className="w-4 h-4" />
-                <span>Chat with Agent on WhatsApp</span>
+                <span>Contact Agent on WhatsApp</span>
               </a>
 
               {/* Call */}
@@ -425,13 +425,13 @@ export default function ListingDetailPage() {
             {/* Book Inspection Form */}
             <div className="pt-4 border-t border-gray-100 space-y-3">
               <h4 className="text-xs font-bold uppercase tracking-wider text-gray-700">
-                Book a Free Physical Walkthrough
+                Book a Viewing
               </h4>
 
               {bookingSuccess ? (
-                <div className="p-3.5 rounded-xl bg-emerald-50 text-emerald-800 text-xs font-bold flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  <span>Inspection request submitted! The agent will call you to confirm time.</span>
+                <div className="p-3.5 rounded-xl bg-green-50 text-green-800 border border-green-200 text-xs font-bold flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-600" />
+                  <span>Viewing request submitted! The agent will call you to confirm time.</span>
                 </div>
               ) : (
                 <form onSubmit={handleBookInspection} className="space-y-2.5">
@@ -480,9 +480,9 @@ export default function ListingDetailPage() {
                   <button
                     type="submit"
                     disabled={bookingLoading}
-                    className="w-full py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-white font-bold text-xs transition-colors"
+                    className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-colors"
                   >
-                    {bookingLoading ? "Booking..." : "Schedule Physical Inspection"}
+                    {bookingLoading ? "Booking..." : "Book a Viewing"}
                   </button>
                 </form>
               )}

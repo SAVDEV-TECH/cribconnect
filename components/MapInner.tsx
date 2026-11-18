@@ -88,8 +88,8 @@ export default function MapInner({
       className: "custom-property-pin",
       html: `
         <div style="
-          background: ${isActive ? "#63482E" : "#141311"};
-          color: white;
+          background: ${isActive ? "#F59E0B" : "#0F766E"};
+          color: ${isActive ? "#1E293B" : "white"};
           padding: 5px 10px;
           border-radius: 9999px;
           font-weight: 800;
@@ -114,7 +114,7 @@ export default function MapInner({
       className: "campus-pin",
       html: `
         <div style="
-          background: #63482E;
+          background: #1E293B;
           color: white;
           padding: 4px 9px;
           border-radius: 8px;
