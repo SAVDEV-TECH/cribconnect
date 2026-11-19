@@ -12,14 +12,17 @@ import {
   ChevronRight,
   Lock,
   X,
+  Flag,
+  Building2,
 } from "lucide-react";
+import { buildWhatsAppUrl, formatPeriodLabel } from "@/lib/types";
 
 interface ListingCardProps {
   listing: any;
   onOpenReport?: (listingId: string, title: string) => void;
 }
 
-export default function ListingCard({ listing }: ListingCardProps) {
+export default function ListingCard({ listing, onOpenReport }: ListingCardProps) {
   const [photoIndex, setPhotoIndex] = useState(0);
   const [showConnectGate, setShowConnectGate] = useState(false);
 
@@ -28,11 +31,6 @@ export default function ListingCard({ listing }: ListingCardProps) {
     photos = Array.isArray(listing.photos) ? listing.photos : JSON.parse(listing.photos || "[]");
   } catch {
     photos = [];
-  }
-  if (!photos.length) {
-    photos = [
-      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop&q=80",
-    ];
   }
 
   let amenities: string[] = [];
@@ -44,26 +42,29 @@ export default function ListingCard({ listing }: ListingCardProps) {
     amenities = [];
   }
 
-  const agentName = listing.agentName || listing.agent?.name || "Verified Agent";
+  const agentName = listing.agentName || listing.agent?.name || "Property Provider";
+  const isVerified = Boolean(
+    listing.agentVerified || listing.agent?.agentProfile?.verificationStatus === "VERIFIED"
+  );
   const rawWhatsapp =
     listing.agentWhatsapp || listing.agent?.whatsapp || listing.agentPhone || "";
-  const cleanPhone = rawWhatsapp.replace(/\D/g, "");
-  const intlPhone = cleanPhone.startsWith("0")
-    ? "234" + cleanPhone.slice(1)
-    : cleanPhone || "2348063345521";
 
   const typeLabel: Record<string, string> = {
     SELF_CONTAIN: "Self-Contain",
     ONE_BED: "1-Bedroom",
     TWO_BED: "2-Bedroom",
+    THREE_BED: "3-Bedroom",
+    HOSTEL_BED: "Hostel Bed",
     STUDIO: "Serviced Studio",
   };
 
+  const periodLabel = formatPeriodLabel(listing.period);
   const formattedPrice = `₦${(listing.price || 0).toLocaleString()}`;
   const trackingCode = `CC-${String(listing.id || "UNI").slice(-5).toUpperCase()}`;
-  const whatsappUrl = `https://wa.me/${intlPhone}?text=${encodeURIComponent(
-    `[CribConnect Tracked Lead #${trackingCode}]\nHello ${agentName}, I am interested in inspecting "${listing.title}" (${formattedPrice}/yr at ${listing.neighborhood}) on CribConnect.\n\nNote: I will reserve and release payment strictly through CribConnect 48-Hour Escrow Protection after physical inspection.`
-  )}`;
+  const whatsappUrl = buildWhatsAppUrl(
+    rawWhatsapp,
+    `[CribConnect Tracked Lead #${trackingCode}]\nHello ${agentName}, I am interested in inspecting "${listing.title}" (${formattedPrice}/${periodLabel} at ${listing.neighborhood}) on CribConnect.\n\nNote: I will reserve and release payment strictly through CribConnect 48-Hour Escrow Protection after physical inspection.`
+  );
 
   const handleTrackConnect = () => {
     fetch(`/api/listings/${listing.id}`, { method: "POST" }).catch(() => {});
@@ -74,38 +75,60 @@ export default function ListingCard({ listing }: ListingCardProps) {
       {/* Image */}
       <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden group">
         <Link href={`/listings/${listing.id}`} className="block w-full h-full">
-          <img
-            src={photos[photoIndex]}
-            alt={listing.title}
-            className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
-            loading="lazy"
-          />
+          {photos.length > 0 ? (
+            <img
+              src={photos[photoIndex]}
+              alt={listing.title}
+              className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-emerald-50 to-gray-100 text-gray-400 gap-1.5">
+              <Building2 className="w-8 h-8 text-emerald-500/60" />
+              <span className="text-[11px] font-medium text-gray-500">Photos pending</span>
+            </div>
+          )}
         </Link>
 
         {/* Top-left Type + Escrow badge */}
         <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
-          <span className="px-2.5 py-1 rounded-lg bg-white/95 backdrop-blur-xs text-gray-900 text-[11px] font-bold shadow-xs">
+          <span className="px-2.5 py-1 rounded-lg bg-white/95 backdrop-blur-sm text-gray-900 text-[11px] font-bold shadow-sm">
             {typeLabel[listing.propertyType] || "Apartment"}
           </span>
-          <span className="px-2 py-1 rounded-lg bg-emerald-600/95 text-white text-[10px] font-bold flex items-center gap-1 shadow-xs">
+          <span className="px-2 py-1 rounded-lg bg-emerald-600/95 text-white text-[10px] font-bold flex items-center gap-1 shadow-sm">
             <Lock className="w-2.5 h-2.5" /> Escrow
           </span>
         </div>
 
-        {/* Video badge */}
-        {listing.videoTourUrl && (
-          <div className="absolute top-2.5 right-2.5">
+        {/* Top-right Video & Report */}
+        <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
+          {listing.videoTourUrl && (
             <span className="px-2.5 py-1 rounded-lg bg-gray-900/85 text-white text-[10px] font-bold flex items-center gap-1">
               <Video className="w-3 h-3 text-emerald-400" /> Video Tour
             </span>
-          </div>
-        )}
+          )}
+          {onOpenReport && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                onOpenReport(listing.id, listing.title);
+              }}
+              title="Report suspicious listing"
+              aria-label={`Report ${listing.title}`}
+              className="p-1.5 rounded-lg bg-white/90 hover:bg-red-50 text-gray-500 hover:text-red-600 transition-colors shadow-sm"
+            >
+              <Flag className="w-3 h-3" />
+            </button>
+          )}
+        </div>
 
-        {/* Photo nav — show on hover */}
+        {/* Photo nav */}
         {photos.length > 1 && (
           <>
             <button
               type="button"
+              aria-label="Previous photo"
               onClick={(e) => {
                 e.preventDefault();
                 setPhotoIndex((p) => (p > 0 ? p - 1 : photos.length - 1));
@@ -116,6 +139,7 @@ export default function ListingCard({ listing }: ListingCardProps) {
             </button>
             <button
               type="button"
+              aria-label="Next photo"
               onClick={(e) => {
                 e.preventDefault();
                 setPhotoIndex((p) => (p < photos.length - 1 ? p + 1 : 0));
@@ -146,10 +170,10 @@ export default function ListingCard({ listing }: ListingCardProps) {
             <span className="text-lg font-extrabold text-gray-900 tracking-tight">
               {formattedPrice}
             </span>
-            <span className="text-xs text-gray-500 ml-1">/{listing.period || "yr"}</span>
+            <span className="text-xs text-gray-500 ml-1">/{periodLabel}</span>
           </div>
           <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100 shrink-0">
-            {listing.distanceDescription || `${listing.distanceToCampusMinutes || 5}m to gate`}
+            {listing.distanceDescription || `${listing.distanceToCampusMinutes ?? 5}m to gate`}
           </span>
         </div>
 
@@ -185,7 +209,10 @@ export default function ListingCard({ listing }: ListingCardProps) {
 
         {/* Agent + Protected Actions */}
         <div className="mt-auto pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
+          <Link
+            href={listing.agentId ? `/agents/${listing.agentId}` : "/agents"}
+            className="flex items-center gap-2 min-w-0 hover:opacity-80 transition-opacity"
+          >
             <img
               src={
                 listing.agentAvatar ||
@@ -197,11 +224,15 @@ export default function ListingCard({ listing }: ListingCardProps) {
             />
             <div className="min-w-0">
               <p className="text-xs font-semibold text-gray-800 truncate">{agentName}</p>
-              <p className="text-[10px] text-green-700 font-semibold flex items-center gap-0.5">
-                <ShieldCheck className="w-3 h-3 text-green-600" /> Verified Partner
-              </p>
+              {isVerified ? (
+                <p className="text-[10px] text-green-700 font-semibold flex items-center gap-0.5">
+                  <ShieldCheck className="w-3 h-3 text-green-600" /> Verified Partner
+                </p>
+              ) : (
+                <p className="text-[10px] text-gray-400 font-medium">Registered Provider</p>
+              )}
             </div>
-          </div>
+          </Link>
 
           <div className="flex items-center gap-1.5 shrink-0">
             <button
@@ -209,12 +240,13 @@ export default function ListingCard({ listing }: ListingCardProps) {
               onClick={() => setShowConnectGate(true)}
               className="p-1.5 rounded-lg border border-gray-200 text-gray-600 hover:border-emerald-300 hover:text-emerald-600 transition-colors"
               title="Protected Connect"
+              aria-label="Open protected connect options"
             >
               <MessageCircle className="w-4 h-4" />
             </button>
             <Link
               href={`/listings/${listing.id}`}
-              className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-gray-900 text-xs font-bold transition-colors flex items-center gap-1 shadow-xs"
+              className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-gray-900 text-xs font-bold transition-colors flex items-center gap-1 shadow-sm"
             >
               <span>Inspect / Lock</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -223,9 +255,9 @@ export default function ListingCard({ listing }: ListingCardProps) {
         </div>
       </div>
 
-      {/* Anti-Bypass & Escrow Protection Overlay when clicking Message Icon */}
+      {/* Anti-Bypass & Escrow Protection Overlay */}
       {showConnectGate && (
-        <div className="absolute inset-0 z-20 bg-white/98 backdrop-blur-xs p-4 flex flex-col justify-between">
+        <div className="absolute inset-0 z-20 bg-white/95 backdrop-blur-sm p-4 flex flex-col justify-between">
           <div className="flex items-center justify-between border-b border-gray-100 pb-2.5">
             <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
@@ -234,6 +266,7 @@ export default function ListingCard({ listing }: ListingCardProps) {
             <button
               type="button"
               onClick={() => setShowConnectGate(false)}
+              aria-label="Close protection notice"
               className="p-1 rounded-lg text-gray-400 hover:text-gray-700"
             >
               <X className="w-4 h-4" />
@@ -245,10 +278,12 @@ export default function ListingCard({ listing }: ListingCardProps) {
               Protect Your Money &amp; Inspection Rights
             </p>
             <p className="text-[11px] text-gray-600 leading-relaxed">
-              Do <strong>not</strong> pay inspection fees or rent directly into personal WhatsApp accounts. Lock this apartment with <strong>CribConnect 48-Hour Escrow</strong> first so your money is 100% refundable if the house doesn&apos;t match.
+              Do <strong>not</strong> pay inspection fees or rent directly into personal WhatsApp
+              accounts. Lock this apartment with <strong>CribConnect 48-Hour Escrow</strong> first
+              so your money is 100% refundable if the house doesn&apos;t match.
             </p>
             <div className="text-[10px] font-mono bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700">
-              Lead Tracking ID: <strong>{trackingCode}</strong> (Logged to CribConnect Admin)
+              Lead Tracking ID: <strong>{trackingCode}</strong>
             </div>
           </div>
 
@@ -261,19 +296,21 @@ export default function ListingCard({ listing }: ListingCardProps) {
               <Lock className="w-3.5 h-3.5" />
               <span>Lock Room via Escrow &amp; Book Inspection</span>
             </Link>
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => {
-                handleTrackConnect();
-                setShowConnectGate(false);
-              }}
-              className="w-full py-1.5 px-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-colors"
-            >
-              <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Ask Question on WhatsApp (Tracked Lead #{trackingCode})</span>
-            </a>
+            {whatsappUrl && (
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => {
+                  handleTrackConnect();
+                  setShowConnectGate(false);
+                }}
+                className="w-full py-1.5 px-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Ask Question on WhatsApp (Tracked Lead #{trackingCode})</span>
+              </a>
+            )}
           </div>
         </div>
       )}

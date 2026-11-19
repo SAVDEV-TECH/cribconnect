@@ -1,3 +1,5 @@
+@import "leaflet/dist/leaflet.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -50,9 +52,6 @@ a {
 .pb-safe {
   padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
 }
-
-/* Leaflet map styles */
-@import "leaflet/dist/leaflet.css";
 
 .leaflet-container {
   width: 100%;

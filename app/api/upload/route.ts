@@ -1,26 +1,21 @@
+import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { checkRateLimit } from "@/lib/auth-security";
+import {
+  ALLOWED_IMAGE_TYPES,
+  ALLOWED_VIDEO_TYPES,
+  MAX_IMAGE_SIZE_BYTES,
+  MAX_VIDEO_SIZE_BYTES,
+  checkRateLimit,
+  validateMediaMagicBytes,
+} from "@/lib/auth-security";
+import { requireAuth } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-// Allowed MIME types
-const ALLOWED_IMAGE_TYPES = new Set([
-  "image/jpeg",
-  "image/jpg",
-  "image/png",
-  "image/webp",
-  "image/avif",
-]);
-
-const ALLOWED_VIDEO_TYPES = new Set([
-  "video/mp4",
-  "video/webm",
-  "video/quicktime",
-]);
-
-const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10 MB
-const MAX_VIDEO_SIZE = 30 * 1024 * 1024; // 30 MB
+function hasDatabaseConfigured(): boolean {
+  return Boolean((process.env.POSTGRES_URL || process.env.DATABASE_URL || "").trim());
+}
 
 async function storeMediaAssetAndGetUrl(
   mimeType: string,
@@ -41,7 +36,7 @@ async function storeMediaAssetAndGetUrl(
       form.append("upload_preset", uploadPreset);
 
       const cloudRes = await fetch(
-        `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
+        `https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName)}/${resourceType}/upload`,
         {
           method: "POST",
           body: form,
@@ -58,12 +53,11 @@ async function storeMediaAssetAndGetUrl(
     }
   }
 
-  // 2. Store in dedicated indexed PostgreSQL MediaAsset table and serve via /api/media/[id] with Edge CDN caching
-  const prefix = mimeType.startsWith("video/") ? "vid" : "img";
-  const id = `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-
-  try {
-    await (prisma as any).mediaAsset.create({
+  // 2. Store in dedicated indexed PostgreSQL MediaAsset table and serve via /api/media/[id]
+  if (hasDatabaseConfigured()) {
+    const prefix = mimeType.startsWith("video/") ? "vid" : "img";
+    const id = `${prefix}-${crypto.randomUUID()}`;
+    await prisma.mediaAsset.create({
       data: {
         id,
         mimeType,
@@ -72,17 +66,23 @@ async function storeMediaAssetAndGetUrl(
       },
     });
     return `/api/media/${id}`;
-  } catch (err) {
-    console.warn("MediaAsset table insert fallback to data URL:", err);
+  }
+
+  // Local development fallback without DB (capped to small images)
+  if (ALLOWED_IMAGE_TYPES.has(mimeType) && sizeBytes <= 2 * 1024 * 1024) {
     return `data:${mimeType};base64,${base64Payload}`;
   }
+
+  throw new Error("Media storage is not configured in this environment.");
 }
 
 export async function POST(req: NextRequest) {
   try {
-    // 1. Rate Limiter: Max 40 uploads per 10 minutes per IP
-    const clientIp = req.headers.get("x-forwarded-for") || "local";
-    const { allowed } = checkRateLimit(`upload:${clientIp}`, 40, 10 * 60 * 1000);
+    const auth = await requireAuth();
+    if (!auth.ok) return auth.response;
+
+    const { user } = auth.context;
+    const { allowed } = checkRateLimit(`upload:${user.id}`, 40, 10 * 60 * 1000);
     if (!allowed) {
       return NextResponse.json(
         {
@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
       const file = formData.get("file") as File | null;
 
       if (!file) {
-        return NextResponse.json({ error: "No file provided" }, { status: 400 });
+        return NextResponse.json({ error: "No file provided." }, { status: 400 });
       }
 
       const mimeType = file.type.toLowerCase();
@@ -112,25 +112,25 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(
           {
             error:
-              "Unsupported file type. Allowed formats: JPG, PNG, WEBP, AVIF for photos; MP4, WEBM for video walkthroughs.",
+              "Unsupported file type. Allowed formats: JPG, PNG, WEBP, AVIF for photos; MP4, WEBM, MOV for video walkthroughs.",
           },
           { status: 400 }
         );
       }
 
-      if (isImage && file.size > MAX_IMAGE_SIZE) {
+      if (isImage && file.size > MAX_IMAGE_SIZE_BYTES) {
         return NextResponse.json(
           {
-            error: `Image too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum allowed is 10MB.`,
+            error: `Image too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum allowed is 4MB.`,
           },
           { status: 400 }
         );
       }
 
-      if (isVideo && file.size > MAX_VIDEO_SIZE) {
+      if (isVideo && file.size > MAX_VIDEO_SIZE_BYTES) {
         return NextResponse.json(
           {
-            error: `Video too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum allowed is 30MB.`,
+            error: `Video too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum allowed is 20MB.`,
           },
           { status: 400 }
         );
@@ -138,16 +138,23 @@ export async function POST(req: NextRequest) {
 
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
-      const base64Payload = buffer.toString("base64");
 
-      const url = await storeMediaAssetAndGetUrl(mimeType, base64Payload, file.size);
+      if (!validateMediaMagicBytes(buffer, mimeType)) {
+        return NextResponse.json(
+          { error: "File contents do not match the declared media type." },
+          { status: 400 }
+        );
+      }
+
+      const base64Payload = buffer.toString("base64");
+      const url = await storeMediaAssetAndGetUrl(mimeType, base64Payload, buffer.length);
 
       return NextResponse.json({
         success: true,
         url,
         type: isImage ? "image" : "video",
         fileName: file.name.replace(/[^a-zA-Z0-9.\-_]/g, ""),
-        sizeBytes: file.size,
+        sizeBytes: buffer.length,
       });
     }
 
@@ -160,26 +167,47 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Missing dataUrl" }, { status: 400 });
       }
 
-      const match = dataUrl.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,(.+)$/);
+      const match = dataUrl.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,([A-Za-z0-9+/=]+)$/);
       if (!match) {
-        return NextResponse.json({ error: "Invalid data URL format" }, { status: 400 });
+        return NextResponse.json({ error: "Invalid data URL format." }, { status: 400 });
       }
 
       const mime = match[1].toLowerCase();
       const base64Payload = match[2];
+      const isImage = ALLOWED_IMAGE_TYPES.has(mime);
+      const isVideo = ALLOWED_VIDEO_TYPES.has(mime);
 
-      if (!ALLOWED_IMAGE_TYPES.has(mime) && !ALLOWED_VIDEO_TYPES.has(mime)) {
-        return NextResponse.json({ error: "Disallowed MIME type in payload" }, { status: 400 });
+      if (!isImage && !isVideo) {
+        return NextResponse.json({ error: "Disallowed MIME type in payload." }, { status: 400 });
       }
 
-      const approxBytes = Math.round((base64Payload.length * 3) / 4);
-      const url = await storeMediaAssetAndGetUrl(mime, base64Payload, approxBytes);
+      const buffer = Buffer.from(base64Payload, "base64");
+      const maxBytes = isImage ? MAX_IMAGE_SIZE_BYTES : MAX_VIDEO_SIZE_BYTES;
+      if (buffer.length === 0 || buffer.length > maxBytes) {
+        return NextResponse.json(
+          {
+            error: isImage
+              ? "Image exceeds the 4MB upload limit."
+              : "Video exceeds the 20MB upload limit.",
+          },
+          { status: 400 }
+        );
+      }
+
+      if (!validateMediaMagicBytes(buffer, mime)) {
+        return NextResponse.json(
+          { error: "Uploaded bytes do not match declared MIME type." },
+          { status: 400 }
+        );
+      }
+
+      const url = await storeMediaAssetAndGetUrl(mime, base64Payload, buffer.length);
 
       return NextResponse.json({
         success: true,
         url,
-        type: ALLOWED_IMAGE_TYPES.has(mime) ? "image" : "video",
-        sizeBytes: approxBytes,
+        type: isImage ? "image" : "video",
+        sizeBytes: buffer.length,
       });
     }
 

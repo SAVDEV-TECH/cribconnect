@@ -1,25 +1,28 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { Currency, formatMoney as formatMoneyUtil } from "@/lib/types";
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { Currency, Role, formatMoney as formatMoneyUtil } from "@/lib/types";
 
-interface User {
+export interface User {
   id: string;
   name: string;
   email: string;
-  role: "STUDENT" | "AGENT" | "ADMIN";
+  role: Role;
+  isAdmin?: boolean;
+  isVerified?: boolean;
   avatar: string | null;
   phone: string | null;
   whatsapp: string | null;
-  city: string | null;
-  currentSchool: string | null;
+  agencyName?: string | null;
+  city?: string | null;
+  currentSchool?: string | null;
   agentProfile?: {
     id: string;
     agencyName: string | null;
     verificationStatus: string;
     tier: string;
     badges: string;
-    rating: number;
+    rating: number | null;
     reviewCount: number;
     bio: string | null;
     campusSpecialization: string | null;
@@ -29,6 +32,7 @@ interface User {
 
 interface AppContextType {
   currentUser: User | null;
+  sessionReady: boolean;
   currency: Currency;
   setCurrency: (c: Currency) => void;
   formatMoney: (amountInNgn: number) => string;
@@ -44,37 +48,60 @@ interface AppContextType {
   openUpgradeModal: () => void;
   closeUpgradeModal: () => void;
   refreshUser: () => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [sessionReady, setSessionReady] = useState(false);
   const [currency, setCurrency] = useState<Currency>("NGN");
-  const [selectedUniversity, setSelectedUniversity] = useState<string>("University of Port Harcourt (UNIPORT)");
+  const [selectedUniversity, setSelectedUniversity] = useState<string>(
+    "University of Port Harcourt (UNIPORT)"
+  );
   const [isRelocationModalOpen, setIsRelocationModalOpen] = useState(false);
   const [videoTourUrl, setVideoTourUrl] = useState<string | null>(null);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
-  const fetchSession = async () => {
+  const fetchSession = useCallback(async () => {
     try {
       const { getSavedMobileUser, syncOrRestoreSession } = await import("@/lib/client-auth");
       const cached = getSavedMobileUser();
       if (cached) {
-        setCurrentUser(cached as any);
+        setCurrentUser(cached as unknown as User);
       }
       const user = await syncOrRestoreSession();
-      if (user) {
-        setCurrentUser(user as any);
-      }
+      setCurrentUser(user ? (user as unknown as User) : null);
     } catch (err) {
       console.error("Failed to load user session", err);
+    } finally {
+      setSessionReady(true);
     }
-  };
+  }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      const { clearMobileSession } = await import("@/lib/client-auth");
+      clearMobileSession();
+      setCurrentUser(null);
+      await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+    } catch {}
+  }, []);
 
   useEffect(() => {
     fetchSession();
-  }, []);
+
+    const handleAuthChanged = (event: Event) => {
+      const custom = event as CustomEvent<{ user?: User | null }>;
+      setCurrentUser(custom?.detail?.user ?? null);
+    };
+
+    window.addEventListener("cribconnect:auth-changed", handleAuthChanged);
+    return () => {
+      window.removeEventListener("cribconnect:auth-changed", handleAuthChanged);
+    };
+  }, [fetchSession]);
 
   const formatMoney = (amountInNgn: number) => formatMoneyUtil(amountInNgn, currency);
 
@@ -82,6 +109,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     <AppContext.Provider
       value={{
         currentUser,
+        sessionReady,
         currency,
         setCurrency,
         formatMoney,
@@ -97,6 +125,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         openUpgradeModal: () => setIsUpgradeModalOpen(true),
         closeUpgradeModal: () => setIsUpgradeModalOpen(false),
         refreshUser: fetchSession,
+        logout,
       }}
     >
       {children}

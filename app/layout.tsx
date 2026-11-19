@@ -5,8 +5,6 @@ import { AppProvider } from "@/context/AppContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import VideoTourModal from "@/components/VideoTourModal";
-import RelocationModal from "@/components/RelocationModal";
-import ProUpgradeModal from "@/components/ProUpgradeModal";
 import GoogleOneTap from "@/components/GoogleOneTap";
 import PwaInstaller from "@/components/PwaInstaller";
 import AiConciergeChat from "@/components/AiConciergeChat";
@@ -27,7 +25,7 @@ export const metadata: Metadata = {
     template: "%s | CribConnect",
   },
   description:
-    "Find verified student housing near University of Port Harcourt (UNIPORT) in Choba, Rumuola, Aluu, Ozuoba and surrounding areas. Video walkthroughs, transparent fees, and scam-free verified agents.",
+    "Find verified student housing near University of Port Harcourt (UNIPORT) in Choba, Rumuola, Aluu, Ozuoba, Rumuigbo and surrounding areas. Video walkthroughs, transparent fees, and escrow-protected reservations.",
   keywords: [
     "UNIPORT housing",
     "University of Port Harcourt accommodation",
@@ -36,6 +34,7 @@ export const metadata: Metadata = {
     "Aluu student accommodation",
     "Rumuola apartment UNIPORT",
     "Ozuoba budget rooms",
+    "Rumuigbo apartments Port Harcourt",
     "verified property agents Port Harcourt",
     "self contain near UNIPORT",
     "CribConnect",
@@ -70,7 +69,7 @@ export const metadata: Metadata = {
     siteName: "CribConnect",
     title: "CribConnect | Verified Student Housing Near UNIPORT",
     description:
-      "Post your housing need. Let verified Port Harcourt agents pitch matching properties near UNIPORT with transparent fees, video walkthroughs & 0% scam tolerance.",
+      "Post your housing need or browse verified apartments near UNIPORT with transparent fees, video walkthroughs & 48-hour escrow protection.",
     images: [
       {
         url: "/og-image.png",
@@ -89,14 +88,14 @@ export const metadata: Metadata = {
     creator: "@cribconnect",
   },
   icons: {
-    icon: "/icon-192.svg",
-    shortcut: "/icon-192.svg",
-    apple: "/icon-192.svg",
+    icon: [
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    shortcut: "/icon-192.png",
+    apple: "/apple-touch-icon.png",
   },
   manifest: "/manifest.json",
-  alternates: {
-    canonical: siteUrl,
-  },
 };
 
 export default function RootLayout({
@@ -113,8 +112,6 @@ export default function RootLayout({
           <Footer />
           {/* Global Modals, PWA & Scripts */}
           <VideoTourModal />
-          <RelocationModal />
-          <ProUpgradeModal />
           <GoogleOneTap />
           <AiConciergeChat />
           <PwaInstaller />

@@ -2,33 +2,36 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useApp } from "@/context/AppContext";
+import { buildWhatsAppUrl } from "@/lib/types";
 import {
   MessageSquare,
   PlusCircle,
   MapPin,
   Calendar,
-  Wallet,
   CheckCircle2,
-  Clock,
-  Phone,
   MessageCircle,
   ArrowRight,
+  AlertCircle,
+  ExternalLink,
 } from "lucide-react";
 
 export default function HousingRequestsPage() {
+  const { currentUser } = useApp();
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [successNotice, setSuccessNotice] = useState(false);
+  const [successNotice, setSuccessNotice] = useState<string | null>(null);
+  const [errorNotice, setErrorNotice] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     tenantName: "",
     tenantPhone: "",
-    tenantSchool: "UNIPORT Fresher",
+    tenantSchool: "UNIPORT Student",
     title: "",
     preferredArea: "Choba / Ozuoba",
-    maxBudget: "500000",
+    maxBudget: "450000",
     propertyType: "SELF_CONTAIN",
     moveInDate: "Next 2 Weeks",
     description: "",
@@ -36,7 +39,7 @@ export default function HousingRequestsPage() {
 
   const fetchRequests = async () => {
     try {
-      const res = await fetch("/api/requests");
+      const res = await fetch("/api/requests", { cache: "no-store" });
       const data = await res.json();
       if (data.requests) {
         setRequests(data.requests);
@@ -50,11 +53,49 @@ export default function HousingRequestsPage() {
 
   useEffect(() => {
     fetchRequests();
+
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const area = params.get("neighborhood") || params.get("area");
+      const budget = params.get("budget");
+      const type = params.get("type");
+      if (params.get("new") === "1") {
+        setShowModal(true);
+      }
+      if (area || budget || type) {
+        setFormData((prev) => ({
+          ...prev,
+          preferredArea: area || prev.preferredArea,
+          maxBudget: budget || prev.maxBudget,
+          propertyType: type || prev.propertyType,
+        }));
+      }
+    }
   }, []);
+
+  useEffect(() => {
+    if (currentUser) {
+      setFormData((prev) => ({
+        ...prev,
+        tenantName: prev.tenantName || currentUser.name || "",
+        tenantPhone: prev.tenantPhone || currentUser.phone || currentUser.whatsapp || "",
+      }));
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (!showModal) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowModal(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [showModal]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
+    setErrorNotice(null);
 
     try {
       const res = await fetch("/api/requests", {
@@ -65,24 +106,28 @@ export default function HousingRequestsPage() {
 
       const data = await res.json();
       if (res.ok && data.request) {
-        setRequests([data.request, ...requests]);
+        setRequests((prev) => [data.request, ...prev]);
         setShowModal(false);
-        setSuccessNotice(true);
-        setTimeout(() => setSuccessNotice(false), 5000);
+        setSuccessNotice(
+          "Your housing request has been published! Verified Port Harcourt agents can now submit proposals or reach you on WhatsApp."
+        );
+        setTimeout(() => setSuccessNotice(null), 6000);
         setFormData({
-          tenantName: "",
-          tenantPhone: "",
-          tenantSchool: "UNIPORT Fresher",
+          tenantName: currentUser?.name || "",
+          tenantPhone: currentUser?.phone || currentUser?.whatsapp || "",
+          tenantSchool: "UNIPORT Student",
           title: "",
           preferredArea: "Choba / Ozuoba",
-          maxBudget: "500000",
+          maxBudget: "450000",
           propertyType: "SELF_CONTAIN",
           moveInDate: "Next 2 Weeks",
           description: "",
         });
+      } else {
+        setErrorNotice(data.error || "Could not publish your housing request. Please check your details.");
       }
-    } catch (err) {
-      console.error(err);
+    } catch {
+      setErrorNotice("Network error while posting request. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -101,11 +146,15 @@ export default function HousingRequestsPage() {
               Can&apos;t find a crib? Post what you need.
             </h1>
             <p className="text-sm text-gray-500 leading-relaxed max-w-xl">
-              Tell local verified agents your budget, preferred campus gate, and move-in date. Agents will send matching properties directly to your WhatsApp.
+              Tell local verified UNIPORT &amp; Port Harcourt agents your budget, preferred campus gate, and move-in date. Agents can submit structured proposals or send matching properties directly to your WhatsApp.
             </p>
           </div>
           <button
-            onClick={() => setShowModal(true)}
+            type="button"
+            onClick={() => {
+              setErrorNotice(null);
+              setShowModal(true);
+            }}
             className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm flex items-center gap-2 shrink-0 transition-colors"
           >
             <PlusCircle className="w-4 h-4" />
@@ -116,8 +165,8 @@ export default function HousingRequestsPage() {
 
       {successNotice && (
         <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          <span>Your housing request has been published! Verified agents in the area will contact you with matching houses.</span>
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span>{successNotice}</span>
         </div>
       )}
 
@@ -135,7 +184,7 @@ export default function HousingRequestsPage() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-pulse">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-gray-100 h-40 rounded-2xl" />
+              <div key={i} className="bg-gray-100 h-44 rounded-2xl" />
             ))}
           </div>
         ) : requests.length === 0 ? (
@@ -144,6 +193,7 @@ export default function HousingRequestsPage() {
             <h3 className="font-bold text-gray-700">No requests posted yet</h3>
             <p className="text-xs text-gray-500">Be the first to post what you need!</p>
             <button
+              type="button"
               onClick={() => setShowModal(true)}
               className="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold"
             >
@@ -153,15 +203,15 @@ export default function HousingRequestsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {requests.map((req) => {
-              const whatsappNumber = (req.tenantWhatsapp || req.tenantPhone || "").replace(/\D/g, "");
-              const whatsappPitchUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-                `Hello ${req.tenantName}! I saw your request on CribConnect for "${req.title}" (Budget: ₦${(req.maxBudget || 0).toLocaleString()}). I am a verified agent with a matching property.`
-              )}`;
+              const whatsappPitchUrl = buildWhatsAppUrl(
+                req.tenantWhatsapp || req.tenantPhone,
+                `Hello ${req.tenantName}! I saw your request on CribConnect for "${req.title}" (Budget: ₦${(req.maxBudget || 0).toLocaleString()}). I am an agent with a matching property.`
+              );
 
               return (
                 <div
                   key={req.id}
-                  className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow flex flex-col justify-between space-y-4"
+                  className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-shadow flex flex-col justify-between space-y-4"
                 >
                   <div className="space-y-2">
                     <div className="flex items-start justify-between gap-2">
@@ -170,17 +220,33 @@ export default function HousingRequestsPage() {
                           {req.tenantName}
                         </span>
                         <span className="text-[11px] text-gray-500 font-medium">
-                          {req.tenantSchool || "Relocating Tenant"}
+                          {req.tenantSchool || "Port Harcourt Relocator"}
                         </span>
                       </div>
-                      <span className="text-xs font-black text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-lg">
-                        Max ₦{(req.maxBudget || 0).toLocaleString()} / yr
-                      </span>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span
+                          className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${
+                            req.status === "MATCHED"
+                              ? "bg-emerald-100 text-emerald-800"
+                              : req.status === "CLOSED"
+                              ? "bg-gray-100 text-gray-600"
+                              : "bg-blue-50 text-blue-700"
+                          }`}
+                        >
+                          {req.status || "OPEN"}
+                        </span>
+                        <span className="text-xs font-black text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-lg">
+                          Max ₦{(req.maxBudget || 0).toLocaleString()} / yr
+                        </span>
+                      </div>
                     </div>
 
-                    <h3 className="text-sm font-bold text-gray-900 leading-snug">
+                    <Link
+                      href={`/requests/${req.id}`}
+                      className="text-sm font-bold text-gray-900 hover:text-emerald-700 leading-snug block transition-colors"
+                    >
                       {req.title}
-                    </h3>
+                    </Link>
                     <p className="text-xs text-gray-600 leading-relaxed line-clamp-3">
                       {req.description}
                     </p>
@@ -198,17 +264,26 @@ export default function HousingRequestsPage() {
                       </span>
                     </div>
 
-                    {whatsappNumber && (
-                      <a
-                        href={whatsappPitchUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200 text-xs font-bold transition-all"
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/requests/${req.id}`}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-semibold transition-colors"
                       >
-                        <MessageCircle className="w-3.5 h-3.5" />
-                        <span>Pitch a House on WhatsApp</span>
-                      </a>
-                    )}
+                        <span>View Proposals</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </Link>
+                      {whatsappPitchUrl && (
+                        <a
+                          href={whatsappPitchUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200 text-xs font-bold transition-all"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          <span>WhatsApp</span>
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -219,20 +294,37 @@ export default function HousingRequestsPage() {
 
       {/* Modal: Post Housing Need */}
       {showModal && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
+        <div
+          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="post-request-title"
+        >
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-8 space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-xl font-black text-gray-900">Post Housing Request</h3>
-                <p className="text-xs text-gray-500">Verified agents will respond with matching houses</p>
+                <h3 id="post-request-title" className="text-xl font-black text-gray-900">
+                  Post Housing Request
+                </h3>
+                <p className="text-xs text-gray-500">
+                  Verified Port Harcourt agents will respond with matching houses
+                </p>
               </div>
               <button
+                type="button"
                 onClick={() => setShowModal(false)}
                 className="px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-semibold"
               >
                 Close
               </button>
             </div>
+
+            {errorNotice && (
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{errorNotice}</span>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -290,6 +382,7 @@ export default function HousingRequestsPage() {
                   <input
                     type="number"
                     required
+                    min={10000}
                     placeholder="e.g. 450000"
                     value={formData.maxBudget}
                     onChange={(e) => setFormData({ ...formData, maxBudget: e.target.value })}
@@ -301,7 +394,7 @@ export default function HousingRequestsPage() {
                   <label className="block text-xs font-bold text-gray-700 mb-1">Preferred Location</label>
                   <input
                     type="text"
-                    placeholder="e.g. Choba, Ozuoba, Aluu, Rumuola"
+                    placeholder="e.g. Choba, Ozuoba, Aluu, Rumuola, Rumuigbo"
                     value={formData.preferredArea}
                     onChange={(e) => setFormData({ ...formData, preferredArea: e.target.value })}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
@@ -309,11 +402,42 @@ export default function HousingRequestsPage() {
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Property Type</label>
+                  <select
+                    value={formData.propertyType}
+                    onChange={(e) => setFormData({ ...formData, propertyType: e.target.value })}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  >
+                    <option value="SELF_CONTAIN">Self-Contain</option>
+                    <option value="SINGLE_ROOM">Single Room</option>
+                    <option value="SHARED_ROOM">Shared Room / Hostel</option>
+                    <option value="ONE_BEDROOM">1-Bedroom Flat</option>
+                    <option value="TWO_BEDROOM">2-Bedroom Flat</option>
+                    <option value="STUDIO">Studio Apartment</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Target Move-in</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Next 2 Weeks / January"
+                    value={formData.moveInDate}
+                    onChange={(e) => setFormData({ ...formData, moveInDate: e.target.value })}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Any Specific Needs? (Water, power, quiet compound...)</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Specific Needs (Water, power, quiet compound...)
+                </label>
                 <textarea
                   rows={2}
-                  placeholder="e.g. Water must run daily, quiet environment for studying, personal meter..."
+                  placeholder="e.g. Water must run daily, quiet environment for studying, personal prepaid meter..."
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
@@ -323,7 +447,7 @@ export default function HousingRequestsPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors"
+                className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors"
               >
                 <span>{submitting ? "Posting Request..." : "Post Housing Request"}</span>
                 <ArrowRight className="w-4 h-4" />

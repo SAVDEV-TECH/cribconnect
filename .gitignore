@@ -9,8 +9,10 @@ out/
 dist/
 build/
 
-# Database journals (but keep dev.db so Vercel can read the seed data)
-prisma/dev.db-journal
+# Local SQLite database artifacts (schema uses PostgreSQL)
+*.db
+*.db-journal
+prisma/*.db
 prisma/*.db-journal
 
 # Environment variables - NEVER commit these
@@ -39,6 +41,7 @@ desktop.ini
 
 # Testing
 coverage/
+.test-dist/
 
 # Misc
 *.tsbuildinfo
@@ -47,3 +50,4 @@ next-env.d.ts
 .vercel
 android-native/build/
 *.jks
+*.idsig

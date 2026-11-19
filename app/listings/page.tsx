@@ -9,13 +9,9 @@ import InteractiveMap from "@/components/InteractiveMap";
 import ReportModal from "@/components/ReportModal";
 import {
   Search,
-  Filter,
-  MapPin,
-  SlidersHorizontal,
   Map as MapIcon,
   List as ListIcon,
   Columns,
-  CheckCircle2,
   Building2,
   PlusCircle,
 } from "lucide-react";
@@ -29,17 +25,16 @@ function ListingsContent() {
   const [viewMode, setViewMode] = useState<"split" | "list" | "map">("split");
   const [activeListingId, setActiveListingId] = useState<string | null>(null);
 
-  // Filters
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [neighborhood, setNeighborhood] = useState(searchParams.get("neighborhood") || "ALL");
   const [propertyType, setPropertyType] = useState(searchParams.get("propertyType") || "ALL");
-  const [maxPrice, setMaxPrice] = useState<number>(
-    searchParams.get("maxPrice") ? Number(searchParams.get("maxPrice")) : 5000000
-  );
+  const [maxPrice, setMaxPrice] = useState<number>(() => {
+    const param = Number(searchParams.get("maxPrice"));
+    return Number.isFinite(param) && param > 0 ? Math.min(5000000, param) : 5000000;
+  });
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
 
-  // Report Modal state
   const [reportTarget, setReportTarget] = useState<{ id: string; title: string } | null>(null);
 
   const fetchListings = async () => {
@@ -69,25 +64,32 @@ function ListingsContent() {
 
   const filteredListings = useMemo(() => {
     return listings.filter((item) => {
-      if (neighborhood !== "ALL" && !item.neighborhood.toLowerCase().includes(neighborhood.toLowerCase())) {
+      if (
+        neighborhood !== "ALL" &&
+        !(item.neighborhood || "").toLowerCase().includes(neighborhood.toLowerCase())
+      ) {
         return false;
       }
       if (propertyType !== "ALL" && item.propertyType !== propertyType) {
         return false;
       }
-      if (maxPrice < 5000000 && item.price > maxPrice) {
+      if (maxPrice < 5000000 && (item.price || 0) > maxPrice) {
         return false;
       }
-      if (verifiedOnly && !item.agentVerified && item.agent?.agentProfile?.verificationStatus !== "VERIFIED") {
+      if (
+        verifiedOnly &&
+        !item.agentVerified &&
+        item.agent?.agentProfile?.verificationStatus !== "VERIFIED"
+      ) {
         return false;
       }
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const match =
-          item.title.toLowerCase().includes(q) ||
-          item.description.toLowerCase().includes(q) ||
-          item.address.toLowerCase().includes(q) ||
-          item.neighborhood.toLowerCase().includes(q);
+          (item.title || "").toLowerCase().includes(q) ||
+          (item.description || "").toLowerCase().includes(q) ||
+          (item.address || "").toLowerCase().includes(q) ||
+          (item.neighborhood || "").toLowerCase().includes(q);
         if (!match) return false;
       }
       if (selectedAmenities.length > 0) {
@@ -114,30 +116,52 @@ function ListingsContent() {
     { id: "Prepaid", label: "Prepaid Meter" },
   ];
 
+  const emptyState = (
+    <div className="text-center py-16 bg-white rounded-xl border border-gray-200 p-8 space-y-4">
+      <Building2 className="w-10 h-10 text-emerald-600 mx-auto" />
+      <div className="space-y-1 max-w-sm mx-auto">
+        <h3 className="font-bold text-gray-900 text-sm">
+          {listings.length === 0 ? "No properties uploaded yet" : "No cribs matched your filters"}
+        </h3>
+        <p className="text-xs text-gray-500">
+          {listings.length === 0
+            ? "Upload your real properties and they will appear here immediately."
+            : "Try adjusting your budget, neighborhood, or amenity filters."}
+        </p>
+      </div>
+      <Link
+        href="/list-property"
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors"
+      >
+        <PlusCircle className="w-4 h-4" />
+        <span>Upload New Property</span>
+      </Link>
+    </div>
+  );
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Top Filter & View Bar */}
       <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          {/* Search Input */}
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by street (e.g. Choba Road, Ozuoba, Aluu, Rumuola)..."
+              placeholder="Search by street (e.g. Choba Road, Ozuoba, Aluu, Rumuigbo, Rumuola)..."
               className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             />
           </div>
 
-          {/* View Switcher Controls */}
           <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg text-xs font-semibold self-start md:self-auto">
             <button
+              type="button"
               onClick={() => setViewMode("split")}
               className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
                 viewMode === "split"
-                  ? "bg-white text-gray-900 shadow-xs"
+                  ? "bg-white text-gray-900 shadow-sm"
                   : "text-gray-500 hover:text-gray-800"
               }`}
             >
@@ -145,10 +169,11 @@ function ListingsContent() {
               <span className="hidden sm:inline">Split View</span>
             </button>
             <button
+              type="button"
               onClick={() => setViewMode("list")}
               className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
                 viewMode === "list"
-                  ? "bg-white text-gray-900 shadow-xs"
+                  ? "bg-white text-gray-900 shadow-sm"
                   : "text-gray-500 hover:text-gray-800"
               }`}
             >
@@ -156,10 +181,11 @@ function ListingsContent() {
               <span>List Only</span>
             </button>
             <button
+              type="button"
               onClick={() => setViewMode("map")}
               className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
                 viewMode === "map"
-                  ? "bg-white text-gray-900 shadow-xs"
+                  ? "bg-white text-gray-900 shadow-sm"
                   : "text-gray-500 hover:text-gray-800"
               }`}
             >
@@ -171,7 +197,6 @@ function ListingsContent() {
 
         {/* Filters Bar */}
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 pt-2 border-t border-gray-100 text-xs">
-          {/* Neighborhood */}
           <div>
             <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">
               Neighborhood
@@ -187,11 +212,11 @@ function ListingsContent() {
               <option value="Aluu">Aluu (Back Gate)</option>
               <option value="Rumuola">Rumuola</option>
               <option value="Rumuokoro">Rumuokoro</option>
+              <option value="Rumuigbo">Rumuigbo</option>
               <option value="GRA Port Harcourt">GRA PH (Premium)</option>
             </select>
           </div>
 
-          {/* Property Type */}
           <div>
             <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">
               Apartment Type
@@ -205,11 +230,11 @@ function ListingsContent() {
               <option value="SELF_CONTAIN">Self-Contain</option>
               <option value="ONE_BED">1-Bedroom</option>
               <option value="TWO_BED">2-Bedroom</option>
+              <option value="THREE_BED">3-Bedroom</option>
               <option value="STUDIO">Serviced Studio</option>
             </select>
           </div>
 
-          {/* Max Budget Slider */}
           <div className="col-span-2">
             <div className="flex justify-between items-center mb-1">
               <label className="text-[10px] font-bold text-gray-500 uppercase">
@@ -227,7 +252,6 @@ function ListingsContent() {
             />
           </div>
 
-          {/* Verified Agent Toggle */}
           <div className="flex items-center">
             <label className="flex items-center gap-2 cursor-pointer select-none">
               <input
@@ -240,7 +264,6 @@ function ListingsContent() {
             </label>
           </div>
 
-          {/* Amenities Filter Chips */}
           <div className="flex items-center gap-1.5 overflow-x-auto">
             {amenitiesList.map((a) => (
               <button
@@ -267,48 +290,29 @@ function ListingsContent() {
             Student Rentals near {selectedUniversity}
           </h1>
           <p className="text-xs text-gray-500">
-            Found {filteredListings.length} verified accommodations matching your criteria.
+            Found {filteredListings.length} accommodations matching your criteria.
           </p>
         </div>
       </div>
 
-      {/* Main Content Layout based on View Mode */}
       {viewMode === "split" && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[650px]">
-          {/* Listings List (7 cols) */}
           <div className="lg:col-span-7 space-y-4 max-h-[850px] overflow-y-auto pr-1">
             {isLoading ? (
               <div className="text-center py-16 text-xs text-gray-500">
-                Loading verified student cribs...
+                Loading student cribs...
               </div>
             ) : filteredListings.length === 0 ? (
-              <div className="text-center py-16 bg-white rounded-xl border border-gray-200 p-8 space-y-4">
-                <Building2 className="w-10 h-10 text-emerald-600 mx-auto" />
-                <div className="space-y-1 max-w-sm mx-auto">
-                  <h3 className="font-bold text-gray-900 text-sm">
-                    {listings.length === 0 ? "No properties uploaded yet" : "No cribs matched your filters"}
-                  </h3>
-                  <p className="text-xs text-gray-500">
-                    {listings.length === 0
-                      ? "Upload your real properties and they will appear here immediately in Browse & Connect."
-                      : "Try adjusting your budget or clearing amenity constraints."}
-                  </p>
-                </div>
-                <Link
-                  href="/list-property"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors"
-                >
-                  <PlusCircle className="w-4 h-4" />
-                  <span>Upload New Property</span>
-                </Link>
-              </div>
+              emptyState
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {filteredListings.map((listing) => (
                   <div
                     key={listing.id}
                     onMouseEnter={() => setActiveListingId(listing.id)}
-                    className={activeListingId === listing.id ? "ring-2 ring-emerald-500 rounded-2xl" : ""}
+                    className={
+                      activeListingId === listing.id ? "ring-2 ring-emerald-500 rounded-2xl" : ""
+                    }
                   >
                     <ListingCard
                       listing={listing}
@@ -320,7 +324,6 @@ function ListingsContent() {
             )}
           </div>
 
-          {/* Map View (5 cols sticky) */}
           <div className="lg:col-span-5 h-[400px] lg:h-[850px] sticky top-24 rounded-2xl overflow-hidden border border-gray-200">
             <InteractiveMap
               listings={filteredListings}
@@ -331,17 +334,22 @@ function ListingsContent() {
         </div>
       )}
 
-      {viewMode === "list" && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredListings.map((listing) => (
-            <ListingCard
-              key={listing.id}
-              listing={listing}
-              onOpenReport={(id, title) => setReportTarget({ id, title })}
-            />
-          ))}
-        </div>
-      )}
+      {viewMode === "list" &&
+        (isLoading ? (
+          <div className="text-center py-16 text-xs text-gray-500">Loading student cribs...</div>
+        ) : filteredListings.length === 0 ? (
+          emptyState
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredListings.map((listing) => (
+              <ListingCard
+                key={listing.id}
+                listing={listing}
+                onOpenReport={(id, title) => setReportTarget({ id, title })}
+              />
+            ))}
+          </div>
+        ))}
 
       {viewMode === "map" && (
         <div className="h-[750px] rounded-2xl overflow-hidden border border-gray-200">
@@ -353,7 +361,6 @@ function ListingsContent() {
         </div>
       )}
 
-      {/* Community Report Modal */}
       {reportTarget && (
         <ReportModal
           isOpen={!!reportTarget}

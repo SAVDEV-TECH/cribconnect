@@ -2,7 +2,8 @@
 import { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://cribconnect.vercel.app";
+  const baseUrl =
+    process.env.NEXT_PUBLIC_SITE_URL || "https://cribconnect-gold.vercel.app";
 
   return {
     rules: [
@@ -12,6 +13,9 @@ export default function robots(): MetadataRoute.Robots {
         disallow: [
           "/admin",
           "/agent/dashboard",
+          "/agent/profile",
+          "/auth/",
+          "/escrow",
           "/messages",
           "/api/",
           "/_next/",

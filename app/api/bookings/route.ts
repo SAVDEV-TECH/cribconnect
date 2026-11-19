@@ -1,44 +1,53 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import {
   addBookingStore,
   getBookingsStore,
   getBookingsByAgent,
+  getBookingById,
   updateBookingStatus,
   getListingById,
-  getUserById,
 } from "@/lib/data-store";
-import { verifySessionToken, sanitizeText } from "@/lib/auth-security";
+import { requireAuth } from "@/lib/session";
+import {
+  checkRateLimit,
+  getClientIp,
+  isValidEmail,
+  isValidPhone,
+  sanitizeText,
+} from "@/lib/auth-security";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
+    const auth = await requireAuth();
+    if (!auth.ok) return auth.response;
+
+    const { user, isAdmin } = auth.context;
     const { searchParams } = new URL(req.url);
-    const queryAgentId = searchParams.get("agentId");
+    const queryAgentId = searchParams.get("agentId")?.trim();
 
-    // Check if session token exists
-    const cookieStore = cookies();
-    const token = cookieStore.get("cribconnect_session")?.value;
-    let sessionUser: any = null;
-
-    if (token) {
-      const payload = verifySessionToken(token);
-      if (payload) {
-        sessionUser = (await getUserById(payload.userId)) || payload;
+    if (isAdmin) {
+      if (queryAgentId) {
+        const filtered = await getBookingsByAgent(queryAgentId);
+        return NextResponse.json({ bookings: filtered });
       }
+      const bookings = await getBookingsStore();
+      return NextResponse.json({ bookings });
     }
 
-    const targetAgentId = queryAgentId || sessionUser?.id || sessionUser?.userId;
-    const targetAgentName = sessionUser?.name;
-
-    if (targetAgentId || targetAgentName) {
-      const agentBookings = await getBookingsByAgent(targetAgentId || "", targetAgentName);
+    if (user.role === "AGENT" || user.role === "LANDLORD") {
+      const agentBookings = await getBookingsByAgent(user.id);
       return NextResponse.json({ bookings: agentBookings });
     }
 
-    const bookings = await getBookingsStore();
-    return NextResponse.json({ bookings });
+    // Students/tenants see only their own bookings
+    const allBookings = await getBookingsStore();
+    const myEmail = user.email.toLowerCase();
+    const studentBookings = allBookings.filter(
+      (b) => (b.tenantEmail || "").toLowerCase() === myEmail
+    );
+    return NextResponse.json({ bookings: studentBookings });
   } catch (error) {
     console.error("GET bookings error:", error);
     return NextResponse.json({ error: "Failed to fetch bookings" }, { status: 500 });
@@ -47,15 +56,30 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const clientIp = getClientIp(req);
+    const { allowed } = checkRateLimit(`booking-create:${clientIp}`, 15, 15 * 60 * 1000);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many booking requests. Please wait a few minutes and try again." },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
 
-    const listingId = sanitizeText(body.listingId);
-    const tenantName = sanitizeText(body.tenantName);
-    const tenantPhone = sanitizeText(body.tenantPhone);
-    const tenantEmail = sanitizeText(body.tenantEmail || "");
-    const preferredDate = sanitizeText(body.preferredDate || new Date().toISOString().split("T")[0]);
-    const preferredTime = sanitizeText(body.preferredTime || "11:00 AM - 1:00 PM");
-    const message = sanitizeText(body.message || "I would like to schedule a physical inspection.");
+    const listingId = sanitizeText(body.listingId, 100);
+    const tenantName = sanitizeText(body.tenantName, 120);
+    const tenantPhone = sanitizeText(body.tenantPhone, 30);
+    const tenantEmail = sanitizeText(body.tenantEmail || "", 150);
+    const preferredDate = sanitizeText(
+      body.preferredDate || new Date().toISOString().split("T")[0],
+      40
+    );
+    const preferredTime = sanitizeText(body.preferredTime || "11:00 AM - 1:00 PM", 60);
+    const message = sanitizeText(
+      body.message || "I would like to schedule a physical inspection.",
+      1000
+    );
 
     if (!tenantName || !tenantPhone || !listingId) {
       return NextResponse.json(
@@ -64,17 +88,30 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Lookup listing to attach agent
+    if (!isValidPhone(tenantPhone)) {
+      return NextResponse.json(
+        { error: "Please enter a valid phone number." },
+        { status: 400 }
+      );
+    }
+
+    if (tenantEmail && !isValidEmail(tenantEmail)) {
+      return NextResponse.json(
+        { error: "Please enter a valid email address." },
+        { status: 400 }
+      );
+    }
+
     const listing = await getListingById(listingId);
-    const listingTitle = listing?.title || sanitizeText(body.listingTitle) || "Rental Property";
-    const agentId = listing?.agentId || body.agentId || "";
-    const agentName = listing?.agentName || body.agentName || "";
+    if (!listing) {
+      return NextResponse.json({ error: "Listing not found." }, { status: 404 });
+    }
 
     const booking = await addBookingStore({
-      listingId,
-      listingTitle,
-      agentId,
-      agentName,
+      listingId: listing.id,
+      listingTitle: listing.title,
+      agentId: listing.agentId,
+      agentName: listing.agentName,
       tenantName,
       tenantPhone,
       tenantEmail,
@@ -83,7 +120,7 @@ export async function POST(req: NextRequest) {
       message,
     });
 
-    return NextResponse.json({ success: true, booking });
+    return NextResponse.json({ success: true, booking }, { status: 201 });
   } catch (error) {
     console.error("Failed to book inspection:", error);
     return NextResponse.json({ error: "Failed to book inspection" }, { status: 500 });
@@ -92,14 +129,32 @@ export async function POST(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
+    const auth = await requireAuth();
+    if (!auth.ok) return auth.response;
+
+    const { user, isAdmin } = auth.context;
     const body = await req.json();
-    const id = sanitizeText(body.id);
+    const id = sanitizeText(body.id, 100);
     const status = body.status as "PENDING" | "CONFIRMED" | "DECLINED" | "COMPLETED";
 
     if (!id || !["PENDING", "CONFIRMED", "DECLINED", "COMPLETED"].includes(status)) {
       return NextResponse.json(
         { error: "Valid booking ID and status are required." },
         { status: 400 }
+      );
+    }
+
+    const booking = await getBookingById(id);
+    if (!booking) {
+      return NextResponse.json({ error: "Booking not found." }, { status: 404 });
+    }
+
+    const listing = await getListingById(booking.listingId);
+    const isOwner = booking.agentId === user.id || listing?.agentId === user.id;
+    if (!isAdmin && !isOwner) {
+      return NextResponse.json(
+        { error: "Forbidden: You can only update inspection bookings for your own listings." },
+        { status: 403 }
       );
     }
 

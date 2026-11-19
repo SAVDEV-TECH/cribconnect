@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -15,21 +15,24 @@ import {
   WifiOff,
   CheckCircle2,
   UserCircle,
+  Check,
 } from "lucide-react";
 
 export default function PwaInstaller() {
   const pathname = usePathname();
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const deferredPromptRef = useRef<any>(null);
+  const [hasInstallPrompt, setHasInstallPrompt] = useState(false);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [showInstallModal, setShowInstallModal] = useState(false);
   const [isIos, setIsIos] = useState(false);
+  const [isAndroid, setIsAndroid] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // 1. Register Service Worker for PWA installability & force immediate update to v3
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
         .register("/sw.js")
@@ -39,7 +42,6 @@ export default function PwaInstaller() {
         .catch((err) => console.warn("SW registration skipped:", err));
     }
 
-    // 2. Detect standalone installed app mode
     const standalone =
       window.matchMedia("(display-mode: standalone)").matches ||
       (window.navigator as any).standalone === true;
@@ -47,41 +49,42 @@ export default function PwaInstaller() {
 
     const dismissed = sessionStorage.getItem("cribconnect_pwa_dismissed");
 
-    // 3. Detect iOS device
     const ua = window.navigator.userAgent.toLowerCase();
     const iosDevice = /iphone|ipad|ipod/.test(ua);
+    const androidDevice = /android/.test(ua);
     setIsIos(iosDevice);
+    setIsAndroid(androidDevice);
 
     if (iosDevice && !standalone && !dismissed) {
       setShowInstallBanner(true);
     }
 
-    // 4. Listen for native Android/Chrome install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e);
+      deferredPromptRef.current = e;
+      setHasInstallPrompt(true);
       if (!dismissed && !standalone) {
         setShowInstallBanner(true);
       }
     };
 
-    // 5. Listen for Navbar "Get App" click event
     const handleOpenInstallModal = () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then(({ outcome }: any) => {
+      const promptEvent = deferredPromptRef.current;
+      if (promptEvent) {
+        promptEvent.prompt();
+        promptEvent.userChoice.then(({ outcome }: any) => {
           if (outcome === "accepted") {
             setShowInstallBanner(false);
             setShowInstallModal(false);
           }
-          setDeferredPrompt(null);
+          deferredPromptRef.current = null;
+          setHasInstallPrompt(false);
         });
       } else {
         setShowInstallModal(true);
       }
     };
 
-    // 6. Track online/offline state like a native app
     setIsOffline(!navigator.onLine);
     const handleOffline = () => setIsOffline(true);
     const handleOnline = () => setIsOffline(false);
@@ -97,33 +100,55 @@ export default function PwaInstaller() {
       window.removeEventListener("offline", handleOffline);
       window.removeEventListener("online", handleOnline);
     };
-  }, [deferredPrompt]);
+  }, []);
+
+  useEffect(() => {
+    if (!showInstallModal) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowInstallModal(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [showInstallModal]);
 
   const handleInstallClick = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
+    const promptEvent = deferredPromptRef.current;
+    if (promptEvent) {
+      promptEvent.prompt();
+      const { outcome } = await promptEvent.userChoice;
       if (outcome === "accepted") {
         setShowInstallBanner(false);
         setShowInstallModal(false);
       }
-      setDeferredPrompt(null);
+      deferredPromptRef.current = null;
+      setHasInstallPrompt(false);
     } else {
       setShowInstallModal(true);
     }
   };
 
   const handleShareApp = async () => {
+    const shareUrl = typeof window !== "undefined" ? window.location.origin : "";
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
         await navigator.share({
           title: "CribConnect UNIPORT",
-          text: "Find verified student housing near UNIPORT (Choba, Aluu, Ozuoba, Rumuola) with video tours & Escrow protection.",
-          url: window.location.origin,
+          text: "Find verified student housing near UNIPORT (Choba, Aluu, Ozuoba, Rumuola, Rumuigbo) with video tours & Escrow protection.",
+          url: shareUrl,
         });
+        return;
       } catch {
-        // User cancelled share sheet
+        // User cancelled or share failed; fall through only if not AbortError
+        return;
       }
+    }
+
+    if (typeof navigator !== "undefined" && navigator.clipboard && shareUrl) {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        setShareCopied(true);
+        setTimeout(() => setShareCopied(false), 2500);
+      } catch {}
     }
   };
 
@@ -146,7 +171,7 @@ export default function PwaInstaller() {
     { href: "/", label: "Home", icon: Home },
     { href: "/listings", label: "Browse", icon: Building2 },
     { href: "/requests", label: "Requests", icon: MessageSquarePlus },
-    { href: "/agent/dashboard", label: "List Room", icon: PlusCircle },
+    { href: "/list-property", label: "List Room", icon: PlusCircle },
     { href: "/agent/profile", label: "Profile", icon: UserCircle },
   ];
 
@@ -181,6 +206,7 @@ export default function PwaInstaller() {
 
           <div className="flex items-center gap-1.5 shrink-0">
             <button
+              type="button"
               onClick={handleInstallClick}
               className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1 transition-colors"
             >
@@ -188,6 +214,7 @@ export default function PwaInstaller() {
               <span>Install</span>
             </button>
             <button
+              type="button"
               onClick={handleDismiss}
               aria-label="Dismiss install prompt"
               className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
@@ -200,7 +227,12 @@ export default function PwaInstaller() {
 
       {/* Full Native App Installation Guide Modal */}
       {showInstallModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+        <div
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="pwa-install-title"
+        >
           <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 border border-gray-200 shadow-2xl">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <div className="flex items-center gap-2.5">
@@ -208,24 +240,27 @@ export default function PwaInstaller() {
                   C
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-gray-900">
+                  <h3 id="pwa-install-title" className="text-sm font-bold text-gray-900">
                     Install CribConnect App
                   </h3>
                   <p className="text-[11px] text-gray-500">
-                    Full-screen mobile experience &middot; Zero Play Store / App Store wait
+                    Full-screen mobile experience &middot; Fast offline browsing
                   </p>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setShowInstallModal(false)}
+                aria-label="Close install guide"
                 className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {deferredPrompt && (
+            {hasInstallPrompt && (
               <button
+                type="button"
                 onClick={handleInstallClick}
                 className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm"
               >
@@ -234,40 +269,53 @@ export default function PwaInstaller() {
               </button>
             )}
 
-            <a
-              href="/CribConnect.apk"
-              download="CribConnect.apk"
-              className="w-full py-3 px-4 rounded-xl bg-gray-900 hover:bg-black text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-colors"
-            >
-              <Download className="w-4 h-4 text-emerald-400" />
-              <span>Download Native Android APK (CribConnect.apk)</span>
-            </a>
+            {isAndroid && (
+              <a
+                href="/CribConnect.apk"
+                download="CribConnect.apk"
+                className="w-full py-3 px-4 rounded-xl bg-gray-900 hover:bg-black text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-colors"
+              >
+                <Download className="w-4 h-4 text-emerald-400" />
+                <span>Download Native Android APK (CribConnect.apk)</span>
+              </a>
+            )}
 
             <div className="space-y-3 text-xs text-gray-700">
-                <div className="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200 space-y-1.5">
-                  <div className="font-bold text-emerald-950 flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    <span>On Android (Chrome / Edge / Samsung Internet):</span>
-                  </div>
-                  <ol className="list-decimal list-inside space-y-1 text-[11px] text-emerald-900">
-                    <li>Tap the <strong>3-dot menu (⋮)</strong> at the top-right of your browser.</li>
-                    <li>Select <strong>&ldquo;Install app&rdquo;</strong> or <strong>&ldquo;Add to Home screen&rdquo;</strong>.</li>
-                    <li>Open CribConnect directly from your phone app drawer!</li>
-                  </ol>
+              <div className="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200 space-y-1.5">
+                <div className="font-bold text-emerald-950 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>On Android (Chrome / Edge / Samsung Internet):</span>
                 </div>
-
-                <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200 space-y-1.5">
-                  <div className="font-bold text-gray-900 flex items-center gap-1.5">
-                    <Smartphone className="w-4 h-4 text-emerald-600" />
-                    <span>On iPhone / iPad (Safari):</span>
-                  </div>
-                  <ol className="list-decimal list-inside space-y-1 text-[11px] text-gray-600">
-                    <li>Tap the <strong>Share icon (square with arrow up)</strong> at the bottom of Safari.</li>
-                    <li>Scroll down and tap <strong>&ldquo;Add to Home Screen&rdquo;</strong>.</li>
-                    <li>Tap <strong>Add</strong> in the top-right corner.</li>
-                  </ol>
-                </div>
+                <ol className="list-decimal list-inside space-y-1 text-[11px] text-emerald-900">
+                  <li>
+                    Tap the <strong>3-dot menu (⋮)</strong> at the top-right of your browser.
+                  </li>
+                  <li>
+                    Select <strong>&ldquo;Install app&rdquo;</strong> or{" "}
+                    <strong>&ldquo;Add to Home screen&rdquo;</strong>.
+                  </li>
+                  <li>Open CribConnect directly from your phone app drawer!</li>
+                </ol>
               </div>
+
+              <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200 space-y-1.5">
+                <div className="font-bold text-gray-900 flex items-center gap-1.5">
+                  <Smartphone className="w-4 h-4 text-emerald-600" />
+                  <span>On iPhone / iPad (Safari):</span>
+                </div>
+                <ol className="list-decimal list-inside space-y-1 text-[11px] text-gray-600">
+                  <li>
+                    Tap the <strong>Share icon (square with arrow up)</strong> at the bottom of Safari.
+                  </li>
+                  <li>
+                    Scroll down and tap <strong>&ldquo;Add to Home Screen&rdquo;</strong>.
+                  </li>
+                  <li>
+                    Tap <strong>Add</strong> in the top-right corner.
+                  </li>
+                </ol>
+              </div>
+            </div>
 
             <div className="pt-2 border-t border-gray-100 flex items-center justify-between gap-2">
               <button
@@ -275,8 +323,17 @@ export default function PwaInstaller() {
                 onClick={handleShareApp}
                 className="flex-1 py-2.5 px-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors"
               >
-                <Share2 className="w-3.5 h-3.5" />
-                <span>Share App Link</span>
+                {shareCopied ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Link Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Share2 className="w-3.5 h-3.5" />
+                    <span>Share App Link</span>
+                  </>
+                )}
               </button>
               <button
                 type="button"
@@ -290,14 +347,15 @@ export default function PwaInstaller() {
         </div>
       )}
 
-      {/* Mobile App Bottom Navigation Bar (Native App Tab Bar on Phones) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200 px-2 pt-1.5 pb-safe flex items-center justify-around shadow-[0_-2px_10px_rgba(0,0,0,0.04)]">
+      {/* Mobile App Bottom Navigation Bar */}
+      <nav
+        aria-label="Mobile navigation"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200 px-2 pt-1.5 pb-safe flex items-center justify-around shadow-[0_-2px_10px_rgba(0,0,0,0.04)]"
+      >
         {navItems.map((item) => {
           const Icon = item.icon;
           const active =
-            item.href === "/"
-              ? pathname === "/"
-              : pathname?.startsWith(item.href);
+            item.href === "/" ? pathname === "/" : pathname?.startsWith(item.href);
           return (
             <Link
               key={item.href}
