@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import {
   ShieldCheck,
   Lock,
@@ -15,7 +16,11 @@ import {
   RefreshCw,
   Clock,
   KeyRound,
+  ExternalLink,
 } from "lucide-react";
+import { useApp } from "@/context/AppContext";
+import { saveEscrowReceiptLocally } from "@/lib/client-auth";
+import { ESCROW_DEPOSIT_AMOUNT } from "@/lib/types";
 
 declare global {
   interface Window {
@@ -65,7 +70,8 @@ const NIGERIAN_BANKS = [
 ];
 
 export default function EscrowModal({ isOpen, onClose, listing }: EscrowModalProps) {
-  const paystackKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || "";
+  const { currentUser } = useApp();
+  const paystackKey = (process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || "").trim();
 
   const [studentName, setStudentName] = useState("");
   const [studentEmail, setStudentEmail] = useState("");
@@ -74,9 +80,8 @@ export default function EscrowModal({ isOpen, onClose, listing }: EscrowModalPro
     new Date(Date.now() + 24 * 3600 * 1000).toISOString().split("T")[0]
   );
   const [inspectionTime, setInspectionTime] = useState("11:00 AM - 1:00 PM");
-  const [amount] = useState(10000); // ₦10,000 holding deposit
+  const amount = ESCROW_DEPOSIT_AMOUNT;
 
-  // Real Payment Verification States
   const [paymentMethod, setPaymentMethod] = useState<"BANK_TRANSFER" | "PAYSTACK">(
     paystackKey ? "PAYSTACK" : "BANK_TRANSFER"
   );
@@ -88,21 +93,49 @@ export default function EscrowModal({ isOpen, onClose, listing }: EscrowModalPro
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successEscrow, setSuccessEscrow] = useState<any | null>(null);
+  const [lookupToken, setLookupToken] = useState<string>("");
   const [whatsappUrl, setWhatsappUrl] = useState<string | null>(null);
 
-  // Post-escrow action states
   const [actionLoading, setActionLoading] = useState(false);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
   const [enteredReleasePin, setEnteredReleasePin] = useState("");
   const [refreshingStatus, setRefreshingStatus] = useState(false);
 
+  useEffect(() => {
+    if (currentUser) {
+      setStudentName((prev) => prev || currentUser.name || "");
+      setStudentEmail((prev) => prev || currentUser.email || "");
+      setStudentPhone((prev) => prev || currentUser.phone || currentUser.whatsapp || "");
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
-  const handleCopyAccount = () => {
-    if (typeof navigator !== "undefined" && navigator.clipboard) {
-      navigator.clipboard.writeText(ESCROW_VAULT_BANK.accountNumber);
+  const handleCopyAccount = async () => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(ESCROW_VAULT_BANK.accountNumber);
+      } else {
+        const input = document.createElement("input");
+        input.value = ESCROW_VAULT_BANK.accountNumber;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand("copy");
+        document.body.removeChild(input);
+      }
       setCopiedAccount(true);
       setTimeout(() => setCopiedAccount(false), 2500);
+    } catch {
+      // Ignore copy errors
     }
   };
 
@@ -138,8 +171,20 @@ export default function EscrowModal({ isOpen, onClose, listing }: EscrowModalPro
       }
 
       setSuccessEscrow(data.escrow);
-      setWhatsappUrl(data.whatsappUrl);
+      setWhatsappUrl(data.whatsappUrl || null);
       setActionNotice(data.message);
+
+      if (data.lookupToken && data.escrow?.id) {
+        setLookupToken(data.lookupToken);
+        saveEscrowReceiptLocally({
+          id: data.escrow.id,
+          lookupToken: data.lookupToken,
+          listingTitle: data.escrow.listingTitle || listing.title,
+          neighborhood: data.escrow.neighborhood || listing.neighborhood,
+          amount: data.escrow.amount || amount,
+          createdAt: data.escrow.createdAt || new Date().toISOString(),
+        });
+      }
     } catch (err: any) {
       setError(err.message || "Failed to finalize escrow reservation");
     } finally {
@@ -179,10 +224,9 @@ export default function EscrowModal({ isOpen, onClose, listing }: EscrowModalPro
       return;
     }
 
-    // Channel: Paystack Gateway
     if (!paystackKey) {
       setError(
-        "Paystack live gateway key is not configured yet. Please switch to 'Direct Bank Transfer' above to pay into the CribConnect Escrow Vault."
+        "Paystack live gateway key is not configured yet. Please switch to 'Direct Bank Transfer' above."
       );
       setPaymentMethod("BANK_TRANSFER");
       return;
@@ -200,7 +244,7 @@ export default function EscrowModal({ isOpen, onClose, listing }: EscrowModalPro
       const handler = window.PaystackPop.setup({
         key: paystackKey,
         email: studentEmail.trim(),
-        amount: amount * 100, // amount in kobo
+        amount: amount * 100,
         currency: "NGN",
         ref: "CRIB_ESCROW_" + Date.now().toString(36).toUpperCase(),
         metadata: {
@@ -225,7 +269,7 @@ export default function EscrowModal({ isOpen, onClose, listing }: EscrowModalPro
         },
       });
       handler.openIframe();
-    } catch (err: any) {
+    } catch {
       setLoading(false);
       setError(
         "Could not open Paystack checkout window. Please use the Direct Bank Transfer option."
@@ -238,7 +282,9 @@ export default function EscrowModal({ isOpen, onClose, listing }: EscrowModalPro
     setRefreshingStatus(true);
     setError(null);
     try {
-      const res = await fetch(`/api/escrow/reserve?id=${encodeURIComponent(successEscrow.id)}`, {
+      const qs = new URLSearchParams({ id: successEscrow.id });
+      if (lookupToken) qs.set("token", lookupToken);
+      const res = await fetch(`/api/escrow/reserve?${qs.toString()}`, {
         cache: "no-store",
       });
       const data = await res.json();
@@ -253,8 +299,10 @@ export default function EscrowModal({ isOpen, onClose, listing }: EscrowModalPro
             "Your bank transfer is still awaiting confirmation by the CribConnect Escrow Vault."
           );
         }
+      } else {
+        setError(data.error || "Could not refresh verification status.");
       }
-    } catch (err) {
+    } catch {
       setError("Could not refresh verification status.");
     } finally {
       setRefreshingStatus(false);
@@ -264,7 +312,9 @@ export default function EscrowModal({ isOpen, onClose, listing }: EscrowModalPro
   const handleEscrowAction = async (action: "RELEASE" | "REFUND") => {
     if (!successEscrow) return;
     if (action === "RELEASE" && (!enteredReleasePin || enteredReleasePin.trim().length !== 4)) {
-      setError("Please enter your 4-digit Inspection Release PIN to authorize payout to the agent.");
+      setError(
+        "Please enter your 4-digit Inspection Release PIN to authorize payout to the agent."
+      );
       return;
     }
 
@@ -278,6 +328,7 @@ export default function EscrowModal({ isOpen, onClose, listing }: EscrowModalPro
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: successEscrow.id,
+          lookupToken: lookupToken || undefined,
           action,
           pin: action === "RELEASE" ? enteredReleasePin.trim() : undefined,
           reason:
@@ -300,7 +351,12 @@ export default function EscrowModal({ isOpen, onClose, listing }: EscrowModalPro
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="escrow-modal-title"
+      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto"
+    >
       <div className="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-7 space-y-4 border border-gray-200 shadow-xl my-8 max-h-[92vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-100 pb-4">
@@ -309,7 +365,7 @@ export default function EscrowModal({ isOpen, onClose, listing }: EscrowModalPro
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-gray-900">
+              <h2 id="escrow-modal-title" className="text-base font-bold text-gray-900">
                 CribConnect Verified Escrow Vault
               </h2>
               <p className="text-xs text-gray-500">
@@ -318,7 +374,9 @@ export default function EscrowModal({ isOpen, onClose, listing }: EscrowModalPro
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
+            aria-label="Close escrow modal"
             className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
           >
             <X className="w-4 h-4" />
@@ -471,7 +529,7 @@ export default function EscrowModal({ isOpen, onClose, listing }: EscrowModalPro
               </div>
             </div>
 
-            {/* Channel A: Direct Bank Transfer Escrow Vault Details & Verification Form */}
+            {/* Channel A: Direct Bank Transfer */}
             {paymentMethod === "BANK_TRANSFER" && (
               <div className="p-4 rounded-xl bg-gray-50 border border-gray-200 space-y-3">
                 <div className="flex items-center justify-between border-b border-gray-200 pb-2.5">
@@ -543,7 +601,7 @@ export default function EscrowModal({ isOpen, onClose, listing }: EscrowModalPro
 
                   <div>
                     <label className="block text-[11px] font-semibold text-gray-700 mb-1">
-                      Transfer Reference / NIP Session ID (from your bank receipt) *
+                      Transfer Reference / NIP Session ID *
                     </label>
                     <input
                       type="text"
@@ -554,14 +612,15 @@ export default function EscrowModal({ isOpen, onClose, listing }: EscrowModalPro
                       className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-mono text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     />
                     <p className="text-[10px] text-gray-500 mt-1">
-                      CribConnect verifies this Session ID against our Escrow Vault bank statement before unlocking your 4-digit Release PIN.
+                      CribConnect verifies this Session ID against our Escrow Vault bank statement
+                      before unlocking your 4-digit Release PIN.
                     </p>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Channel B: Paystack Gateway Notice */}
+            {/* Channel B: Paystack */}
             {paymentMethod === "PAYSTACK" && (
               <div className="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200 text-xs text-emerald-950 space-y-1">
                 <div className="font-bold flex items-center gap-1.5">
@@ -569,12 +628,13 @@ export default function EscrowModal({ isOpen, onClose, listing }: EscrowModalPro
                   <span>Instant Paystack Verification</span>
                 </div>
                 <p className="text-[11px] text-emerald-800">
-                  Pay securely with your Debit Card, USSD, or Paystack Transfer. Once Paystack confirms the ₦{amount.toLocaleString()} transaction, your 4-digit Inspection Release PIN is generated immediately.
+                  Pay securely with your Debit Card, USSD, or Paystack Transfer. Once Paystack
+                  confirms the ₦{amount.toLocaleString()} transaction, your 4-digit Inspection
+                  Release PIN is generated immediately.
                 </p>
               </div>
             )}
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
@@ -591,7 +651,6 @@ export default function EscrowModal({ isOpen, onClose, listing }: EscrowModalPro
             </button>
           </form>
         ) : (
-          /* STEP 2: Escrow Verification Status & Secret Release PIN */
           <div className="space-y-4">
             {successEscrow.status === "AWAITING_PAYMENT_CONFIRMATION" ? (
               <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-center space-y-2">
@@ -602,11 +661,14 @@ export default function EscrowModal({ isOpen, onClose, listing }: EscrowModalPro
                   Awaiting Escrow Bank Alert Verification
                 </h3>
                 <p className="text-xs text-gray-600">
-                  We have logged your ₦{successEscrow.amount.toLocaleString()} transfer from{" "}
+                  We logged your ₦{successEscrow.amount.toLocaleString()} transfer from{" "}
                   <strong>{successEscrow.senderBankName}</strong> (Ref:{" "}
                   <span className="font-mono">{successEscrow.transferSessionId}</span>). As soon as
-                  the CribConnect Escrow Vault confirms the bank alert, your 4-digit Release PIN
-                  will unlock below.
+                  our vault confirms the alert, your 4-digit Release PIN unlocks below and in your{" "}
+                  <Link href="/escrow" onClick={onClose} className="text-emerald-700 underline">
+                    Escrow Tracker
+                  </Link>
+                  .
                 </p>
                 <button
                   type="button"
@@ -645,10 +707,20 @@ export default function EscrowModal({ isOpen, onClose, listing }: EscrowModalPro
               </div>
               <p className="text-[11px] text-gray-500 max-w-sm mx-auto">
                 {successEscrow.status === "AWAITING_PAYMENT_CONFIRMATION"
-                  ? "Your 4-digit PIN is protected and will appear here as soon as CribConnect confirms your ₦10,000 bank transfer."
-                  : "Do not share this PIN until you physically inspect the apartment and are 100% satisfied."}
+                  ? "Your 4-digit PIN will unlock automatically as soon as your ₦10,000 transfer is verified."
+                  : "Keep this PIN secret until you physically inspect the apartment and are 100% satisfied."}
               </p>
             </div>
+
+            {/* Saved Receipt Link */}
+            <Link
+              href="/escrow"
+              onClick={onClose}
+              className="w-full py-2 px-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors"
+            >
+              <ExternalLink className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Saved to My Escrow Tracker — Return Anytime</span>
+            </Link>
 
             {/* Reservation Details */}
             <div className="text-xs text-gray-600 space-y-1.5 p-3.5 bg-gray-50 rounded-xl border border-gray-100">
@@ -680,7 +752,6 @@ export default function EscrowModal({ isOpen, onClose, listing }: EscrowModalPro
               </div>
             </div>
 
-            {/* WhatsApp notification button */}
             {whatsappUrl && (
               <a
                 href={whatsappUrl}
@@ -693,7 +764,6 @@ export default function EscrowModal({ isOpen, onClose, listing }: EscrowModalPro
               </a>
             )}
 
-            {/* Post-Inspection Decision (Only enabled once payment is verified & HELD_IN_ESCROW) */}
             {successEscrow.status === "HELD_IN_ESCROW" && (
               <div className="pt-3 border-t border-gray-100 space-y-2.5">
                 <span className="text-xs font-bold text-gray-800 block">

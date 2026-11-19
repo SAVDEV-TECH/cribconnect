@@ -7,7 +7,6 @@ export default function Footer() {
     <footer className="bg-white border-t border-gray-100 text-sm text-gray-500">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-
           {/* Brand */}
           <div className="col-span-2 md:col-span-1 space-y-3">
             <div className="flex items-center gap-2">
@@ -21,21 +20,27 @@ export default function Footer() {
             </p>
             <div className="flex items-center gap-1.5 text-xs text-emerald-600">
               <ShieldCheck className="w-3.5 h-3.5" />
-              Zero-scam guarantee
+              Escrow-backed inspections
             </div>
           </div>
 
           {/* Areas */}
           <div className="space-y-2">
-            <p className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3">Areas</p>
+            <p className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3">
+              Areas
+            </p>
             {[
               { label: "Choba (Main Gate)", href: "/listings?neighborhood=Choba" },
               { label: "Aluu (Back Gate)", href: "/listings?neighborhood=Aluu" },
+              { label: "Ozuoba", href: "/listings?neighborhood=Ozuoba" },
               { label: "Rumuola", href: "/listings?neighborhood=Rumuola" },
-              { label: "GRA Port Harcourt", href: "/listings?neighborhood=GRA Port Harcourt" },
+              { label: "Rumuigbo", href: "/listings?neighborhood=Rumuigbo" },
             ].map((link) => (
               <div key={link.href}>
-                <Link href={link.href} className="text-xs text-gray-500 hover:text-gray-900 transition-colors">
+                <Link
+                  href={link.href}
+                  className="text-xs text-gray-500 hover:text-gray-900 transition-colors"
+                >
                   {link.label}
                 </Link>
               </div>
@@ -44,15 +49,21 @@ export default function Footer() {
 
           {/* Platform */}
           <div className="space-y-2">
-            <p className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3">Platform</p>
+            <p className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3">
+              Platform
+            </p>
             {[
               { label: "Browse listings", href: "/listings" },
               { label: "Post a request", href: "/requests" },
+              { label: "Escrow tracker", href: "/escrow" },
               { label: "Find an agent", href: "/agents" },
               { label: "List a property", href: "/list-property" },
             ].map((link) => (
               <div key={link.href}>
-                <Link href={link.href} className="text-xs text-gray-500 hover:text-gray-900 transition-colors">
+                <Link
+                  href={link.href}
+                  className="text-xs text-gray-500 hover:text-gray-900 transition-colors"
+                >
                   {link.label}
                 </Link>
               </div>
@@ -61,19 +72,20 @@ export default function Footer() {
 
           {/* Support */}
           <div className="space-y-2">
-            <p className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3">Support</p>
+            <p className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3">
+              Support
+            </p>
             <p className="text-xs text-gray-400 leading-relaxed">
-              Need help verifying an agent or resolving a dispute?
+              Need help verifying an agent or resolving an escrow dispute?
             </p>
             <p className="text-xs text-gray-600">support@cribconnect.ng</p>
-            <p className="text-xs text-gray-600">+234 1 800 2742</p>
+            <p className="text-xs text-gray-500">Choba / UNIPORT, Port Harcourt</p>
           </div>
-
         </div>
 
         <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-400">
           <span>© 2026 CribConnect Nigeria. All rights reserved.</span>
-          <span>Built for UNIPORT students.</span>
+          <span>Built for UNIPORT &amp; Port Harcourt students.</span>
         </div>
       </div>
     </footer>

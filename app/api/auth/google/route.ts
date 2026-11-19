@@ -1,48 +1,44 @@
+import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import {
   createSessionToken,
   isValidEmail,
   sanitizeText,
+  sanitizeUrl,
   checkRateLimit,
+  getClientIp,
   hashPassword,
+  isAdminUser,
+  SESSION_MAX_AGE_SECONDS,
 } from "@/lib/auth-security";
 import { getUserByEmail, createUser, updateUser } from "@/lib/data-store";
+import { SESSION_COOKIE_NAME } from "@/lib/session";
+import { formatNigerianWhatsApp } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 interface GoogleTokenInfo {
   iss?: string;
+  aud?: string;
   sub?: string;
+  exp?: string;
   email?: string;
   email_verified?: string | boolean;
   name?: string;
   picture?: string;
   given_name?: string;
-  family_name?: string;
-  error_description?: string;
 }
 
-// Decode base64url JWT payload safely
-function decodeJwtPayload(jwt: string): any | null {
-  try {
-    const parts = jwt.split(".");
-    if (parts.length !== 3) return null;
-    const payloadBase64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-    const jsonStr = Buffer.from(payloadBase64, "base64").toString("utf-8");
-    return JSON.parse(jsonStr);
-  } catch {
-    return null;
-  }
-}
+const VALID_GOOGLE_ISSUERS = new Set([
+  "accounts.google.com",
+  "https://accounts.google.com",
+]);
 
 export async function POST(req: NextRequest) {
   try {
-    const clientIp = req.headers.get("x-forwarded-for") || "local";
-
-    // Rate Limiting: Max 20 Google auth attempts per 10 minutes per IP
-    const rateLimitKey = `google-auth:${clientIp}`;
-    const { allowed } = checkRateLimit(rateLimitKey, 20, 10 * 60 * 1000);
+    const clientIp = getClientIp(req);
+    const { allowed } = checkRateLimit(`google-auth:${clientIp}`, 20, 10 * 60 * 1000);
     if (!allowed) {
       return NextResponse.json(
         { error: "Too many sign-in attempts. Please try again in 10 minutes." },
@@ -52,73 +48,111 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const { credential, accessToken, role: requestRole } = body;
-    const chosenRole = requestRole === "LANDLORD" ? "LANDLORD" : "AGENT";
+    const requestedRole = String(requestRole || "AGENT").toUpperCase();
+    const chosenRole: "AGENT" | "LANDLORD" | "STUDENT" | "TENANT" =
+      requestedRole === "LANDLORD"
+        ? "LANDLORD"
+        : requestedRole === "STUDENT"
+        ? "STUDENT"
+        : requestedRole === "TENANT"
+        ? "TENANT"
+        : "AGENT";
+
+    const expectedClientId = (
+      process.env.GOOGLE_CLIENT_ID ||
+      process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
+      ""
+    ).trim();
 
     let email = "";
     let name = "";
     let avatar = "";
-    let googleId = "";
 
-    // 1. If Google ID Token (credential JWT) was passed from Google One Tap or GIS Button:
+    // 1. Strict server-side verification of Google ID Token (credential JWT)
     if (credential && typeof credential === "string") {
-      // First try to verify with Google's official public tokeninfo endpoint
-      let verifiedWithGoogle = false;
-      try {
-        const verifyRes = await fetch(
-          `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`,
-          { method: "GET", headers: { Accept: "application/json" } }
+      const verifyRes = await fetch(
+        `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`,
+        { method: "GET", headers: { Accept: "application/json" }, cache: "no-store" }
+      );
+
+      if (!verifyRes.ok) {
+        return NextResponse.json(
+          { error: "Invalid or expired Google sign-in token. Please try again." },
+          { status: 401 }
         );
-
-        if (verifyRes.ok) {
-          const googleData: GoogleTokenInfo = await verifyRes.json();
-          if (googleData.email) {
-            email = googleData.email.toLowerCase().trim();
-            name = googleData.name || googleData.given_name || email.split("@")[0];
-            avatar = googleData.picture || "";
-            googleId = googleData.sub || "";
-            verifiedWithGoogle = true;
-          }
-        }
-      } catch (verifyErr) {
-        console.warn("Google tokeninfo remote check failed, attempting local decode:", verifyErr);
       }
 
-      // If remote verification timed out or was offline, decode the valid Google JWT
-      if (!verifiedWithGoogle) {
-        const decoded = decodeJwtPayload(credential);
-        if (decoded && decoded.email) {
-          email = String(decoded.email).toLowerCase().trim();
-          name = decoded.name || decoded.given_name || email.split("@")[0];
-          avatar = decoded.picture || "";
-          googleId = decoded.sub || "";
-        }
+      const googleData: GoogleTokenInfo = await verifyRes.json();
+
+      if (expectedClientId && googleData.aud !== expectedClientId) {
+        return NextResponse.json(
+          { error: "Google token audience mismatch." },
+          { status: 401 }
+        );
       }
+
+      if (googleData.iss && !VALID_GOOGLE_ISSUERS.has(googleData.iss)) {
+        return NextResponse.json(
+          { error: "Untrusted Google token issuer." },
+          { status: 401 }
+        );
+      }
+
+      const emailVerified =
+        googleData.email_verified === true || googleData.email_verified === "true";
+      if (!emailVerified || !googleData.email) {
+        return NextResponse.json(
+          { error: "Your Google account email must be verified to sign in." },
+          { status: 401 }
+        );
+      }
+
+      if (googleData.exp && Number(googleData.exp) * 1000 < Date.now()) {
+        return NextResponse.json(
+          { error: "Google sign-in token has expired. Please try again." },
+          { status: 401 }
+        );
+      }
+
+      email = googleData.email.toLowerCase().trim();
+      name = sanitizeText(googleData.name || googleData.given_name || email.split("@")[0], 120);
+      avatar = sanitizeUrl(googleData.picture) || "";
     }
-    // 2. If OAuth2 access_token was passed:
+    // 2. Strict server-side verification of Google OAuth2 access_token
     else if (accessToken && typeof accessToken === "string") {
-      try {
-        const userinfoRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
+      const userinfoRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        cache: "no-store",
+      });
 
-        if (userinfoRes.ok) {
-          const userInfo = await userinfoRes.json();
-          if (userInfo.email) {
-            email = userInfo.email.toLowerCase().trim();
-            name = userInfo.name || userInfo.given_name || email.split("@")[0];
-            avatar = userInfo.picture || "";
-            googleId = userInfo.sub || "";
-          }
-        }
-      } catch (e) {
-        console.error("Failed to fetch Google userinfo:", e);
+      if (!userinfoRes.ok) {
+        return NextResponse.json(
+          { error: "Invalid or expired Google access token." },
+          { status: 401 }
+        );
       }
-    }
-    // 3. Direct verified payload fallback from client
-    else if (body.email) {
-      email = sanitizeText(body.email).toLowerCase().trim();
-      name = sanitizeText(body.name) || email.split("@")[0];
-      avatar = body.avatar || "";
+
+      const userInfo = await userinfoRes.json();
+      const emailVerified =
+        userInfo.email_verified === true || userInfo.email_verified === "true";
+      if (!emailVerified || !userInfo.email) {
+        return NextResponse.json(
+          { error: "Verified email not available from Google account." },
+          { status: 401 }
+        );
+      }
+
+      email = String(userInfo.email).toLowerCase().trim();
+      name = sanitizeText(userInfo.name || userInfo.given_name || email.split("@")[0], 120);
+      avatar = sanitizeUrl(userInfo.picture) || "";
+    } else {
+      return NextResponse.json(
+        {
+          error:
+            "A verified Google credential is required. Please use Google Sign-In or sign in with your email and password.",
+        },
+        { status: 400 }
+      );
     }
 
     if (!email || !isValidEmail(email)) {
@@ -128,44 +162,47 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Default clean Google avatar if missing
     if (!avatar) {
       avatar = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=0F766E`;
     }
 
-    // Lookup user in store
     let user = await getUserByEmail(email);
 
     if (user) {
-      // User already exists, update Google profile picture if available
       if (avatar && (!user.avatar || user.avatar.includes("dicebear"))) {
-        await updateUser(user.id, { avatar });
+        user = (await updateUser(user.id, { avatar })) || user;
       }
     } else {
-      // Create new verified Agent or Landlord account
-      const { salt, hash } = hashPassword(Math.random().toString(36).substring(2) + "Google2026!");
+      const randomSecret = crypto.randomBytes(32).toString("hex");
+      const { salt, hash } = hashPassword(randomSecret);
+      const rawPhone = body.phone ? sanitizeText(body.phone, 30) : "";
 
       user = await createUser({
         name,
         email,
-        phone: body.phone ? sanitizeText(body.phone) : "+234 800 000 0000",
-        whatsapp: body.whatsapp ? sanitizeText(body.whatsapp).replace(/\D/g, "") : "2348000000000",
+        phone: rawPhone,
+        whatsapp: formatNigerianWhatsApp(rawPhone),
         role: chosenRole,
         avatar,
-        agencyName: chosenRole === "LANDLORD" ? "Direct Property Owner" : "Verified Realty Specialist",
+        agencyName:
+          chosenRole === "LANDLORD"
+            ? "Direct Property Owner"
+            : chosenRole === "AGENT"
+            ? "Independent Realtor"
+            : "",
         bio:
           chosenRole === "LANDLORD"
-            ? "Verified property owner renting student accommodations with zero agency fees."
-            : "Licensed Port Harcourt realtor helping students and relocators find verified cribs near campus.",
+            ? "Property owner renting student accommodations around UNIPORT."
+            : "Port Harcourt realtor helping students and relocators find cribs near UNIPORT.",
         specializations: "UNIPORT, Choba, Rumuola, Aluu, Ozuoba",
         passwordSalt: salt,
         passwordHash: hash,
         isVerified: false,
+        verificationStatus: "UNVERIFIED",
         ninOrLicense: "",
       });
     }
 
-    // Issue tamper-proof signed session token
     const token = createSessionToken(user.id, user.role, {
       name: user.name,
       email: user.email,
@@ -175,20 +212,18 @@ export async function POST(req: NextRequest) {
       agencyName: user.agencyName,
     });
 
-    // Set secure HTTP-only cookie (365 days for 1-time mobile sign-in)
     const cookieStore = cookies();
-    cookieStore.set("cribconnect_session", token, {
+    cookieStore.set(SESSION_COOKIE_NAME, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 365 * 24 * 60 * 60, // 365 days
+      maxAge: SESSION_MAX_AGE_SECONDS,
     });
 
     return NextResponse.json({
       success: true,
       method: "google_oauth",
-      deviceToken: token,
       user: {
         id: user.id,
         name: user.name,
@@ -199,11 +234,14 @@ export async function POST(req: NextRequest) {
         avatar: user.avatar,
         agencyName: user.agencyName,
         isVerified: user.isVerified,
+        isAdmin: isAdminUser(user),
       },
     });
   } catch (error) {
     console.error("Google auth route error:", error);
-    return NextResponse.json({ error: "Google authentication failed. Please try again." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Google authentication failed. Please try again." },
+      { status: 500 }
+    );
   }
 }
-

@@ -138,7 +138,7 @@ export default function MapInner({
   const activeListing = listings.find((l) => l.id === activeListingId) || listings[0];
   const googleQuery = activeListing
     ? `${activeListing.latitude || 4.8984},${activeListing.longitude || 6.9315}`
-    : "University+of+Port+Harcourt,Choba,Port+Harcourt";
+    : "University of Port Harcourt, Choba, Port Harcourt";
 
   return (
     <div className="relative w-full h-full min-h-[360px] rounded-xl overflow-hidden border border-gray-200 bg-gray-900">
@@ -149,7 +149,7 @@ export default function MapInner({
           onClick={() => setMapMode("satellite")}
           className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 ${
             mapMode === "satellite"
-              ? "bg-gray-900 text-white shadow-xs"
+              ? "bg-gray-900 text-white shadow-sm"
               : "text-gray-600 hover:bg-gray-100"
           }`}
         >
@@ -161,7 +161,7 @@ export default function MapInner({
           onClick={() => setMapMode("street")}
           className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 ${
             mapMode === "street"
-              ? "bg-gray-900 text-white shadow-xs"
+              ? "bg-gray-900 text-white shadow-sm"
               : "text-gray-600 hover:bg-gray-100"
           }`}
         >
@@ -173,7 +173,7 @@ export default function MapInner({
           onClick={() => setMapMode("google")}
           className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 ${
             mapMode === "google"
-              ? "bg-emerald-600 text-white shadow-xs"
+              ? "bg-emerald-600 text-white shadow-sm"
               : "text-gray-600 hover:bg-gray-100"
           }`}
         >

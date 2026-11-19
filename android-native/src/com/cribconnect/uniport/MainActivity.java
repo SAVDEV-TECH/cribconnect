@@ -76,10 +76,26 @@ public class MainActivity extends Activity {
         setContentView(root);
 
         // Handle deep link if opened via URL
-        Intent intent = getIntent();
+        handleDeepLinkIntent(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleDeepLinkIntent(intent);
+    }
+
+    private void handleDeepLinkIntent(Intent intent) {
         if (intent != null && Intent.ACTION_VIEW.equals(intent.getAction()) && intent.getData() != null) {
-            webView.loadUrl(intent.getData().toString());
-        } else {
+            Uri data = intent.getData();
+            if ("https".equalsIgnoreCase(data.getScheme())
+                    && "cribconnect-gold.vercel.app".equalsIgnoreCase(data.getHost())) {
+                webView.loadUrl(data.toString());
+                return;
+            }
+        }
+        if (webView.getUrl() == null) {
             webView.loadUrl(APP_URL);
         }
     }
@@ -89,7 +105,7 @@ public class MainActivity extends Activity {
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setDatabaseEnabled(true);
-        settings.setAllowFileAccess(true);
+        settings.setAllowFileAccess(false);
         settings.setAllowContentAccess(true);
         settings.setLoadWithOverviewMode(true);
         settings.setUseWideViewPort(true);
@@ -103,7 +119,7 @@ public class MainActivity extends Activity {
         // Append CribConnect Native App User-Agent token while keeping standard Chrome compatibility
         String defaultUa = settings.getUserAgentString();
         if (defaultUa != null) {
-            settings.setUserAgentString(defaultUa.replace("; wv", "") + " CribConnectAndroid/1.0");
+            settings.setUserAgentString(defaultUa.replace("; wv", "") + " CribConnectAndroid/1.1");
         }
 
         CookieManager cookieManager = CookieManager.getInstance();
@@ -190,7 +206,8 @@ public class MainActivity extends Activity {
 
             @Override
             public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
-                callback.invoke(origin, true, false);
+                boolean allowedOrigin = origin != null && origin.startsWith("https://cribconnect-gold.vercel.app");
+                callback.invoke(origin, allowedOrigin, false);
             }
 
             // Enable native Photo & Video picker for Agents uploading apartments

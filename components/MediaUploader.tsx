@@ -8,9 +8,9 @@ import {
   X,
   CheckCircle2,
   AlertCircle,
-  FileText,
-  Play,
+  Link2,
 } from "lucide-react";
+import { normalizeVideoTourUrl } from "@/lib/types";
 
 interface MediaUploaderProps {
   photos: string[];
@@ -28,6 +28,7 @@ export default function MediaUploader({
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [videoUrlDraft, setVideoUrlDraft] = useState("");
 
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -59,7 +60,7 @@ export default function MediaUploader({
             return;
           }
           ctx.drawImage(img, 0, 0, width, height);
-          const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.82);
+          const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.8);
           resolve(compressedDataUrl);
         };
         img.onerror = () => reject(new Error(`Failed to process image "${file.name}"`));
@@ -81,33 +82,31 @@ export default function MediaUploader({
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
 
-        if (file.size > 15 * 1024 * 1024) {
-          throw new Error(`"${file.name}" is larger than 15MB. Please choose a smaller photo.`);
+        if (file.size > 12 * 1024 * 1024) {
+          throw new Error(
+            `"${file.name}" is larger than 12MB. Please choose a smaller photo.`
+          );
         }
 
         const compressedUrl = await compressImageFile(file);
 
-        // Upload compressed photo to MediaAsset / CDN endpoint to return a fast cached URL (/api/media/img-...)
-        try {
-          const uploadRes = await fetch("/api/upload", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ dataUrl: compressedUrl, type: "image" }),
-          });
-          if (uploadRes.ok) {
-            const uploadData = await uploadRes.json();
-            if (uploadData.url) {
-              newUrls.push(uploadData.url);
-              continue;
-            }
-          }
-        } catch {
-          // Fallback to compressed dataUrl if offline
+        const uploadRes = await fetch("/api/upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ dataUrl: compressedUrl, type: "image" }),
+        });
+
+        const uploadData = await uploadRes.json().catch(() => ({}));
+        if (!uploadRes.ok) {
+          throw new Error(uploadData.error || `Failed to upload "${file.name}".`);
         }
-        newUrls.push(compressedUrl);
+
+        if (uploadData.url) {
+          newUrls.push(uploadData.url);
+        }
       }
 
-      onPhotosChange([...photos, ...newUrls]);
+      onPhotosChange([...photos, ...newUrls].slice(0, 12));
     } catch (err: any) {
       setUploadError(err.message || "Failed to upload photos");
     } finally {
@@ -124,9 +123,10 @@ export default function MediaUploader({
     try {
       const file = files[0];
 
-      // Client-side file size check (30MB)
-      if (file.size > 30 * 1024 * 1024) {
-        throw new Error(`Video is larger than 30MB. Please upload a shorter clip or use a YouTube link.`);
+      if (file.size > 20 * 1024 * 1024) {
+        throw new Error(
+          "Video is larger than 20MB. Please upload a shorter clip or attach a YouTube/Vimeo link."
+        );
       }
 
       const formData = new FormData();
@@ -137,7 +137,7 @@ export default function MediaUploader({
         body: formData,
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         throw new Error(data.error || "Failed to upload video");
       }
@@ -151,6 +151,23 @@ export default function MediaUploader({
       setUploadingVideo(false);
       if (videoInputRef.current) videoInputRef.current.value = "";
     }
+  };
+
+  const handleAttachVideoLink = () => {
+    setUploadError(null);
+    const trimmed = videoUrlDraft.trim();
+    if (!trimmed) return;
+
+    const normalized = normalizeVideoTourUrl(trimmed);
+    if (!normalized) {
+      setUploadError(
+        "Please paste a valid YouTube, Vimeo, or direct MP4/WEBM video link."
+      );
+      return;
+    }
+
+    onVideoChange(normalized.src);
+    setVideoUrlDraft("");
   };
 
   const removePhoto = (index: number) => {
@@ -171,23 +188,29 @@ export default function MediaUploader({
         <div className="flex items-center justify-between">
           <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
             <Camera className="w-4 h-4 text-emerald-600" />
-            <span>Property Photos ({photos.length} uploaded)</span>
+            <span>Property Photos ({photos.length}/12 uploaded)</span>
           </label>
-          <span className="text-[11px] text-gray-400 font-medium">Max 5MB per photo</span>
+          <span className="text-[11px] text-gray-400 font-medium">
+            Auto-compressed · Max 4MB after compression
+          </span>
         </div>
 
-        {/* Thumbnails grid */}
         {photos.length > 0 && (
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
             {photos.map((url, idx) => (
               <div
                 key={idx}
-                className="relative aspect-[4/3] rounded-xl overflow-hidden border border-gray-200 group bg-gray-100 shadow-xs"
+                className="relative aspect-[4/3] rounded-xl overflow-hidden border border-gray-200 group bg-gray-100 shadow-sm"
               >
-                <img src={url} alt={`Property upload ${idx + 1}`} className="w-full h-full object-cover" />
+                <img
+                  src={url}
+                  alt={`Property upload ${idx + 1}`}
+                  className="w-full h-full object-cover"
+                />
                 <button
                   type="button"
                   onClick={() => removePhoto(idx)}
+                  aria-label={`Remove photo ${idx + 1}`}
                   className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-gray-900/80 hover:bg-red-600 text-white flex items-center justify-center transition-colors"
                   title="Remove photo"
                 >
@@ -203,7 +226,6 @@ export default function MediaUploader({
           </div>
         )}
 
-        {/* Upload Trigger Dropzone */}
         <input
           ref={imageInputRef}
           type="file"
@@ -227,7 +249,7 @@ export default function MediaUploader({
               {uploadingImage ? "Uploading photos..." : "Click to upload room & compound photos"}
             </span>
             <span className="text-[11px] text-gray-400">
-              Supports multiple JPG, PNG, WEBP files
+              Supports JPG, PNG, WEBP, AVIF
             </span>
           </div>
         </button>
@@ -238,21 +260,23 @@ export default function MediaUploader({
         <div className="flex items-center justify-between">
           <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
             <Video className="w-4 h-4 text-emerald-600" />
-            <span>Video Walkthrough (Recommended for faster rentals)</span>
+            <span>Video Walkthrough (Optional)</span>
           </label>
-          <span className="text-[11px] text-gray-400 font-medium">MP4/WEBM up to 30MB</span>
+          <span className="text-[11px] text-gray-400 font-medium">
+            MP4/WEBM up to 20MB or YouTube/Vimeo
+          </span>
         </div>
 
         {videoUrl ? (
           <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-xs font-bold text-emerald-900">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>Video walkthrough attached</span>
+            <div className="flex items-center gap-2 text-xs font-bold text-emerald-900 min-w-0">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span className="truncate">Video walkthrough attached ({videoUrl})</span>
             </div>
             <button
               type="button"
               onClick={() => onVideoChange("")}
-              className="text-xs font-bold text-red-600 hover:underline"
+              className="text-xs font-bold text-red-600 hover:underline shrink-0"
             >
               Remove
             </button>
@@ -262,7 +286,7 @@ export default function MediaUploader({
             <input
               ref={videoInputRef}
               type="file"
-              accept="video/mp4,video/webm"
+              accept="video/mp4,video/webm,video/quicktime"
               className="hidden"
               onChange={(e) => handleVideoFile(e.target.files)}
             />
@@ -275,23 +299,45 @@ export default function MediaUploader({
             >
               <Video className="w-4 h-4 text-emerald-600" />
               <span className="text-xs font-bold text-gray-700">
-                {uploadingVideo ? "Uploading video file..." : "Upload short video walkthrough (MP4)"}
+                {uploadingVideo
+                  ? "Uploading video file..."
+                  : "Upload short video walkthrough (MP4 / WEBM)"}
               </span>
             </button>
 
             <div className="flex items-center gap-2">
               <div className="h-px bg-gray-200 flex-1" />
-              <span className="text-[10px] uppercase font-bold text-gray-400">or enter YouTube embed</span>
+              <span className="text-[10px] uppercase font-bold text-gray-400">
+                or paste YouTube / Vimeo link
+              </span>
               <div className="h-px bg-gray-200 flex-1" />
             </div>
 
-            <input
-              type="url"
-              placeholder="https://www.youtube.com/embed/..."
-              value={videoUrl || ""}
-              onChange={(e) => onVideoChange(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-            />
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Link2 className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="url"
+                  placeholder="https://youtu.be/... or https://youtube.com/watch?v=..."
+                  value={videoUrlDraft}
+                  onChange={(e) => setVideoUrlDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAttachVideoLink();
+                    }
+                  }}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-8 pr-3 py-2.5 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleAttachVideoLink}
+                className="px-3.5 py-2.5 rounded-xl bg-gray-900 hover:bg-emerald-700 text-white text-xs font-bold transition-colors shrink-0"
+              >
+                Attach Link
+              </button>
+            </div>
           </div>
         )}
       </div>

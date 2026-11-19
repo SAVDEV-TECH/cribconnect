@@ -1,46 +1,67 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifySessionToken, sanitizeText } from "@/lib/auth-security";
-import { recordRentalSuccess, updateListingStore } from "@/lib/data-store";
+import { requireAuth } from "@/lib/session";
+import { sanitizeText } from "@/lib/auth-security";
+import {
+  getListingById,
+  recordRentalSuccess,
+  updateListingStore,
+} from "@/lib/data-store";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
-    const cookieStore = cookies();
-    const token = cookieStore.get("cribconnect_session")?.value;
+    const auth = await requireAuth();
+    if (!auth.ok) return auth.response;
 
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const payload = verifySessionToken(token);
-    if (!payload) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const { user, isAdmin } = auth.context;
+    if (!isAdmin && user.role !== "AGENT" && user.role !== "LANDLORD") {
+      return NextResponse.json(
+        { error: "Only agents or landlords can record rentals." },
+        { status: 403 }
+      );
     }
 
     const body = await req.json();
-    const tenantName = sanitizeText(body.tenantName || "Student Tenant");
-    const propertyTitle = sanitizeText(body.propertyTitle || "Student Accommodation");
-    const neighborhood = sanitizeText(body.neighborhood || "Choba");
-    const amount = parseFloat(body.amount) || 220000;
-    const date = body.date || new Date().toISOString().split("T")[0];
+    const tenantName = sanitizeText(body.tenantName || "Student Tenant", 120);
+    const propertyTitle = sanitizeText(body.propertyTitle || "Student Accommodation", 160);
+    const neighborhood = sanitizeText(body.neighborhood || "Choba", 80);
+    const amount = Number(body.amount);
+    const date = sanitizeText(body.date || new Date().toISOString().split("T")[0], 40);
 
-    const updatedUser = await recordRentalSuccess(payload.userId, {
+    if (!Number.isFinite(amount) || amount <= 0 || amount > 100_000_000) {
+      return NextResponse.json(
+        { error: "Please provide a valid positive rental amount." },
+        { status: 400 }
+      );
+    }
+
+    // Verify ownership BEFORE marking any listing as unavailable
+    const listingId = body.listingId ? sanitizeText(body.listingId, 100) : "";
+    if (listingId) {
+      const listing = await getListingById(listingId);
+      if (!listing) {
+        return NextResponse.json({ error: "Listing not found." }, { status: 404 });
+      }
+      if (!isAdmin && listing.agentId !== user.id) {
+        return NextResponse.json(
+          { error: "Forbidden: You do not own this listing." },
+          { status: 403 }
+        );
+      }
+      await updateListingStore(listing.id, { isAvailable: false });
+    }
+
+    const updatedUser = await recordRentalSuccess(user.id, {
       tenantName,
       propertyTitle,
       neighborhood,
       date,
-      amount,
+      amount: Math.round(amount),
     });
 
     if (!updatedUser) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    // If listingId was passed, mark that listing as not available / rented
-    if (body.listingId) {
-      await updateListingStore(body.listingId, { isAvailable: false });
     }
 
     return NextResponse.json({

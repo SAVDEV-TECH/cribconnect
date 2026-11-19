@@ -1,5 +1,14 @@
-const CACHE_NAME = "cribconnect-pwa-v3";
-const STATIC_ASSETS = ["/", "/listings", "/requests", "/agents", "/manifest.json", "/icon-192.svg", "/icon-512.svg"];
+const CACHE_NAME = "cribconnect-pwa-v4";
+const STATIC_ASSETS = [
+  "/",
+  "/listings",
+  "/requests",
+  "/agents",
+  "/manifest.json",
+  "/icon-192.png",
+  "/icon-512.png",
+  "/apple-touch-icon.png",
+];
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
@@ -30,19 +39,23 @@ self.addEventListener("fetch", (event) => {
   if (request.method !== "GET") return;
   const url = new URL(request.url);
 
-  // Never intercept API routes, Next.js build chunks, RSC transitions, or auth pages
+  // Never intercept or cache API routes, private/authenticated pages, Next chunks, or RSC transitions
   if (
     url.origin !== self.location.origin ||
     url.pathname.startsWith("/api/") ||
     url.pathname.startsWith("/_next/") ||
     url.pathname.startsWith("/auth/") ||
+    url.pathname.startsWith("/admin") ||
+    url.pathname.startsWith("/agent/") ||
+    url.pathname.startsWith("/escrow") ||
+    url.pathname.startsWith("/messages") ||
     url.searchParams.has("_rsc") ||
     request.headers.get("RSC") === "1"
   ) {
     return;
   }
 
-  // Only apply network-first with offline fallback to full HTML document navigations
+  // Network-first with offline fallback for public document navigations only
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request)

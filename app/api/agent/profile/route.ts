@@ -1,56 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifySessionToken, sanitizeText, isValidPhone } from "@/lib/auth-security";
-import { getUserById, updateUser, getListingsStore, createUser } from "@/lib/data-store";
+import { requireAuth } from "@/lib/session";
+import { sanitizeText, sanitizeUrl, isValidPhone } from "@/lib/auth-security";
+import {
+  updateUser,
+  getListingsStore,
+  updateListingStore,
+  offloadDataUrlToMediaAsset,
+} from "@/lib/data-store";
+import { formatNigerianWhatsApp } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
-    const cookieStore = cookies();
-    const token =
-      cookieStore.get("cribconnect_session")?.value ||
-      req.headers.get("x-device-token") ||
-      undefined;
+    const auth = await requireAuth();
+    if (!auth.ok) return auth.response;
 
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const payload = verifySessionToken(token);
-    if (!payload) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    let user = await getUserById(payload.userId);
-    if (!user) {
-      user = await createUser({
-        id: payload.userId,
-        name: payload.name || "Partner Realtor",
-        email: payload.email || "partner@cribconnect.ng",
-        phone: payload.phone || "+234 800 000 0000",
-        whatsapp: payload.whatsapp || "2348000000000",
-        role: (payload.role as any) || "AGENT",
-        avatar:
-          payload.avatar ||
-          `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
-            payload.name || "Agent"
-          )}`,
-        agencyName: payload.agencyName || "Independent Verified Realtor",
-        passwordSalt: "",
-        passwordHash: "",
-        isVerified: true,
-      });
-    }
-
-    // Get listings posted by this user (or all user-uploaded listings if they are the active realtor)
+    const { user, isAdmin } = auth.context;
     const allListings = await getListingsStore();
-    const userListings = allListings.filter(
-      (l) =>
-        l.agentId === user!.id ||
-        l.agentId === "agent-user" ||
-        l.agentName.toLowerCase() === user!.name.toLowerCase()
-    );
+    const userListings = allListings.filter((l) => l.agentId === user.id);
 
     return NextResponse.json({
       success: true,
@@ -61,15 +29,21 @@ export async function GET(req: NextRequest) {
         phone: user.phone,
         whatsapp: user.whatsapp,
         role: user.role,
+        isAdmin,
         avatar: user.avatar,
         agencyName: user.agencyName || "",
         bio: user.bio || "",
         specializations: user.specializations || "",
+        coverageAreas: user.coverageAreas || [],
         ninOrLicense: user.ninOrLicense || "",
         bankName: user.bankName || "",
         bankAccountNumber: user.bankAccountNumber || "",
         bankAccountName: user.bankAccountName || "",
-        isVerified: user.isVerified,
+        isVerified: Boolean(user.isVerified),
+        verificationStatus:
+          user.verificationStatus || (user.isVerified ? "VERIFIED" : "UNVERIFIED"),
+        tier: user.tier || "FREE",
+        badges: user.badges || [],
         tenantsHousedCount: user.tenantsHousedCount || 0,
         rentalsHistory: user.rentalsHistory || [],
         listings: userListings,
@@ -83,38 +57,94 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
-    const cookieStore = cookies();
-    const token =
-      cookieStore.get("cribconnect_session")?.value ||
-      req.headers.get("x-device-token") ||
-      undefined;
+    const auth = await requireAuth();
+    if (!auth.ok) return auth.response;
 
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const payload = verifySessionToken(token);
-    if (!payload) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+    const { user, isAdmin } = auth.context;
     const body = await req.json();
-    const updates: any = {};
+    const updates: Record<string, any> = {};
 
-    if (body.name) updates.name = sanitizeText(body.name);
-    if (body.phone && isValidPhone(body.phone)) updates.phone = sanitizeText(body.phone);
-    if (body.whatsapp) updates.whatsapp = sanitizeText(body.whatsapp).replace(/\D/g, "");
-    if (body.agencyName !== undefined) updates.agencyName = sanitizeText(body.agencyName);
-    if (body.bio !== undefined) updates.bio = sanitizeText(body.bio);
-    if (body.specializations !== undefined) updates.specializations = sanitizeText(body.specializations);
-    if (body.bankName !== undefined) updates.bankName = sanitizeText(body.bankName);
-    if (body.bankAccountNumber !== undefined) updates.bankAccountNumber = sanitizeText(body.bankAccountNumber).replace(/\D/g, "").slice(0, 10);
-    if (body.bankAccountName !== undefined) updates.bankAccountName = sanitizeText(body.bankAccountName);
-    if (body.avatar) updates.avatar = body.avatar;
+    if (typeof body.name === "string" && body.name.trim()) {
+      updates.name = sanitizeText(body.name, 100);
+    }
 
-    const updated = await updateUser(payload.userId, updates);
+    if (body.phone !== undefined && body.phone !== "") {
+      if (!isValidPhone(body.phone)) {
+        return NextResponse.json({ error: "Please enter a valid phone number." }, { status: 400 });
+      }
+      updates.phone = sanitizeText(body.phone, 25);
+    }
+
+    if (body.whatsapp !== undefined) {
+      const formattedWa = formatNigerianWhatsApp(sanitizeText(body.whatsapp, 30));
+      if (body.whatsapp && !formattedWa) {
+        return NextResponse.json(
+          { error: "Please enter a valid WhatsApp number." },
+          { status: 400 }
+        );
+      }
+      if (formattedWa) updates.whatsapp = formattedWa;
+    }
+
+    if (body.agencyName !== undefined) updates.agencyName = sanitizeText(body.agencyName, 120);
+    if (body.bio !== undefined) updates.bio = sanitizeText(body.bio, 1200);
+    if (body.specializations !== undefined) {
+      updates.specializations = sanitizeText(body.specializations, 200);
+    }
+    if (body.bankName !== undefined) updates.bankName = sanitizeText(body.bankName, 80);
+    if (body.bankAccountNumber !== undefined) {
+      const digits = sanitizeText(body.bankAccountNumber, 20).replace(/\D/g, "").slice(0, 10);
+      if (digits && digits.length !== 10) {
+        return NextResponse.json(
+          { error: "Nigerian bank account number must be 10 digits." },
+          { status: 400 }
+        );
+      }
+      updates.bankAccountNumber = digits;
+    }
+    if (body.bankAccountName !== undefined) {
+      updates.bankAccountName = sanitizeText(body.bankAccountName, 120);
+    }
+
+    if (typeof body.avatar === "string" && body.avatar.trim()) {
+      const rawAvatar = body.avatar.trim();
+      if (rawAvatar.startsWith("data:image/")) {
+        updates.avatar = await offloadDataUrlToMediaAsset(rawAvatar);
+      } else {
+        const cleanAvatar = sanitizeUrl(rawAvatar);
+        if (!cleanAvatar) {
+          return NextResponse.json({ error: "Invalid avatar URL." }, { status: 400 });
+        }
+        updates.avatar = cleanAvatar;
+      }
+    }
+
+    const updated = await updateUser(user.id, updates);
     if (!updated) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Keep the user's own listings synchronized with updated contact details
+    if (
+      updates.name ||
+      updates.phone ||
+      updates.whatsapp ||
+      updates.avatar ||
+      updates.agencyName !== undefined
+    ) {
+      const allListings = await getListingsStore();
+      const myListings = allListings.filter((l) => l.agentId === updated.id);
+      await Promise.all(
+        myListings.map((l) =>
+          updateListingStore(l.id, {
+            agentName: updated.name,
+            agentPhone: updated.phone,
+            agentWhatsapp: updated.whatsapp,
+            agentAvatar: updated.avatar,
+            agencyName: updated.agencyName || l.agencyName,
+          })
+        )
+      );
     }
 
     return NextResponse.json({
@@ -126,16 +156,21 @@ export async function PATCH(req: NextRequest) {
         phone: updated.phone,
         whatsapp: updated.whatsapp,
         role: updated.role,
+        isAdmin,
         avatar: updated.avatar,
-        agencyName: updated.agencyName,
-        bio: updated.bio,
-        specializations: updated.specializations,
+        agencyName: updated.agencyName || "",
+        bio: updated.bio || "",
+        specializations: updated.specializations || "",
         bankName: updated.bankName || "",
         bankAccountNumber: updated.bankAccountNumber || "",
         bankAccountName: updated.bankAccountName || "",
-        isVerified: updated.isVerified,
-        tenantsHousedCount: updated.tenantsHousedCount,
-        rentalsHistory: updated.rentalsHistory,
+        isVerified: Boolean(updated.isVerified),
+        verificationStatus:
+          updated.verificationStatus || (updated.isVerified ? "VERIFIED" : "UNVERIFIED"),
+        tier: updated.tier || "FREE",
+        badges: updated.badges || [],
+        tenantsHousedCount: updated.tenantsHousedCount || 0,
+        rentalsHistory: updated.rentalsHistory || [],
       },
     });
   } catch (error) {

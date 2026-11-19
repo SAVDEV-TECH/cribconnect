@@ -2,7 +2,7 @@
   "id": "/",
   "name": "CribConnect UNIPORT — Verified Student Housing",
   "short_name": "CribConnect",
-  "description": "Find verified student housing near UNIPORT (Choba, Aluu, Ozuoba, Rumuola) with video walkthroughs and bank-verified escrow protection.",
+  "description": "Find verified student housing near UNIPORT (Choba, Aluu, Ozuoba, Rumuola, Rumuigbo) with video walkthroughs and 48-hour escrow protection.",
   "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
@@ -17,27 +17,27 @@
   "categories": ["lifestyle", "business", "education"],
   "icons": [
     {
-      "src": "/icon-192.svg",
+      "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-192.svg",
+      "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/icon-512.svg",
+      "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-512.svg",
+      "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "maskable"
     }
   ],
@@ -47,28 +47,28 @@
       "short_name": "Browse",
       "description": "Explore verified apartments near UNIPORT",
       "url": "/listings",
-      "icons": [{ "src": "/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml" }]
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Post Housing Request",
-      "short_name": "Connect",
+      "short_name": "Requests",
       "description": "Post your housing request to verified UNIPORT agents",
       "url": "/requests",
-      "icons": [{ "src": "/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml" }]
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
-      "name": "Agent & Owner Dashboard",
+      "name": "Escrow Tracker",
+      "short_name": "Escrow",
+      "description": "Check your 48-hour reservation PIN and escrow status",
+      "url": "/escrow",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Agent Dashboard",
       "short_name": "Dashboard",
-      "description": "Upload properties and manage student connects",
+      "description": "Manage listings and student inspection bookings",
       "url": "/agent/dashboard",
-      "icons": [{ "src": "/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml" }]
-    },
-    {
-      "name": "Founder Command Center",
-      "short_name": "Admin",
-      "description": "Platform connects, escrow verification, and payouts",
-      "url": "/admin",
-      "icons": [{ "src": "/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml" }]
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }

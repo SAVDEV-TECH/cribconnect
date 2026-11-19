@@ -195,25 +195,23 @@ export default function RelocationModal() {
 
               {/* Matched Specialist Preview */}
               <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200 flex items-center gap-3">
-                <img
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80"
-                  alt="Kolawole"
-                  className="w-12 h-12 rounded-full object-cover border-2 border-emerald-500 shrink-0"
-                />
+                <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-6 h-6" />
+                </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
                     <span className="font-semibold text-xs text-gray-900 truncate">
-                      Kolawole Adebayo
+                      Verified Local Housing Specialists
                     </span>
-                    <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded-full flex items-center gap-0.5">
-                      <ShieldCheck className="w-2.5 h-2.5" /> UNIPORT Specialist
+                    <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                      <ShieldCheck className="w-2.5 h-2.5" /> UNIPORT Ready
                     </span>
                   </div>
                   <p className="text-[11px] text-gray-500 line-clamp-1">
                     Matched based on your {targetUni} relocation from {originCity}.
                   </p>
                   <div className="text-[10px] text-emerald-600 font-medium">
-                    Verified student housing specialist
+                    Verified agents in Choba, Aluu, Ozuoba &amp; Rumuola
                   </div>
                 </div>
               </div>

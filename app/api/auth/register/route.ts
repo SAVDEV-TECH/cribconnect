@@ -7,15 +7,20 @@ import {
   isValidPhone,
   sanitizeText,
   checkRateLimit,
+  getClientIp,
+  isAdminUser,
+  MAX_PASSWORD_LENGTH,
+  SESSION_MAX_AGE_SECONDS,
 } from "@/lib/auth-security";
 import { getUserByEmail, createUser } from "@/lib/data-store";
+import { SESSION_COOKIE_NAME } from "@/lib/session";
+import { formatNigerianWhatsApp } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
-    // Rate limit: Max 5 registration attempts per 10 minutes per IP
-    const clientIp = req.headers.get("x-forwarded-for") || "local";
+    const clientIp = getClientIp(req);
     const { allowed } = checkRateLimit(`reg:${clientIp}`, 5, 10 * 60 * 1000);
     if (!allowed) {
       return NextResponse.json(
@@ -25,27 +30,43 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const email = sanitizeText(body.email).toLowerCase();
+    const email = sanitizeText(body.email, 254).toLowerCase();
     const password = typeof body.password === "string" ? body.password : "";
-    const name = sanitizeText(body.name);
-    const phone = sanitizeText(body.phone);
-    const whatsapp = sanitizeText(body.whatsapp || phone);
-    const role = body.role === "LANDLORD" ? "LANDLORD" : body.role === "TENANT" ? "TENANT" : "AGENT";
-    const agencyName = sanitizeText(body.agencyName || (role === "LANDLORD" ? "Property Owner" : "Independent Realtor"));
-    const ninOrLicense = sanitizeText(body.ninOrLicense || "");
+    const name = sanitizeText(body.name, 120);
+    const phone = sanitizeText(body.phone, 30);
+    const whatsapp = formatNigerianWhatsApp(sanitizeText(body.whatsapp || phone, 30));
 
-    // Validation
+    // Never allow ADMIN role assignment via public registration
+    const requestedRole = String(body.role || "AGENT").toUpperCase();
+    const role: "AGENT" | "LANDLORD" | "TENANT" | "STUDENT" =
+      requestedRole === "LANDLORD"
+        ? "LANDLORD"
+        : requestedRole === "TENANT"
+        ? "TENANT"
+        : requestedRole === "STUDENT"
+        ? "STUDENT"
+        : "AGENT";
+
+    const agencyName = sanitizeText(
+      body.agencyName || (role === "LANDLORD" ? "Property Owner" : role === "AGENT" ? "Independent Realtor" : ""),
+      120
+    );
+    const ninOrLicense = sanitizeText(body.ninOrLicense || "", 60);
+
     if (!name || name.length < 3) {
-      return NextResponse.json({ error: "Please enter your full name (at least 3 characters)." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Please enter your full name (at least 3 characters)." },
+        { status: 400 }
+      );
     }
 
     if (!isValidEmail(email)) {
       return NextResponse.json({ error: "Please enter a valid email address." }, { status: 400 });
     }
 
-    if (password.length < 8) {
+    if (password.length < 8 || password.length > MAX_PASSWORD_LENGTH) {
       return NextResponse.json(
-        { error: "Password must be at least 8 characters long for security." },
+        { error: "Password must be between 8 and 256 characters long." },
         { status: 400 }
       );
     }
@@ -57,7 +78,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check duplicate email
     const existing = await getUserByEmail(email);
     if (existing) {
       return NextResponse.json(
@@ -66,26 +86,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Hash password with PBKDF2 + random salt
     const { salt, hash } = hashPassword(password);
-
     const defaultAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`;
 
+    // Users ALWAYS start unverified; submitting NIN/License puts them in PENDING admin review
     const newUser = await createUser({
       name,
       email,
       phone,
-      whatsapp: whatsapp.replace(/\D/g, ""),
+      whatsapp: whatsapp || phone.replace(/\D/g, ""),
       role,
       avatar: defaultAvatar,
       agencyName,
       passwordSalt: salt,
       passwordHash: hash,
-      isVerified: Boolean(ninOrLicense),
+      isVerified: false,
+      verificationStatus: ninOrLicense ? "PENDING" : "UNVERIFIED",
       ninOrLicense,
     });
 
-    // Create tamper-proof HMAC session token
     const token = createSessionToken(newUser.id, newUser.role, {
       name: newUser.name,
       email: newUser.email,
@@ -95,19 +114,17 @@ export async function POST(req: NextRequest) {
       agencyName: newUser.agencyName,
     });
 
-    // Set secure HTTP-only cookie (365 days for 1-time mobile sign-in)
     const cookieStore = cookies();
-    cookieStore.set("cribconnect_session", token, {
+    cookieStore.set(SESSION_COOKIE_NAME, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 365 * 24 * 60 * 60, // 365 days
+      maxAge: SESSION_MAX_AGE_SECONDS,
     });
 
     return NextResponse.json({
       success: true,
-      deviceToken: token,
       user: {
         id: newUser.id,
         name: newUser.name,
@@ -118,6 +135,7 @@ export async function POST(req: NextRequest) {
         avatar: newUser.avatar,
         agencyName: newUser.agencyName,
         isVerified: newUser.isVerified,
+        isAdmin: isAdminUser(newUser),
       },
     });
   } catch (error) {

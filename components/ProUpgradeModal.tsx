@@ -1,64 +1,99 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from "react";
 import { useApp } from "@/context/AppContext";
-import {
-  Zap,
-  X,
-  CheckCircle2,
-  Sparkles,
-  ShieldCheck,
-  CreditCard,
-  TrendingUp,
-  Award,
-} from "lucide-react";
+import { Zap, X, CheckCircle2, CreditCard, AlertCircle } from "lucide-react";
 
 export default function ProUpgradeModal() {
-  const { isUpgradeModalOpen, closeUpgradeModal, refreshUser, formatMoney } = useApp();
+  const { isUpgradeModalOpen, closeUpgradeModal, refreshUser, formatMoney, currentUser } = useApp();
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (!isUpgradeModalOpen) return null;
 
-  const handleUpgrade = async () => {
+  const monthlyPriceNgn = 5000;
+  const yearlyPriceNgn = 48000;
+  const paystackPublicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || "";
+
+  const verifyUpgrade = async (paymentReference: string) => {
     setIsLoading(true);
+    setError(null);
     try {
       const res = await fetch("/api/agent/upgrade", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           plan: billingCycle,
-          paymentReference: `PSTK_${Math.random().toString(36).substring(2, 9).toUpperCase()}`,
+          paymentReference,
         }),
       });
       const data = await res.json();
-      if (data.success) {
+      if (res.ok && data.success) {
         setSuccess(true);
         await refreshUser();
         setTimeout(() => {
           setSuccess(false);
           closeUpgradeModal();
-          window.location.reload();
         }, 1800);
+      } else {
+        setError(data.error || "Payment verification failed.");
       }
-    } catch (err) {
-      console.error(err);
+    } catch {
+      setError("Network error while verifying upgrade payment.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const monthlyPriceNgn = 5000;
-  const yearlyPriceNgn = 48000; // 20% discount
+  const handleUpgrade = () => {
+    setError(null);
+    const amountNgn = billingCycle === "monthly" ? monthlyPriceNgn : yearlyPriceNgn;
+    const paystack = (window as any).PaystackPop;
+
+    if (!paystackPublicKey || !paystack) {
+      setError(
+        "Live Paystack billing is not configured on this environment yet. Please contact support@cribconnect.ng for manual Pro activation."
+      );
+      return;
+    }
+
+    if (!currentUser?.email) {
+      setError("Please sign in before upgrading your account.");
+      return;
+    }
+
+    const handler = paystack.setup({
+      key: paystackPublicKey,
+      email: currentUser.email,
+      amount: amountNgn * 100,
+      currency: "NGN",
+      ref: `CCPRO-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
+      callback: (response: { reference: string }) => {
+        verifyUpgrade(response.reference);
+      },
+      onClose: () => {
+        setIsLoading(false);
+      },
+    });
+    handler.openIframe();
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/80 backdrop-blur-sm animate-in fade-in duration-200">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/80 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="pro-upgrade-title"
+    >
       <div className="bg-white rounded-xl max-w-lg w-full overflow-hidden shadow-2xl border border-gray-200">
         {/* Header */}
         <div className="bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 p-6 text-white relative">
           <button
+            type="button"
             onClick={closeUpgradeModal}
+            aria-label="Close upgrade dialog"
             className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/20 text-white transition-colors"
           >
             <X className="w-5 h-5" />
@@ -71,9 +106,11 @@ export default function ProUpgradeModal() {
               Agent Growth Tier
             </span>
           </div>
-          <h2 className="text-2xl font-bold">CribConnect Pro Agent</h2>
+          <h2 id="pro-upgrade-title" className="text-2xl font-bold">
+            CribConnect Pro Agent
+          </h2>
           <p className="text-amber-100 text-xs mt-1">
-            Unlock unlimited property listings, priority request pitch placement, and direct student lead inquiries.
+            Unlock priority placement and featured badges across UNIPORT &amp; Port Harcourt searches.
           </p>
         </div>
 
@@ -81,16 +118,23 @@ export default function ProUpgradeModal() {
         <div className="p-6 space-y-5">
           {success ? (
             <div className="py-8 text-center space-y-3">
-              <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto animate-bounce">
+              <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
                 <CheckCircle2 className="w-10 h-10" />
               </div>
               <h3 className="text-xl font-bold text-gray-900">Upgrade Successful!</h3>
               <p className="text-xs text-gray-600">
-                You are now a <strong>CribConnect Pro Agent</strong>. Unlimited listings and featured placement badges have been activated.
+                You are now a <strong>CribConnect Pro Agent</strong>.
               </p>
             </div>
           ) : (
             <>
+              {error && (
+                <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
+
               {/* Billing Toggle */}
               <div className="flex items-center justify-center gap-3 bg-gray-100 p-1 rounded-xl text-xs font-semibold">
                 <button
@@ -114,65 +158,53 @@ export default function ProUpgradeModal() {
                   }`}
                 >
                   <span>Annual: {formatMoney(yearlyPriceNgn)} / yr</span>
-                  <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded">
+                  <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded">
                     Save 20%
                   </span>
                 </button>
               </div>
 
-              {/* Feature Checklist */}
               <div className="space-y-2.5 text-xs text-gray-700 bg-amber-50/60 p-4 rounded-xl border border-amber-100">
                 <div className="flex items-start gap-2.5">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                   <div>
-                    <strong>Unlimited Property Listings</strong> (Free tier capped at 2)
+                    <strong>Featured Listing Priority</strong> on UNIPORT search results
                   </div>
                 </div>
                 <div className="flex items-start gap-2.5">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                   <div>
-                    <strong>3 Included &quot;Featured Listing&quot; Spotlights</strong> on the homepage and top search results
+                    <strong>Verified Pro Badge</strong> on your profile and active listings
                   </div>
                 </div>
                 <div className="flex items-start gap-2.5">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                   <div>
-                    <strong>Instant Student Request Alerts</strong>: Pitch fresh incoming student housing posts first
-                  </div>
-                </div>
-                <div className="flex items-start gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                  <div>
-                    <strong>Lead Analytics Dashboard</strong>: Track listing impressions, direct WhatsApp clicks, and proposal win rate
-                  </div>
-                </div>
-                <div className="flex items-start gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                  <div>
-                    <strong>Verified Pro Badge</strong> on your profile and listings
+                    <strong>Priority Reverse-Marketplace Access</strong> to pitch incoming student housing requests
                   </div>
                 </div>
               </div>
 
-              {/* Paystack Simulation CTA */}
               <button
                 type="button"
                 disabled={isLoading}
                 onClick={handleUpgrade}
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold text-sm shadow-sm shadow-amber-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 disabled:opacity-60 text-white font-bold text-sm shadow-sm transition-all flex items-center justify-center gap-2"
               >
                 {isLoading ? (
-                  <span>Processing Secure Checkout...</span>
+                  <span>Verifying Paystack Payment...</span>
                 ) : (
                   <>
                     <CreditCard className="w-4 h-4" />
-                    <span>Pay {formatMoney(billingCycle === "monthly" ? monthlyPriceNgn : yearlyPriceNgn)} via Paystack</span>
+                    <span>
+                      Pay {formatMoney(billingCycle === "monthly" ? monthlyPriceNgn : yearlyPriceNgn)} via Paystack
+                    </span>
                   </>
                 )}
               </button>
 
               <p className="text-[11px] text-center text-gray-400">
-                Secured 256-bit simulated escrow & payment gateway. Cancel anytime from agent dashboard.
+                Payments are verified directly with Paystack before Pro status is activated.
               </p>
             </>
           )}

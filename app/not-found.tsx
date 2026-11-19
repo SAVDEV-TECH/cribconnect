@@ -4,7 +4,7 @@ import { Home, Search, MessageSquare, ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Page Not Found | CribConnect",
+  title: "Page Not Found",
   description: "The page you're looking for doesn't exist. Find student housing near UNIPORT Port Harcourt on CribConnect.",
 };
 

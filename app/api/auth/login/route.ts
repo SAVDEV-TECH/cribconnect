@@ -2,24 +2,30 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import {
   verifyPassword,
+  runDummyPasswordCheck,
   createSessionToken,
   isValidEmail,
   sanitizeText,
   checkRateLimit,
+  getClientIp,
+  isAdminUser,
+  MAX_PASSWORD_LENGTH,
+  SESSION_MAX_AGE_SECONDS,
 } from "@/lib/auth-security";
 import { getUserByEmail } from "@/lib/data-store";
+import { SESSION_COOKIE_NAME } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
-    const clientIp = req.headers.get("x-forwarded-for") || "local";
+    const clientIp = getClientIp(req);
 
     const body = await req.json();
-    const email = sanitizeText(body.email).toLowerCase();
+    const email = sanitizeText(body.email, 254).toLowerCase();
     const password = typeof body.password === "string" ? body.password : "";
 
-    if (!isValidEmail(email) || !password) {
+    if (!isValidEmail(email) || !password || password.length > MAX_PASSWORD_LENGTH) {
       return NextResponse.json(
         { error: "Please provide a valid email and password." },
         { status: 400 }
@@ -37,14 +43,15 @@ export async function POST(req: NextRequest) {
     }
 
     const user = await getUserByEmail(email);
-    if (!user) {
+    if (!user || !user.passwordSalt || !user.passwordHash) {
+      // Run dummy PBKDF2 to prevent timing-based account enumeration
+      runDummyPasswordCheck(password);
       return NextResponse.json(
         { error: `Invalid email or password. (${remaining} attempts remaining)` },
         { status: 401 }
       );
     }
 
-    // Timing-safe password verification
     const passwordValid = verifyPassword(password, user.passwordSalt, user.passwordHash);
     if (!passwordValid) {
       return NextResponse.json(
@@ -53,7 +60,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Issue tamper-proof HMAC session token
     const token = createSessionToken(user.id, user.role, {
       name: user.name,
       email: user.email,
@@ -63,19 +69,17 @@ export async function POST(req: NextRequest) {
       agencyName: user.agencyName,
     });
 
-    // Set secure HTTP-only cookie (365 days for 1-time mobile sign-in)
     const cookieStore = cookies();
-    cookieStore.set("cribconnect_session", token, {
+    cookieStore.set(SESSION_COOKIE_NAME, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 365 * 24 * 60 * 60, // 365 days
+      maxAge: SESSION_MAX_AGE_SECONDS,
     });
 
     return NextResponse.json({
       success: true,
-      deviceToken: token,
       user: {
         id: user.id,
         name: user.name,
@@ -86,6 +90,7 @@ export async function POST(req: NextRequest) {
         avatar: user.avatar,
         agencyName: user.agencyName,
         isVerified: user.isVerified,
+        isAdmin: isAdminUser(user),
       },
     });
   } catch (error) {

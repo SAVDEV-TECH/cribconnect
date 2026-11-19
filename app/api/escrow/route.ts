@@ -1,31 +1,53 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import {
   getEscrowDepositsStore,
-  getEscrowsByListingId,
   getEscrowsByAgent,
+  getEscrowsByStudent,
 } from "@/lib/data-store";
+import { requireAuth } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(req.url);
-    const listingId = searchParams.get("listingId");
-    const agentId = searchParams.get("agentId");
+    const auth = await requireAuth();
+    if (!auth.ok) return auth.response;
 
-    let escrows = await getEscrowDepositsStore();
+    const { user, isAdmin } = auth.context;
 
-    if (listingId) {
-      escrows = await getEscrowsByListingId(listingId);
-    } else if (agentId) {
-      escrows = await getEscrowsByAgent(agentId);
+    // Admins see all escrows (without exposing student's secret releasePin or lookupToken)
+    if (isAdmin) {
+      const escrows = await getEscrowDepositsStore();
+      return NextResponse.json({
+        success: true,
+        escrows: escrows.map(({ releasePin: _pin, lookupToken: _tok, ...safe }) => safe),
+      });
     }
+
+    // Agents / Landlords see ONLY escrows for their own properties — NEVER the student's releasePin
+    if (user.role === "AGENT" || user.role === "LANDLORD") {
+      const escrows = await getEscrowsByAgent(user.id);
+      return NextResponse.json({
+        success: true,
+        escrows: escrows.map(({ releasePin: _pin, lookupToken: _tok, ...safe }) => safe),
+      });
+    }
+
+    // Students / Tenants see ONLY their own escrows (PIN shown only after payment is verified)
+    const studentEscrows = await getEscrowsByStudent(user.email, user.id);
+    const safeStudentEscrows = studentEscrows.map((e) => {
+      const { lookupToken: _tok, ...rest } = e;
+      if (e.status === "AWAITING_PAYMENT_CONFIRMATION" || e.paymentVerified === false) {
+        return { ...rest, releasePin: "•••• (Awaiting Bank Alert)" };
+      }
+      return rest;
+    });
 
     return NextResponse.json({
       success: true,
-      escrows,
+      escrows: safeStudentEscrows,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Fetch escrows error:", error);
     return NextResponse.json(
       { error: "Failed to retrieve escrow records." },

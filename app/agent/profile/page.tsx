@@ -3,15 +3,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useApp } from "@/context/AppContext";
 import { Camera, CheckCircle2, AlertCircle, LogOut } from "lucide-react";
-import {
-  syncOrRestoreSession,
-  getDeviceAuthHeaders,
-  clearMobileSession,
-} from "@/lib/client-auth";
 
 export default function AgentProfilePage() {
   const router = useRouter();
+  const { refreshUser, logout } = useApp();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(true);
@@ -30,15 +27,13 @@ export default function AgentProfilePage() {
     agencyName: "",
     bankName: "",
     bankAccountNumber: "",
+    bankAccountName: "",
     avatar: "",
     role: "AGENT",
   });
 
   useEffect(() => {
-    syncOrRestoreSession()
-      .then(() =>
-        fetch("/api/agent/profile", { headers: getDeviceAuthHeaders() })
-      )
+    fetch("/api/agent/profile", { cache: "no-store" })
       .then((res) => {
         if (res.status === 401) {
           router.push("/auth/login");
@@ -51,11 +46,12 @@ export default function AgentProfilePage() {
           setFormData({
             name: data.profile.name || "",
             email: data.profile.email || "",
-            phone: data.profile.phone || data.profile.whatsapp || "",
+            phone: data.profile.phone || "",
             whatsapp: data.profile.whatsapp || data.profile.phone || "",
             agencyName: data.profile.agencyName || "",
             bankName: data.profile.bankName || "",
             bankAccountNumber: data.profile.bankAccountNumber || "",
+            bankAccountName: data.profile.bankAccountName || "",
             avatar: data.profile.avatar || "",
             role: data.profile.role || "AGENT",
           });
@@ -74,10 +70,10 @@ export default function AgentProfilePage() {
     if (!files || files.length === 0) return;
     const file = files[0];
 
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > 4 * 1024 * 1024) {
       setStatusMessage({
         type: "error",
-        text: "Image must be under 5MB.",
+        text: "Profile photo must be under 4MB.",
       });
       return;
     }
@@ -100,7 +96,7 @@ export default function AgentProfilePage() {
       setFormData((prev) => ({ ...prev, avatar: data.url }));
       setStatusMessage({
         type: "success",
-        text: "Photo updated. Tap Save to keep changes.",
+        text: "Photo uploaded. Tap Save Profile to keep changes.",
       });
     } catch (err: any) {
       setStatusMessage({
@@ -120,17 +116,23 @@ export default function AgentProfilePage() {
     try {
       const res = await fetch("/api/agent/profile", {
         method: "PATCH",
-        headers: getDeviceAuthHeaders({ "Content-Type": "application/json" }),
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...formData,
-          whatsapp: formData.phone,
-          bankAccountName: formData.name,
+          name: formData.name,
+          phone: formData.phone,
+          whatsapp: formData.whatsapp || formData.phone,
+          agencyName: formData.agencyName,
+          bankName: formData.bankName,
+          bankAccountNumber: formData.bankAccountNumber,
+          bankAccountName: formData.bankAccountName,
+          avatar: formData.avatar,
         }),
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to save");
+      if (!res.ok) throw new Error(data.error || "Failed to save profile");
 
+      await refreshUser();
       setStatusMessage({ type: "success", text: "Profile saved." });
     } catch (err: any) {
       setStatusMessage({
@@ -143,8 +145,7 @@ export default function AgentProfilePage() {
   };
 
   const handleLogout = async () => {
-    clearMobileSession();
-    await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+    await logout();
     router.push("/auth/login");
     router.refresh();
   };
@@ -162,13 +163,13 @@ export default function AgentProfilePage() {
       <div className="bg-white rounded-xl border border-gray-200 p-5 sm:p-6 space-y-5">
         {/* Compact Header */}
         <div className="flex items-center justify-between border-b border-gray-100 pb-4">
-          <h1 className="text-lg font-bold text-gray-900">Profile</h1>
+          <h1 className="text-lg font-bold text-gray-900">Profile Settings</h1>
           <div className="flex items-center gap-2">
             <Link
               href="/agent/dashboard"
               className="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-medium transition-colors"
             >
-              My Listings
+              Dashboard
             </Link>
             <Link
               href="/list-property"
@@ -183,7 +184,7 @@ export default function AgentProfilePage() {
           <div
             className={`p-3 rounded-lg text-xs font-medium flex items-center gap-2 ${
               statusMessage.type === "success"
-                ? "bg-gray-100 border border-gray-200 text-gray-900"
+                ? "bg-emerald-50 border border-emerald-200 text-emerald-900"
                 : "bg-red-50 border border-red-200 text-red-700"
             }`}
           >
@@ -220,7 +221,7 @@ export default function AgentProfilePage() {
               className="mt-1.5 inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 hover:text-gray-900"
             >
               <Camera className="w-3.5 h-3.5" />
-              <span>{uploadingPhoto ? "Uploading..." : "Change photo"}</span>
+              <span>{uploadingPhoto ? "Uploading..." : "Change photo (max 4MB)"}</span>
             </button>
             <input
               ref={fileInputRef}
@@ -232,7 +233,6 @@ export default function AgentProfilePage() {
           </div>
         </div>
 
-        {/* Simple 4-Field Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -242,31 +242,38 @@ export default function AgentProfilePage() {
               type="text"
               required
               value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none"
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              WhatsApp / Phone Number
-            </label>
-            <input
-              type="tel"
-              required
-              value={formData.phone}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  phone: e.target.value,
-                  whatsapp: e.target.value,
-                })
-              }
-              placeholder="08034452299"
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none"
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                required
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                placeholder="08034452299"
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                WhatsApp Number
+              </label>
+              <input
+                type="tel"
+                value={formData.whatsapp}
+                onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+                placeholder="08034452299"
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none"
+              />
+            </div>
           </div>
 
           <div>
@@ -276,9 +283,7 @@ export default function AgentProfilePage() {
             <input
               type="text"
               value={formData.agencyName}
-              onChange={(e) =>
-                setFormData({ ...formData, agencyName: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, agencyName: e.target.value })}
               placeholder="e.g. Choba Executive Lodge"
               className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none"
             />
@@ -287,14 +292,12 @@ export default function AgentProfilePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
-                Bank Name (Optional)
+                Bank Name (For Escrow Payouts)
               </label>
               <input
                 type="text"
                 value={formData.bankName}
-                onChange={(e) =>
-                  setFormData({ ...formData, bankName: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
                 placeholder="e.g. Access, GTBank, OPay"
                 className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none"
               />
@@ -302,10 +305,11 @@ export default function AgentProfilePage() {
 
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
-                Account Number
+                Account Number (10-digit NUBAN)
               </label>
               <input
                 type="text"
+                inputMode="numeric"
                 maxLength={10}
                 value={formData.bankAccountNumber}
                 onChange={(e) =>
@@ -314,10 +318,23 @@ export default function AgentProfilePage() {
                     bankAccountNumber: e.target.value.replace(/\D/g, ""),
                   })
                 }
-                placeholder="10-digit NUBAN"
+                placeholder="0123456789"
                 className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Bank Account Name (Optional)
+            </label>
+            <input
+              type="text"
+              value={formData.bankAccountName}
+              onChange={(e) => setFormData({ ...formData, bankAccountName: e.target.value })}
+              placeholder="Account holder name as shown on bank account"
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none"
+            />
           </div>
 
           <button
@@ -331,7 +348,7 @@ export default function AgentProfilePage() {
 
         {/* Simple Sign Out Footer */}
         <div className="pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
-          <span>Signed in on this device</span>
+          <span>Signed in securely</span>
           <button
             type="button"
             onClick={handleLogout}

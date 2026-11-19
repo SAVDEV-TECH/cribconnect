@@ -1,30 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/session";
+import { getReportsStore, addReportStore, updateReportStore } from "@/lib/data-store";
+import { requireAdmin, requireAuth } from "@/lib/session";
+import { sanitizeText, checkRateLimit, getClientIp } from "@/lib/auth-security";
 
 export const dynamic = "force-dynamic";
 
+const ALLOWED_TARGET_TYPES = new Set(["LISTING", "AGENT"]);
+const ALLOWED_STATUSES = new Set(["PENDING", "RESOLVED", "DISMISSED"]);
+
 export async function GET() {
   try {
-    const user = await getCurrentUser();
-    if (!user || user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Admin access required" }, { status: 403 });
-    }
+    const auth = await requireAdmin();
+    if (!auth.ok) return auth.response;
 
-    const reports = await prisma.report.findMany({
-      include: {
-        reporter: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            avatar: true,
-          },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-    });
-
+    const reports = await getReportsStore();
     return NextResponse.json({ reports });
   } catch (error) {
     console.error("Failed to fetch reports:", error);
@@ -34,30 +23,39 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireAuth();
+    if (!auth.ok) return auth.response;
+
+    const clientIp = getClientIp(req);
+    const { allowed } = checkRateLimit(`report:${clientIp}:${auth.context.user.id}`, 10, 15 * 60 * 1000);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many reports submitted recently. Please wait before trying again." },
+        { status: 429 }
+      );
     }
 
     const data = await req.json();
-    const { targetType, targetId, reason, details } = data;
+    const targetType = String(data.targetType || "").toUpperCase();
+    const targetId = sanitizeText(data.targetId, 120);
+    const reason = sanitizeText(data.reason, 200);
+    const details = data.details ? sanitizeText(data.details, 1500) : null;
 
-    if (!targetType || !targetId || !reason) {
+    if (!ALLOWED_TARGET_TYPES.has(targetType) || !targetId || !reason) {
       return NextResponse.json(
-        { error: "Target type, target ID, and reason are required" },
+        { error: "Valid targetType (LISTING or AGENT), targetId, and reason are required." },
         { status: 400 }
       );
     }
 
-    const report = await prisma.report.create({
-      data: {
-        reporterId: user.id,
-        targetType,
-        targetId,
-        reason,
-        details: details || null,
-        status: "PENDING",
-      },
+    const report = await addReportStore({
+      reporterId: auth.context.user.id,
+      reporterName: auth.context.user.name,
+      reporterEmail: auth.context.user.email,
+      targetType: targetType as "LISTING" | "AGENT",
+      targetId,
+      reason,
+      details,
     });
 
     return NextResponse.json({ success: true, report });
@@ -69,20 +67,25 @@ export async function POST(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
-    const user = await getCurrentUser();
-    if (!user || user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Admin access required" }, { status: 403 });
-    }
+    const auth = await requireAdmin();
+    if (!auth.ok) return auth.response;
 
     const { reportId, status, adminNotes } = await req.json();
+    if (typeof reportId !== "string" || !reportId || !ALLOWED_STATUSES.has(String(status))) {
+      return NextResponse.json(
+        { error: "Valid reportId and status (PENDING, RESOLVED, or DISMISSED) are required." },
+        { status: 400 }
+      );
+    }
 
-    const updated = await prisma.report.update({
-      where: { id: reportId },
-      data: {
-        status,
-        adminNotes: adminNotes || null,
-      },
+    const updated = await updateReportStore(reportId, {
+      status,
+      adminNotes: adminNotes ? sanitizeText(adminNotes, 500) : null,
     });
+
+    if (!updated) {
+      return NextResponse.json({ error: "Report not found." }, { status: 404 });
+    }
 
     return NextResponse.json({ success: true, report: updated });
   } catch (error) {

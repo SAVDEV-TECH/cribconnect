@@ -1,11 +1,75 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireAuth } from "@/lib/session";
+import { checkRateLimit, sanitizeText } from "@/lib/auth-security";
+import { PH_NEIGHBORHOODS } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
+const ALLOWED_PROPERTY_TYPES = new Set([
+  "SELF_CONTAIN",
+  "ONE_BED",
+  "TWO_BED",
+  "THREE_BED",
+  "STUDIO",
+]);
+
+function normalizeGeminiResult(raw: any) {
+  const neighborhood = PH_NEIGHBORHOODS.includes(raw?.neighborhood)
+    ? raw.neighborhood
+    : "Choba";
+  const propertyType = ALLOWED_PROPERTY_TYPES.has(raw?.propertyType)
+    ? raw.propertyType
+    : "SELF_CONTAIN";
+  const price =
+    Number.isFinite(Number(raw?.price)) && Number(raw.price) > 0
+      ? Math.round(Number(raw.price))
+      : 250000;
+  const cautionFee =
+    Number.isFinite(Number(raw?.cautionFee)) && Number(raw.cautionFee) >= 0
+      ? Math.round(Number(raw.cautionFee))
+      : Math.round(price * 0.1);
+  const agencyFee =
+    Number.isFinite(Number(raw?.agencyFee)) && Number(raw.agencyFee) >= 0
+      ? Math.round(Number(raw.agencyFee))
+      : Math.round(price * 0.1);
+  const distanceToCampusMinutes =
+    Number.isFinite(Number(raw?.distanceToCampusMinutes)) &&
+    Number(raw.distanceToCampusMinutes) >= 0
+      ? Math.min(180, Math.round(Number(raw.distanceToCampusMinutes)))
+      : 8;
+
+  return {
+    title: sanitizeText(raw?.title || `Student Lodge in ${neighborhood}`, 160),
+    neighborhood,
+    propertyType,
+    price,
+    cautionFee,
+    agencyFee,
+    distanceToCampusMinutes,
+    address: sanitizeText(raw?.address || `Off UNIPORT Road, ${neighborhood}, Port Harcourt`, 200),
+    description: sanitizeText(raw?.description || "", 1500),
+    amenities: Array.isArray(raw?.amenities)
+      ? raw.amenities.map((a: unknown) => sanitizeText(a, 60)).filter(Boolean).slice(0, 15)
+      : ["Borehole Water", "Prepaid Meter", "24/7 Security"],
+  };
+}
+
 export async function POST(req: NextRequest) {
   try {
+    const auth = await requireAuth();
+    if (!auth.ok) return auth.response;
+
+    const { user } = auth.context;
+    const { allowed } = checkRateLimit(`ai-parse:${user.id}`, 20, 10 * 60 * 1000);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "AI parser rate limit reached. Please wait a few minutes." },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
-    const rawText = String(body.prompt || "").trim();
+    const rawText = sanitizeText(body.prompt || "", 1000);
     const hasPhoto = Boolean(body.photoUrl);
 
     if (!rawText && !hasPhoto) {
@@ -15,26 +79,31 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 1. If GEMINI_API_KEY is configured, try Gemini multimodal/structured extraction first
-    const geminiKey = process.env.GEMINI_API_KEY;
+    // 1. If GEMINI_API_KEY is configured, try Gemini structured extraction via header (not URL query)
+    const geminiKey = (process.env.GEMINI_API_KEY || "").trim();
     if (geminiKey && rawText) {
       try {
         const geminiRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
+          "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
           {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              "x-goog-api-key": geminiKey,
+            },
             body: JSON.stringify({
               contents: [
                 {
                   parts: [
                     {
-                      text: `You are an expert Port Harcourt / UNIPORT real estate listing assistant. Extract structured property fields from this landlord/agent note: "${rawText}".
+                      text: `You are an expert Port Harcourt / UNIPORT real estate listing assistant. Extract structured property fields from this landlord/agent note: ${JSON.stringify(
+                        rawText
+                      )}.
 Return ONLY valid JSON with these exact keys:
 {
   "title": string,
-  "neighborhood": "Choba" | "Ozuoba" | "Aluu" | "Rumuola" | "Rumuokoro" | "GRA Port Harcourt",
-  "propertyType": "SELF_CONTAIN" | "ONE_BED" | "TWO_BED" | "STUDIO",
+  "neighborhood": "Choba" | "Ozuoba" | "Aluu" | "Rumuola" | "Rumuokoro" | "Rumuigbo" | "GRA Port Harcourt",
+  "propertyType": "SELF_CONTAIN" | "ONE_BED" | "TWO_BED" | "THREE_BED" | "STUDIO",
   "price": number,
   "cautionFee": number,
   "agencyFee": number,
@@ -58,7 +127,7 @@ Return ONLY valid JSON with these exact keys:
           const geminiData = await geminiRes.json();
           const textOut = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text;
           if (textOut) {
-            const parsed = JSON.parse(textOut);
+            const parsed = normalizeGeminiResult(JSON.parse(textOut));
             return NextResponse.json({ success: true, listing: parsed, source: "gemini" });
           }
         }
@@ -67,7 +136,7 @@ Return ONLY valid JSON with these exact keys:
       }
     }
 
-    // 2. Built-in Intelligent Nigerian Real Estate & UNIPORT NLP Parser (Works 100% offline/zero-key)
+    // 2. Built-in Nigerian Real Estate & UNIPORT NLP Parser (offline fallback)
     const lower = rawText.toLowerCase();
 
     // Detect neighborhood
@@ -80,44 +149,43 @@ Return ONLY valid JSON with these exact keys:
       neighborhood = "Rumuola";
     } else if (lower.includes("rumuokoro") || lower.includes("rumuosi")) {
       neighborhood = "Rumuokoro";
-    } else if (lower.includes("gra")) {
+    } else if (lower.includes("rumuigbo")) {
+      neighborhood = "Rumuigbo";
+    } else if (/\bgra\b/.test(lower)) {
       neighborhood = "GRA Port Harcourt";
     }
 
-    // Detect property type
+    // Detect property type (check specific bedroom counts BEFORE generic "flat")
     let propertyType = "SELF_CONTAIN";
     let typeTitle = "Executive Self-Contain";
-    if (
-      lower.includes("2 bed") ||
-      lower.includes("two bed") ||
-      lower.includes("2-bed") ||
-      lower.includes("flat")
-    ) {
+    if (/\b(3|three)[\s-]*bed/i.test(lower)) {
+      propertyType = "THREE_BED";
+      typeTitle = "Spacious 3-Bedroom Flat";
+    } else if (/\b(2|two)[\s-]*bed/i.test(lower)) {
       propertyType = "TWO_BED";
       typeTitle = "Spacious 2-Bedroom Flat";
-    } else if (
-      lower.includes("1 bed") ||
-      lower.includes("one bed") ||
-      lower.includes("1-bed") ||
-      lower.includes("chamber")
-    ) {
+    } else if (/\b(1|one)[\s-]*bed|\bchamber\b|\bmini[\s-]*flat\b/i.test(lower)) {
       propertyType = "ONE_BED";
       typeTitle = "Modern 1-Bedroom Apartment";
-    } else if (lower.includes("studio") || lower.includes("serviced")) {
+    } else if (/\bflat\b/i.test(lower)) {
+      propertyType = "TWO_BED";
+      typeTitle = "Spacious 2-Bedroom Flat";
+    } else if (/\bstudio\b|\bserviced\b/i.test(lower)) {
       propertyType = "STUDIO";
       typeTitle = "Serviced Student Studio";
     }
 
-    // Extract price (supports "250k", "300,000", "250000", "1.2m")
+    // Extract price (supports "250k", "300,000", "250000", "1.2m" while ignoring distances like "200m")
     let price = 250000;
-    const kMatch = lower.match(/(\d+(?:\.\d+)?)\s*k\b/);
-    const mMatch = lower.match(/(\d+(?:\.\d+)?)\s*m\b/);
-    const rawNumMatch = lower.replace(/,/g, "").match(/\b(\d{5,7})\b/);
+    const kMatch = lower.match(/(?:₦|ngn|n)?\s*(\d+(?:\.\d+)?)\s*k\b/);
+    const mMatch = lower.match(/(?:₦|ngn|n)?\s*(\d+(?:\.\d+)?)\s*(?:m|million)\b/);
+    const rawNumMatch = lower.replace(/,/g, "").match(/\b(\d{5,8})\b/);
 
     if (kMatch) {
       price = Math.round(parseFloat(kMatch[1]) * 1000);
-    } else if (mMatch) {
-      price = Math.round(parseFloat(mMatch[1]) * 1000000);
+    } else if (mMatch && parseFloat(mMatch[1]) > 0 && parseFloat(mMatch[1]) <= 20) {
+      // Values > 20 with "m" are almost always distances in meters (e.g. "200m from gate")
+      price = Math.round(parseFloat(mMatch[1]) * 1_000_000);
     } else if (rawNumMatch) {
       price = parseInt(rawNumMatch[1], 10);
     }
@@ -127,28 +195,25 @@ Return ONLY valid JSON with these exact keys:
 
     // Extract distance in minutes
     let distanceToCampusMinutes = neighborhood === "Choba" || neighborhood === "Aluu" ? 5 : 12;
-    const minMatch = lower.match(/(\d{1,2})\s*(?:min|mins|minute|minutes)/);
+    const minMatch = lower.match(/(\d{1,2})\s*(?:min|mins|minute|minutes)\b/);
     if (minMatch) {
       distanceToCampusMinutes = parseInt(minMatch[1], 10);
     }
 
-    // Extract amenities
+    // Extract amenities with word-boundary matching
     const amenities = new Set<string>([
       "Borehole Water",
       "Prepaid Meter",
       "Fenced Gate",
       "24/7 Security",
     ]);
-    if (lower.includes("ac") || lower.includes("air condition")) amenities.add("Air Conditioning");
-    if (lower.includes("furnish") || lower.includes("bed") || lower.includes("wardrobe"))
-      amenities.add("Furnished");
-    if (lower.includes("cabinet") || lower.includes("kitchen")) amenities.add("Kitchen Cabinets");
-    if (lower.includes("balcony") || lower.includes("upstairs")) amenities.add("Balcony");
-    if (lower.includes("gen") || lower.includes("solar") || lower.includes("steady light"))
-      amenities.add("Generator Line");
-    if (lower.includes("tank") || lower.includes("water")) amenities.add("Personal Water Tank");
+    if (/\bac\b|air\s*condition/i.test(lower)) amenities.add("Air Conditioning");
+    if (/\bfurnish|\bwardrobe|\bbed\s*frame/i.test(lower)) amenities.add("Furnished");
+    if (/\bcabinet|\bkitchen/i.test(lower)) amenities.add("Kitchen Cabinets");
+    if (/\bbalcony|\bupstairs/i.test(lower)) amenities.add("Balcony");
+    if (/\bgen(erator)?\b|\bsolar\b|steady\s*light/i.test(lower)) amenities.add("Generator Line");
+    if (/\btank\b|\bwater\b/i.test(lower)) amenities.add("Personal Water Tank");
 
-    // Extract specific street landmark if mentioned
     const address =
       rawText.length > 8 && rawText.length < 70
         ? rawText
@@ -158,7 +223,7 @@ Return ONLY valid JSON with these exact keys:
 
     const description =
       `Clean, student-ready ${typeTitle.toLowerCase()} located in a secure, gated compound at ${neighborhood}, Port Harcourt (${distanceToCampusMinutes} minutes to UNIPORT Gate). ` +
-      `Features constant borehole water, prepaid electricity meter, POP/tiled finishing, kitchen cabinets, and 24/7 compound security. ` +
+      `Features constant borehole water, prepaid electricity meter, tiled finishing, kitchen cabinets, and 24/7 compound security. ` +
       (rawText ? `Agent Note: ${rawText}. ` : "") +
       `Protected by CribConnect 48-Hour Holding Escrow — inspect physically before releasing your PIN.`;
 

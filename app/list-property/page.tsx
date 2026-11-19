@@ -4,11 +4,13 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import MediaUploader from "@/components/MediaUploader";
-import { CheckCircle2, ArrowRight, LogIn } from "lucide-react";
+import { useApp } from "@/context/AppContext";
+import { PH_NEIGHBORHOODS } from "@/lib/types";
+import { CheckCircle2, ArrowRight, LogIn, Lock, AlertCircle } from "lucide-react";
 
 export default function ListPropertyPage() {
   const router = useRouter();
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const { currentUser, sessionReady } = useApp();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,37 +27,19 @@ export default function ListPropertyPage() {
     distanceToCampusMinutes: "5",
     address: "",
     description: "",
-    agentName: "",
-    agentPhone: "",
     agentWhatsapp: "",
-    agencyName: "Independent Verified Realtor",
+    agencyName: "",
     amenities: ["Borehole Water", "Prepaid Meter", "24/7 Security", "Fenced Gate"],
   });
 
   useEffect(() => {
-    import("@/lib/client-auth").then(
-      ({ getSavedMobileUser, syncOrRestoreSession }) => {
-        const applyUser = (u: any) => {
-          if (!u) return;
-          setCurrentUser(u);
-          setFormData((prev) => ({
-            ...prev,
-            agentName: u.name || prev.agentName,
-            agentPhone: u.phone || prev.agentPhone,
-            agentWhatsapp: u.whatsapp || u.phone || prev.agentWhatsapp,
-            agencyName: u.agencyName || prev.agencyName,
-          }));
-        };
-        const cached = getSavedMobileUser();
-        if (cached) applyUser(cached);
-        syncOrRestoreSession()
-          .then((user) => {
-            if (user) applyUser(user);
-          })
-          .catch(() => {});
-      }
-    );
-  }, []);
+    if (!currentUser) return;
+    setFormData((prev) => ({
+      ...prev,
+      agentWhatsapp: prev.agentWhatsapp || currentUser.whatsapp || currentUser.phone || "",
+      agencyName: prev.agencyName || currentUser.agencyName || "",
+    }));
+  }, [currentUser]);
 
   const availableAmenities = [
     "Borehole Water",
@@ -82,38 +66,35 @@ export default function ListPropertyPage() {
     });
   };
 
-  const samplePhotoPresets = [
-    "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800",
-    "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800",
-    "https://images.unsplash.com/photo-1540518614846-7eded433c457?w=800",
-  ];
+  const canPublish = Boolean(
+    currentUser &&
+      (currentUser.isAdmin ||
+        currentUser.role === "ADMIN" ||
+        currentUser.role === "AGENT" ||
+        currentUser.role === "LANDLORD")
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
 
-    try {
-      const finalPhotos =
-        photos.length > 0
-          ? photos
-          : [
-              samplePhotoPresets[
-                Math.floor(Math.random() * samplePhotoPresets.length)
-              ],
-            ];
+    if (photos.length === 0) {
+      setError("Please upload at least 1 real photo of the apartment or compound before publishing.");
+      return;
+    }
 
+    setLoading(true);
+
+    try {
       const res = await fetch("/api/listings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
-          agentPhone: formData.agentWhatsapp || formData.agentPhone,
-          agentId: currentUser?.id || undefined,
-          agentAvatar: currentUser?.avatar || undefined,
-          photos: finalPhotos,
+          agentPhone: formData.agentWhatsapp || currentUser?.phone || "",
+          photos,
           videoTourUrl: videoTourUrl || null,
-          distanceDescription: `${formData.distanceToCampusMinutes} mins to UNIPORT Gate`,
+          distanceDescription: `${formData.distanceToCampusMinutes || "5"} mins to UNIPORT Gate`,
         }),
       });
 
@@ -130,39 +111,90 @@ export default function ListPropertyPage() {
     }
   };
 
+  if (sessionReady && !currentUser) {
+    return (
+      <div className="max-w-md mx-auto my-20 p-8 bg-white rounded-2xl border border-gray-200 shadow-sm text-center space-y-4">
+        <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center mx-auto">
+          <Lock className="w-6 h-6" />
+        </div>
+        <h1 className="text-xl font-bold text-gray-900">Sign In to List a Property</h1>
+        <p className="text-xs text-gray-500 leading-relaxed">
+          To keep students safe from fake listings, only signed-in Agents and Property Owners can
+          publish accommodations on CribConnect.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-2 justify-center pt-1">
+          <Link
+            href="/auth/login?next=/list-property"
+            className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors"
+          >
+            <LogIn className="w-3.5 h-3.5" />
+            <span>Sign In</span>
+          </Link>
+          <Link
+            href="/auth/register"
+            className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-bold transition-colors"
+          >
+            Create Agent / Owner Account
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (sessionReady && currentUser && !canPublish) {
+    return (
+      <div className="max-w-md mx-auto my-20 p-8 bg-white rounded-2xl border border-amber-200 shadow-sm text-center space-y-4">
+        <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center mx-auto">
+          <AlertCircle className="w-6 h-6" />
+        </div>
+        <h1 className="text-xl font-bold text-gray-900">Agent or Landlord Account Required</h1>
+        <p className="text-xs text-gray-500 leading-relaxed">
+          You are currently signed in as a <strong>{currentUser.role}</strong>. Register an Agent
+          or Property Owner account to publish apartments, or post a housing request instead.
+        </p>
+        <div className="flex flex-wrap gap-2 justify-center">
+          <Link
+            href="/requests"
+            className="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold"
+          >
+            Post a Housing Request
+          </Link>
+          <Link
+            href="/auth/register"
+            className="px-4 py-2 rounded-xl border border-gray-200 text-gray-700 text-xs font-bold"
+          >
+            Register as Agent / Owner
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
       <div className="bg-white rounded-xl border border-gray-200 p-5 sm:p-8 space-y-6">
-        {/* Compact Header */}
         <div className="flex items-center justify-between gap-4 border-b border-gray-100 pb-4">
           <div>
             <h1 className="text-xl font-bold text-gray-900">List a Property</h1>
             <p className="text-xs text-gray-500 mt-0.5">
-              Add property details, rent, and photos.
+              Publish real photos, pricing, and video walkthroughs directly to UNIPORT students.
             </p>
           </div>
 
-          {currentUser ? (
+          {currentUser && (
             <Link
               href="/agent/profile"
-              className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-800 text-xs font-medium truncate max-w-[140px]"
+              className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-800 text-xs font-medium truncate max-w-[160px]"
             >
               {currentUser.name}
-            </Link>
-          ) : (
-            <Link
-              href="/auth/login"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-900 text-white text-xs font-medium"
-            >
-              <LogIn className="w-3.5 h-3.5" />
-              <span>Sign In</span>
             </Link>
           )}
         </div>
 
         {error && (
-          <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs font-medium">
-            {error}
+          <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
@@ -176,55 +208,44 @@ export default function ListPropertyPage() {
               required
               placeholder="e.g. Clean Self-Contain near UNIPORT Choba Gate"
               value={formData.title}
-              onChange={(e) =>
-                setFormData({ ...formData, title: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:border-gray-900 focus:outline-none"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Area *
-              </label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Area *</label>
               <select
                 value={formData.neighborhood}
-                onChange={(e) =>
-                  setFormData({ ...formData, neighborhood: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, neighborhood: e.target.value })}
                 className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:border-gray-900 focus:outline-none"
               >
-                <option value="Choba">Choba</option>
-                <option value="Ozuoba">Ozuoba</option>
-                <option value="Aluu">Aluu</option>
-                <option value="Rumuola">Rumuola</option>
-                <option value="Rumuokoro">Rumuokoro</option>
-                <option value="Rumuigbo">Rumuigbo</option>
-                <option value="GRA Port Harcourt">GRA Port Harcourt</option>
+                {PH_NEIGHBORHOODS.map((area) => (
+                  <option key={area} value={area}>
+                    {area}
+                  </option>
+                ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Room Type *
-              </label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Room Type *</label>
               <select
                 value={formData.propertyType}
-                onChange={(e) =>
-                  setFormData({ ...formData, propertyType: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, propertyType: e.target.value })}
                 className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:border-gray-900 focus:outline-none"
               >
                 <option value="SELF_CONTAIN">Self-Contain</option>
                 <option value="ONE_BED">1-Bedroom</option>
                 <option value="TWO_BED">2-Bedroom</option>
+                <option value="THREE_BED">3-Bedroom</option>
                 <option value="STUDIO">Studio</option>
               </select>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 Annual Rent (₦) *
@@ -232,11 +253,10 @@ export default function ListPropertyPage() {
               <input
                 type="number"
                 required
+                min={1000}
                 placeholder="250000"
                 value={formData.price}
-                onChange={(e) =>
-                  setFormData({ ...formData, price: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                 className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:border-gray-900 focus:outline-none"
               />
             </div>
@@ -247,28 +267,38 @@ export default function ListPropertyPage() {
               </label>
               <input
                 type="number"
+                min={0}
                 placeholder="25000"
                 value={formData.cautionFee}
-                onChange={(e) =>
-                  setFormData({ ...formData, cautionFee: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, cautionFee: e.target.value })}
                 className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:border-gray-900 focus:outline-none"
               />
             </div>
 
-            <div className="col-span-2 sm:col-span-1">
+            <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
-                Mins to Gate
+                Agency Fee (₦)
               </label>
               <input
                 type="number"
+                min={0}
+                placeholder="0 for direct owner"
+                value={formData.agencyFee}
+                onChange={(e) => setFormData({ ...formData, agencyFee: e.target.value })}
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:border-gray-900 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Mins to Gate</label>
+              <input
+                type="number"
+                min={0}
+                max={180}
                 placeholder="5"
                 value={formData.distanceToCampusMinutes}
                 onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    distanceToCampusMinutes: e.target.value,
-                  })
+                  setFormData({ ...formData, distanceToCampusMinutes: e.target.value })
                 }
                 className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:border-gray-900 focus:outline-none"
               />
@@ -283,9 +313,7 @@ export default function ListPropertyPage() {
               type="text"
               placeholder="e.g. 12A Choba Road, near Main Gate"
               value={formData.address}
-              onChange={(e) =>
-                setFormData({ ...formData, address: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
               className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:border-gray-900 focus:outline-none"
             />
           </div>
@@ -295,19 +323,17 @@ export default function ListPropertyPage() {
               Short Description
             </label>
             <textarea
-              rows={2}
+              rows={3}
               placeholder="Water supply, power, compound security..."
               value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none"
             />
           </div>
 
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-2">
-              Photos & Video
+              Real Property Photos (At least 1 required) &amp; Video Walkthrough
             </label>
             <MediaUploader
               photos={photos}
@@ -318,9 +344,7 @@ export default function ListPropertyPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-2">
-              Amenities
-            </label>
+            <label className="block text-xs font-medium text-gray-700 mb-2">Amenities</label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {availableAmenities.map((amenity) => {
                 const checked = formData.amenities.includes(amenity);
@@ -336,9 +360,7 @@ export default function ListPropertyPage() {
                     }`}
                   >
                     <CheckCircle2
-                      className={`w-3.5 h-3.5 shrink-0 ${
-                        checked ? "text-white" : "text-gray-400"
-                      }`}
+                      className={`w-3.5 h-3.5 shrink-0 ${checked ? "text-white" : "text-gray-400"}`}
                     />
                     <span className="truncate">{amenity}</span>
                   </button>
@@ -350,16 +372,13 @@ export default function ListPropertyPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-gray-100">
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
-                Your Name *
+                Agency / Estate Name
               </label>
               <input
                 type="text"
-                required
-                placeholder="e.g. Chinedu Eze"
-                value={formData.agentName}
-                onChange={(e) =>
-                  setFormData({ ...formData, agentName: e.target.value })
-                }
+                placeholder="e.g. Choba Realty"
+                value={formData.agencyName}
+                onChange={(e) => setFormData({ ...formData, agencyName: e.target.value })}
                 className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none"
               />
             </div>
@@ -373,9 +392,7 @@ export default function ListPropertyPage() {
                 required
                 placeholder="08034452299"
                 value={formData.agentWhatsapp}
-                onChange={(e) =>
-                  setFormData({ ...formData, agentWhatsapp: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, agentWhatsapp: e.target.value })}
                 className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none"
               />
             </div>

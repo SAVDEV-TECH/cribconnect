@@ -1,14 +1,21 @@
 $ErrorActionPreference = "Stop"
 
-$sdkDir = "$env:LOCALAPPDATA\Android\Sdk"
+$keystorePass = $env:CRIBCONNECT_KEYSTORE_PASS
+if ([string]::IsNullOrWhiteSpace($keystorePass)) {
+  throw "Set the CRIBCONNECT_KEYSTORE_PASS environment variable before building a signed APK."
+}
+
+$sdkDir = if ($env:ANDROID_HOME) { $env:ANDROID_HOME } else { "$env:LOCALAPPDATA\Android\Sdk" }
 $buildTools = "$sdkDir\build-tools\36.0.0"
 $platformJar = "$sdkDir\platforms\android-36\android.jar"
-$jdkBin = "C:\Program Files\Android\Android Studio\jbr\bin"
-$env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
+$jdkHome = if ($env:JAVA_HOME) { $env:JAVA_HOME } else { "C:\Program Files\Android\Android Studio\jbr" }
+$jdkBin = "$jdkHome\bin"
+$env:JAVA_HOME = $jdkHome
 $env:PATH = "$jdkBin;$buildTools;$env:PATH"
 
-$workDir = "c:\Users\savde\OneDrive\Desktop\Real-estate housing\android-native"
-$buildDir = "$workDir\build"
+$workDir = $PSScriptRoot
+$repoRoot = Split-Path -Parent $workDir
+$buildDir = Join-Path $workDir "build"
 if (Test-Path $buildDir) { Remove-Item -Recurse -Force $buildDir }
 New-Item -ItemType Directory -Force -Path "$buildDir\compiled_res", "$buildDir\gen", "$buildDir\obj", "$buildDir\dex" | Out-Null
 
@@ -41,33 +48,25 @@ Write-Host "5. Adding classes.dex into APK..."
 Write-Host "6. Aligning APK with zipalign..."
 & "$buildTools\zipalign.exe" -f -p 4 "$buildDir\unaligned.apk" "$buildDir\aligned.apk"
 
-Write-Host "7. Generating signing keystore and signing APK..."
-$keystore = "$workDir\cribconnect-release.jks"
+Write-Host "7. Signing APK..."
+$keystore = if ($env:CRIBCONNECT_KEYSTORE_PATH) { $env:CRIBCONNECT_KEYSTORE_PATH } else { Join-Path $workDir "cribconnect-release.jks" }
 if (-not (Test-Path $keystore)) {
   & "$jdkBin\keytool.exe" -genkeypair `
     -keystore $keystore `
     -alias cribconnect `
     -keyalg RSA -keysize 2048 -validity 10000 `
-    -storepass cribconnect2026 -keypass cribconnect2026 `
+    -storepass $keystorePass -keypass $keystorePass `
     -dname "CN=CribConnect UNIPORT, OU=Mobile, O=CribConnect, L=Port Harcourt, ST=Rivers, C=NG"
 }
 
-$publicApk = "c:\Users\savde\OneDrive\Desktop\Real-estate housing\public\CribConnect.apk"
-$desktopApk = "c:\Users\savde\OneDrive\Desktop\CribConnect.apk"
-$rootApk = "c:\Users\savde\OneDrive\Desktop\Real-estate housing\CribConnect.apk"
+$publicApk = Join-Path $repoRoot "public\CribConnect.apk"
 
 & "$buildTools\apksigner.bat" sign `
   --ks $keystore `
   --ks-key-alias cribconnect `
-  --ks-pass pass:cribconnect2026 `
-  --key-pass pass:cribconnect2026 `
+  --ks-pass "env:CRIBCONNECT_KEYSTORE_PASS" `
+  --key-pass "env:CRIBCONNECT_KEYSTORE_PASS" `
   --out $publicApk `
   "$buildDir\aligned.apk"
 
-Copy-Item -Force $publicApk $desktopApk
-Copy-Item -Force $publicApk $rootApk
-
-Write-Host "SUCCESS! Signed APK generated at:"
-Write-Host " - $publicApk"
-Write-Host " - $desktopApk"
-Write-Host " - $rootApk"
+Write-Host "SUCCESS! Signed APK generated at: $publicApk"
