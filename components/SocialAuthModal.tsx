@@ -87,8 +87,18 @@ export default function SocialAuthModal({
 
   const handleNativeGoogleOAuth = () => {
     setError(null);
-    // On mobile / WebView, avoid window.open OAuth popups that cause blank screens
-    if (typeof window !== "undefined" && /Android|iPhone|iPad|iPod|Mobile|CribConnectAndroid|wv/i.test(window.navigator.userAgent)) {
+    // Inside Native Android APK: hand off to Chrome for 1-Tap Google Sign-In with cribconnect:// callback
+    if (typeof navigator !== "undefined" && navigator.userAgent.includes("CribConnectAndroid")) {
+      setLoading(true);
+      const nativeUrl = `${window.location.origin}/auth/native-google?role=${encodeURIComponent(
+        role
+      )}&redirect=${encodeURIComponent(redirectUrl)}`;
+      window.location.href = nativeUrl;
+      setTimeout(() => setLoading(false), 2500);
+      return;
+    }
+    // On other mobile WebViews, avoid window.open OAuth popups that cause blank screens
+    if (typeof window !== "undefined" && /Android|iPhone|iPad|iPod|Mobile|wv/i.test(window.navigator.userAgent)) {
       return;
     }
     setLoading(true);

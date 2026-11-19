@@ -109,9 +109,19 @@ export default function GoogleSignInButton({
   const handleSignInClick = () => {
     setError(null);
 
-    // On mobile phones, installed PWAs, or Android APK WebViews, OAuth window.open popups
-    // cause a blank screen because window.opener is blocked. Open the instant in-app
-    // One-Time Google Sign-In sheet directly with zero popups!
+    // Inside Native Android APK WebView: hand off to the phone's system Chrome browser
+    // where the user's Google account is ALREADY signed in (true 1-tap, zero white screen, zero password!).
+    if (typeof navigator !== "undefined" && navigator.userAgent.includes("CribConnectAndroid")) {
+      setLoading(true);
+      const nativeUrl = `${window.location.origin}/auth/native-google?role=${encodeURIComponent(
+        selectedRole
+      )}&redirect=${encodeURIComponent(redirectUrl)}`;
+      window.location.href = nativeUrl;
+      setTimeout(() => setLoading(false), 2500);
+      return;
+    }
+
+    // On mobile browsers / PWAs without GSI, open the instant in-app One-Time Google Sign-In sheet
     if (isMobileOrWebView() || typeof window === "undefined" || !window.google?.accounts?.id) {
       setShowMobileSheet(true);
       return;
